@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "argos-landing",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "C:/Users/matib/OneDrive/Desktop/Personal/argos-landing", "-l", "5173"],
+      "port": 5173
+    }
+  ]
+}

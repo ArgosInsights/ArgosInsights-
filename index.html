@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="es-CL">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Argos Insights | Inteligencia Financiera para Pymes Proveedoras</title>
+<meta name="description" content="Convertimos las facturas, EDPs y órdenes de compra que ya generas en respuestas claras: cuánto te deben, cuándo te van a pagar, y si te alcanza la caja para los próximos 60-90 días.">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Argos Insights | Inteligencia Financiera para Pymes Proveedoras">
+<meta property="og:description" content="Consultoría en datos financieros para pymes que facturan a grandes empresas. Visibilidad de flujo de caja, proyecciones y alertas de cobranza.">
+<meta property="og:locale" content="es_CL">
+<meta property="og:image" content="/assets/logo-icon-512.png">
+
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+          display: ['Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        },
+        colors: {
+          navy: '#0a0a0a',
+          card: '#161616',
+          chrome: '#d2d3d3',
+          accent: {
+            DEFAULT: '#6fb000',
+            dark: '#4a7a00',
+          },
+          danger: {
+            DEFAULT: '#f87171',
+            dark: '#ef4444',
+          },
+        },
+      },
+    },
+  }
+</script>
+
+<style>
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', sans-serif; }
+  h1, h2, h3, .font-display { font-family: 'Poppins', sans-serif; }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+  }
+  .reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .reveal-left {
+    opacity: 0;
+    transform: translateX(-26px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  }
+  .reveal-left.is-visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .reveal-right {
+    opacity: 0;
+    transform: translateX(26px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  }
+  .reveal-right.is-visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .diff-row {
+    transition: background-color 0.3s ease;
+    border-radius: 0.75rem;
+  }
+  .diff-row:hover {
+    background-color: rgba(255,255,255,0.045);
+  }
+  .diff-row:hover .diff-sin {
+    opacity: 0.5;
+  }
+  .diff-row:hover .diff-con {
+    color: #ffffff;
+  }
+  .diff-row:hover .diff-con svg {
+    transform: scale(1.3);
+  }
+  .diff-sin, .diff-con {
+    transition: opacity 0.3s ease, color 0.3s ease;
+  }
+  .diff-sin svg, .diff-con svg {
+    transition: transform 0.3s ease;
+  }
+
+  .icon-pulse {
+    animation: iconPulse 2.2s ease-in-out infinite;
+  }
+  @keyframes iconPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+  }
+  .icon-wiggle {
+    animation: iconWiggle 2.8s ease-in-out infinite;
+  }
+  @keyframes iconWiggle {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-14deg); }
+    75% { transform: rotate(14deg); }
+  }
+
+  .bar-anim {
+    transform-origin: bottom;
+    animation: growBar 0.9s ease-out forwards, barPulse 2.4s ease-in-out infinite;
+  }
+  @keyframes growBar {
+    from { transform: scaleY(0); }
+    to { transform: scaleY(1); }
+  }
+  @keyframes barPulse {
+    0%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(0.72); }
+  }
+
+  .line-draw {
+    stroke-dasharray: 320;
+    stroke-dashoffset: 320;
+    animation: drawLine 1.8s ease-out forwards 0.3s;
+  }
+  @keyframes drawLine {
+    to { stroke-dashoffset: 0; }
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .eyebrow::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: currentColor;
+    flex-shrink: 0;
+  }
+  .eyebrow-live::before {
+    animation: pulseDot 2s ease-in-out infinite;
+  }
+  @keyframes pulseDot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+
+  .underline-accent {
+    display: block;
+    width: 56px;
+    height: 5px;
+    border-radius: 999px;
+    background: #a3e635;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.7s ease-out 0.2s;
+  }
+  .reveal.is-visible .underline-accent {
+    transform: scaleX(1);
+  }
+
+  .divider-label {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .divider-label::before,
+  .divider-label::after {
+    content: '';
+    height: 1px;
+    flex: 1;
+    background: currentColor;
+    opacity: 0.15;
+  }
+
+  .floaty {
+    animation: floaty 6s ease-in-out infinite;
+  }
+  @keyframes floaty {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  .scroll-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    z-index: 60;
+    background: rgba(255,255,255,0.06);
+  }
+  .scroll-progress-bar {
+    height: 100%;
+    width: 100%;
+    transform: scaleX(0);
+    transform-origin: left;
+    background: linear-gradient(90deg, #3d6600, #7fb102, #d9ff7a, #7fb102, #3d6600);
+    background-size: 200% 100%;
+    box-shadow: 0 0 10px rgba(127,177,2,0.85), 0 0 22px rgba(127,177,2,0.5);
+    animation: scrollBarShimmer 3s linear infinite;
+  }
+  @keyframes scrollBarShimmer {
+    from { background-position: 0% 0; }
+    to { background-position: 200% 0; }
+  }
+
+  .dot-field {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(163,230,53,0.16) 1px, transparent 1px);
+    background-size: 24px 24px;
+    pointer-events: none;
+  }
+
+  .splash {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: #0a0a0a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    transition: opacity 0.7s ease, visibility 0.7s ease;
+  }
+  .splash.splash-hide {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+  .splash-icon-wrap {
+    position: relative;
+    width: 120px;
+    height: 120px;
+  }
+  .splash-logo {
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transform: scale(0.8);
+    animation: splashLogoIn 0.7s ease-out 0.15s forwards;
+    position: relative;
+    z-index: 2;
+  }
+  @keyframes splashLogoIn {
+    to { opacity: 1; transform: scale(1); }
+  }
+  .splash-streak {
+    position: absolute;
+    top: 50%;
+    height: 2px;
+    border-radius: 2px;
+    opacity: 0;
+  }
+  .splash-streak.left {
+    right: 50%;
+    background: linear-gradient(90deg, transparent 0%, rgba(190,255,120,0.95) 100%);
+    transform-origin: right center;
+    animation-name: splashStreakLeft;
+  }
+  .splash-streak.right {
+    left: 50%;
+    background: linear-gradient(270deg, transparent 0%, rgba(190,255,120,0.95) 100%);
+    transform-origin: left center;
+    animation-name: splashStreakRight;
+  }
+  .splash-streak {
+    animation-timing-function: ease-out;
+    animation-duration: 1s;
+    animation-fill-mode: forwards;
+  }
+  @keyframes splashStreakLeft {
+    0% { transform: translateX(0) scaleX(0.2); opacity: 0; }
+    25% { opacity: 1; }
+    100% { transform: translateX(-160%) scaleX(1); opacity: 0; }
+  }
+  @keyframes splashStreakRight {
+    0% { transform: translateX(0) scaleX(0.2); opacity: 0; }
+    25% { opacity: 1; }
+    100% { transform: translateX(160%) scaleX(1); opacity: 0; }
+  }
+
+  .card-hover {
+    transition: transform 0.3s ease-out, border-color 0.3s ease-out;
+  }
+
+  .mock-win {
+    border-radius: 10px;
+    overflow: hidden;
+    transition: transform 0.3s ease-out;
+  }
+  .mock-win:hover {
+    transform: translateY(-3px);
+  }
+  .mock-win-danger {
+    background: rgba(30,12,12,0.6);
+    border: 1px solid rgba(248,113,113,0.18);
+  }
+  .mock-win-accent {
+    background: rgba(10,18,4,0.6);
+    border: 1px solid rgba(111,176,0,0.2);
+  }
+  .mock-chrome {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .mock-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .mock-chrome-title {
+    margin-left: 6px;
+    font-size: 10.5px;
+    color: rgba(255,255,255,0.4);
+    font-family: 'Inter', sans-serif;
+  }
+  .mock-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 0;
+    font-size: 12.5px;
+  }
+  .mock-row + .mock-row {
+    border-top: 1px solid rgba(255,255,255,0.05);
+  }
+  .mock-tag {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .mock-tag-danger {
+    background: rgba(248,113,113,0.15);
+    color: #f87171;
+  }
+  .mock-tag-accent {
+    background: rgba(111,176,0,0.2);
+    color: #9ade2e;
+  }
+
+  .sticky-note {
+    background: #f5d90a;
+    color: #4a3f00;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 10px 14px;
+    border-radius: 2px;
+    transform: rotate(-4deg);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.35);
+    width: fit-content;
+    animation: stickyWiggle 4s ease-in-out infinite;
+  }
+  @keyframes stickyWiggle {
+    0%, 100% { transform: rotate(-4deg); }
+    50% { transform: rotate(-1deg); }
+  }
+
+  .diff-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 5px 14px;
+    border-radius: 999px;
+  }
+  .diff-badge-danger {
+    background: rgba(248,113,113,0.12);
+    border: 1px solid rgba(248,113,113,0.28);
+    color: #f87171;
+  }
+  .diff-badge-accent {
+    background: rgba(111,176,0,0.14);
+    border: 1px solid rgba(111,176,0,0.3);
+    color: #9ade2e;
+  }
+  .diff-badge-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: pulseDotSimple 1.8s ease-in-out infinite;
+  }
+  @keyframes pulseDotSimple {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+
+  .chat-fab {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #0a0a0a;
+    border: 1px solid rgba(127,177,2,0.35);
+    animation: chatFabGlow 2.6s ease-in-out infinite;
+    transition: transform 0.25s ease;
+  }
+  .chat-fab:hover {
+    transform: scale(1.08);
+  }
+  @keyframes chatFabGlow {
+    0%, 100% { box-shadow: 0 0 16px 2px rgba(127,177,2,0.55), 0 0 34px 8px rgba(127,177,2,0.25); }
+    50% { box-shadow: 0 0 22px 6px rgba(127,177,2,0.8), 0 0 46px 14px rgba(127,177,2,0.4); }
+  }
+
+  .vs-badge {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #161616, #0a0a0a);
+    border: 1px solid rgba(255,255,255,0.15);
+    font-weight: 800;
+    font-size: 13px;
+    color: #fff;
+    font-family: 'Poppins', sans-serif;
+    flex-shrink: 0;
+  }
+  .vs-line {
+    width: 1px;
+    flex: 1;
+    min-height: 60px;
+  }
+
+  .marquee-mask {
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
+    mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
+  }
+  .marquee-track {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: max-content;
+    animation: marqueeScroll 14s linear infinite;
+  }
+  .marquee-track:hover {
+    animation-play-state: paused;
+  }
+  @keyframes marqueeScroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  .tool-chip {
+    flex-shrink: 0;
+  }
+  .card-hover:hover {
+    transform: translateY(-4px);
+  }
+
+  .glow-pulse {
+    animation: glowPulse 2.4s ease-in-out infinite;
+  }
+  @keyframes glowPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(248,113,113,0.5); }
+    50% { box-shadow: 0 0 0 5px rgba(248,113,113,0); }
+  }
+
+  .logo-streaks {
+    position: relative;
+    display: inline-block;
+  }
+  .logo-streaks .streak {
+    position: absolute;
+    left: 6%;
+    height: 2px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, transparent 0%, rgba(190,255,120,0.95) 100%);
+    opacity: 0;
+    animation-name: streakFlow;
+    animation-timing-function: ease-out;
+    animation-iteration-count: infinite;
+  }
+  @keyframes streakFlow {
+    0% { transform: translateX(0) scaleX(0.25); opacity: 0; }
+    18% { opacity: 1; }
+    65% { opacity: 0.45; }
+    100% { transform: translateX(-140%) scaleX(1); opacity: 0; }
+  }
+
+  .bg-gradient-accent {
+    background: linear-gradient(160deg, #b9e666 0%, #7fb102 35%, #4a7a00 70%, #2f5200 100%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -2px 4px rgba(0,0,0,0.3);
+  }
+  .bg-gradient-accent:hover {
+    filter: brightness(1.1);
+  }
+
+  .text-gradient-accent {
+    background: linear-gradient(160deg, #c3ea78 0%, #7fb102 50%, #3d6600 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .bg-page-gradient {
+    position: fixed;
+    inset: 0;
+    z-index: -10;
+    overflow: hidden;
+    background: linear-gradient(180deg, #111111 0%, #060606 55%, #000000 100%);
+  }
+
+  .glow-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(110px);
+    pointer-events: none;
+  }
+</style>
+</head>
+<body class="bg-navy text-slate-300 antialiased" style="overflow:hidden">
+<div class="splash" id="splash">
+  <div class="splash-icon-wrap">
+    <picture>
+      <source srcset="/assets/logo-icon-512.webp" type="image/webp">
+      <img src="/assets/logo-icon-512.png" alt="Argos Insights" class="splash-logo">
+    </picture>
+    <span class="splash-streak left" style="top:28%; width:90px; animation-delay:0.35s"></span>
+    <span class="splash-streak left" style="top:50%; width:130px; animation-delay:0.5s"></span>
+    <span class="splash-streak left" style="top:72%; width:70px; animation-delay:0.65s"></span>
+    <span class="splash-streak right" style="top:32%; width:80px; animation-delay:0.4s"></span>
+    <span class="splash-streak right" style="top:50%; width:120px; animation-delay:0.55s"></span>
+    <span class="splash-streak right" style="top:68%; width:95px; animation-delay:0.7s"></span>
+  </div>
+</div>
+<div class="scroll-progress"><div class="scroll-progress-bar" id="scrollProgressBar"></div></div>
+<div class="bg-page-gradient">
+  <div class="glow-blob" style="width:700px;height:700px;top:-260px;left:-180px;background:rgba(111,176,0,0.22);"></div>
+  <div class="glow-blob" style="width:520px;height:520px;top:8%;right:-160px;background:rgba(127,177,2,0.15);"></div>
+  <div class="glow-blob" style="width:620px;height:620px;bottom:-280px;left:15%;background:rgba(74,122,0,0.20);"></div>
+</div>
+
+<!-- ============ NAV ============ -->
+<header class="fixed top-0 inset-x-0 z-50 bg-navy/90 backdrop-blur border-b border-white/5">
+  <div class="max-w-6xl mx-auto px-5 sm:px-8 h-20 sm:h-24 flex items-center justify-between">
+    <a href="#" class="flex items-center">
+      <span class="logo-streaks">
+        <picture>
+          <source srcset="/assets/logo-horizontal-nav.webp" type="image/webp">
+          <img src="/assets/logo-horizontal-nav.png" alt="Argos Insights - Inteligencia Financiera" class="h-14 sm:h-[72px] w-auto block">
+        </picture>
+        <span class="streak" style="top:22%; left:4%; width:20px; animation-delay:0s; animation-duration:2.6s"></span>
+        <span class="streak" style="top:34%; left:8%; width:14px; animation-delay:0.5s; animation-duration:2.2s"></span>
+        <span class="streak" style="top:48%; left:2%; width:24px; animation-delay:1s; animation-duration:2.8s"></span>
+        <span class="streak" style="top:62%; left:6%; width:16px; animation-delay:1.5s; animation-duration:2.4s"></span>
+        <span class="streak" style="top:76%; left:5%; width:18px; animation-delay:0.8s; animation-duration:2.5s"></span>
+      </span>
+    </a>
+    <a href="mailto:argosconsulta@gmail.com"
+       class="hidden sm:inline-flex items-center gap-2 text-sm font-semibold bg-gradient-accent text-navy px-5 py-2.5 rounded-full transition-[filter] hover:brightness-110">
+      Agendar diagnóstico
+    </a>
+  </div>
+</header>
+
+<!-- ============ FLOATING CTA BADGE ============ -->
+<a href="mailto:argosconsulta@gmail.com" aria-label="Escríbenos"
+   class="chat-fab fixed bottom-5 right-5 z-40 flex items-center justify-center">
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#7fb102" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
+</a>
+
+<main class="pt-20 sm:pt-24">
+
+  <!-- ============ 1. HERO ============ -->
+  <section id="hero" class="relative overflow-hidden border-b border-white/5">
+    <div class="dot-field opacity-60"></div>
+    <div class="relative max-w-6xl mx-auto px-5 sm:px-8 py-14 sm:py-20 lg:py-28 grid lg:grid-cols-[1.15fr_0.85fr] gap-14 items-center">
+      <div>
+        <p class="eyebrow eyebrow-live text-accent mb-6">CONSULTORÍA EN DATOS FINANCIEROS</p>
+        <h1 class="text-4xl sm:text-6xl lg:text-[60px] font-bold text-white leading-[1.08] tracking-tight">
+          Inteligencia Financiera para <span class="text-gradient-accent">Pymes Proveedoras</span>
+        </h1>
+        <span class="underline-accent is-visible mt-6"></span>
+        <p class="mt-7 text-lg text-slate-400 leading-relaxed max-w-xl">
+          Convertimos las facturas, EDPs y órdenes de compra que ya generas en respuestas claras:
+          cuánto te deben, cuándo te van a pagar, y si te alcanza la caja para los próximos 60-90 días.
+        </p>
+        <div class="mt-9 flex flex-col sm:flex-row gap-4">
+          <a href="mailto:argosconsulta@gmail.com"
+             class="inline-flex items-center justify-center gap-2 bg-gradient-accent text-navy font-bold px-7 py-3.5 rounded-full transition-[filter] hover:brightness-110">
+            Agendar diagnóstico gratuito
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <a href="#proceso"
+             class="inline-flex items-center justify-center gap-2 border border-white/15 text-white font-semibold px-7 py-3.5 rounded-full hover:border-white/40 transition-colors">
+            Ver cómo funciona
+          </a>
+        </div>
+      </div>
+
+      <!-- Decorative dashboard mock -->
+      <div class="reveal">
+        <div class="floaty bg-card rounded-2xl p-6 shadow-2xl shadow-black/40 border border-white/5">
+          <div class="flex items-center justify-between mb-6">
+            <span class="text-xs uppercase tracking-wide text-slate-400">Flujo de caja proyectado</span>
+            <span class="relative flex items-center">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-slate-500"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="glow-pulse absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-danger"></span>
+            </span>
+          </div>
+
+          <div class="grid grid-cols-3 gap-4 mb-8">
+            <div>
+              <p class="counter text-2xl font-bold text-white" data-value="84.2" data-decimals="1" data-prefix="$" data-suffix="M">$0,0M</p>
+              <p class="text-xs text-slate-400 mt-1">Por cobrar</p>
+            </div>
+            <div>
+              <p class="counter text-2xl font-bold text-accent" data-value="32" data-decimals="0" data-suffix=" días">0 días</p>
+              <p class="text-xs text-slate-400 mt-1">Plazo promedio</p>
+            </div>
+            <div>
+              <p class="counter text-2xl font-bold text-danger" data-value="6" data-decimals="0" data-suffix="">0</p>
+              <p class="text-xs text-slate-400 mt-1">Facturas en riesgo</p>
+            </div>
+          </div>
+
+          <svg viewBox="0 0 300 100" class="w-full h-24 mb-6">
+            <line x1="0" y1="99" x2="300" y2="99" stroke="#ffffff" stroke-opacity="0.08"/>
+            <line x1="0" y1="66" x2="300" y2="66" stroke="#ffffff" stroke-opacity="0.08"/>
+            <line x1="0" y1="33" x2="300" y2="33" stroke="#ffffff" stroke-opacity="0.08"/>
+            <polyline class="line-draw" points="0,80 40,70 80,74 120,50 160,55 200,35 240,42 300,20"
+                      fill="none" stroke="#7fb102" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+
+          <div class="flex items-end gap-3 h-20">
+            <div class="bar-anim bg-white/10 rounded-sm w-full" style="height:45%; animation-delay:0.05s,0.95s; animation-duration:0.9s,2.1s"></div>
+            <div class="bar-anim bg-white/10 rounded-sm w-full" style="height:65%; animation-delay:0.15s,1.05s; animation-duration:0.9s,2.6s"></div>
+            <div class="bar-anim bg-accent/60 rounded-sm w-full" style="height:40%; animation-delay:0.25s,1.15s; animation-duration:0.9s,2.3s"></div>
+            <div class="bar-anim bg-white/10 rounded-sm w-full" style="height:80%; animation-delay:0.35s,1.25s; animation-duration:0.9s,2.8s"></div>
+            <div class="bar-anim bg-accent rounded-sm w-full" style="height:95%; animation-delay:0.45s,1.35s; animation-duration:0.9s,2.2s"></div>
+            <div class="bar-anim bg-white/10 rounded-sm w-full" style="height:55%; animation-delay:0.55s,1.45s; animation-duration:0.9s,2.5s"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 2. EL PROBLEMA ============ -->
+  <section class="py-14 sm:py-20 lg:py-28 border-b border-white/5">
+    <div class="max-w-3xl mx-auto px-5 sm:px-8">
+      <p class="reveal eyebrow text-accent justify-center w-full mb-4">EL PROBLEMA</p>
+      <h2 class="reveal text-3xl sm:text-4xl font-bold text-white text-center tracking-tight">
+        Si facturas a una gran empresa, ya conoces estos problemas
+      </h2>
+      <div class="reveal flex justify-center"><span class="underline-accent mt-5"></span></div>
+
+      <div class="mt-10 sm:mt-14 divide-y divide-white/10">
+        <div class="reveal flex items-center gap-5 py-6" style="transition-delay:0s">
+          <div class="relative shrink-0">
+            <div class="w-14 h-14 rounded-full border-2 border-accent flex items-center justify-center">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>
+                <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/>
+                <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/>
+                <path d="M2 2l20 20"/>
+              </svg>
+            </div>
+            <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-danger flex items-center justify-center border-2 border-navy">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+          <div>
+            <h3 class="text-white font-display font-semibold text-lg">Ceguera de flujo de caja</h3>
+            <p class="text-sm text-slate-400 mt-1">Sabes cuánto facturaste. No sabes cuándo te pagan.</p>
+          </div>
+        </div>
+
+        <div class="reveal flex items-center gap-5 py-6" style="transition-delay:0.1s">
+          <div class="relative shrink-0">
+            <div class="w-14 h-14 rounded-full border-2 border-accent flex items-center justify-center">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <path d="M3 9h18M3 15h18M9 3v18M15 3v18"/>
+              </svg>
+            </div>
+            <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-danger flex items-center justify-center border-2 border-navy">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+          <div>
+            <h3 class="text-white font-display font-semibold text-lg">Gestión administrativa artesanal</h3>
+            <p class="text-sm text-slate-400 mt-1">Todo en Excel, a mano: errores y versiones duplicadas.</p>
+          </div>
+        </div>
+
+        <div class="reveal flex items-center gap-5 py-6" style="transition-delay:0.2s">
+          <div class="relative shrink-0">
+            <div class="w-14 h-14 rounded-full border-2 border-accent flex items-center justify-center">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 3v18h18"/>
+                <rect x="7" y="13" width="3" height="5"/>
+                <rect x="12.5" y="9" width="3" height="9"/>
+                <rect x="18" y="5" width="3" height="13"/>
+              </svg>
+            </div>
+            <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-danger flex items-center justify-center border-2 border-navy">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+          <div>
+            <h3 class="text-white font-display font-semibold text-lg">Cero capacidad de proyección</h3>
+            <p class="text-sm text-slate-400 mt-1">No sabes si puedes tomar el próximo contrato.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 2b. LA DIFERENCIA (comparación) ============ -->
+  <section class="py-14 sm:py-20 lg:py-28 bg-card/40 border-b border-white/5 overflow-hidden">
+    <div class="max-w-6xl mx-auto px-5 sm:px-8">
+      <p class="reveal eyebrow text-accent justify-center w-full mb-4">LA DIFERENCIA</p>
+      <h2 class="reveal text-3xl sm:text-4xl font-bold text-white text-center tracking-tight">Tu negocio, antes y con Argos Insights</h2>
+      <div class="reveal flex justify-center"><span class="underline-accent mt-5"></span></div>
+
+      <div class="mt-10 sm:mt-14 grid lg:grid-cols-[1fr_auto_1fr] gap-6 lg:gap-8 items-stretch">
+
+        <!-- SIN ARGOS -->
+        <div class="reveal-left relative rounded-2xl border border-danger/20 p-5 sm:p-7"
+             style="background: radial-gradient(80% 70% at 65% 20%, rgba(248,113,113,0.10) 0%, transparent 60%);">
+          <span class="diff-badge diff-badge-danger"><span class="diff-badge-dot"></span>SIN ARGOS</span>
+
+          <div class="mock-win mock-win-danger mt-5">
+            <div class="mock-chrome">
+              <span class="mock-dot" style="background:#ff5f57"></span>
+              <span class="mock-dot" style="background:#febc2e"></span>
+              <span class="mock-dot" style="background:#28c840"></span>
+              <span class="mock-chrome-title">flujo_caja.xlsx</span>
+            </div>
+            <div class="mock-body px-4 py-3">
+              <div class="mock-row"><span class="text-slate-400">Constructora ABC</span><span class="mock-tag mock-tag-danger">47 días vencida</span></div>
+              <div class="mock-row"><span class="text-slate-400">Minera Sur</span><span class="mock-tag mock-tag-danger">sin respuesta</span></div>
+              <div class="mock-row"><span class="text-slate-400">Retail Norte</span><span class="mock-tag mock-tag-danger">¿pagó?</span></div>
+            </div>
+          </div>
+
+          <div class="mock-win mock-win-danger mt-3">
+            <div class="mock-chrome">
+              <span class="mock-dot" style="background:#ff5f57"></span>
+              <span class="mock-dot" style="background:#febc2e"></span>
+              <span class="mock-dot" style="background:#28c840"></span>
+              <span class="mock-chrome-title">Correo</span>
+            </div>
+            <div class="mock-body px-4 py-3 text-slate-400">
+              <div class="mock-row">RE: RE: estado de pago…</div>
+              <div class="mock-row">URGENTE: sin caja este mes</div>
+            </div>
+          </div>
+
+          <div class="sticky-note mt-4">¿Me alcanza la caja este mes? 😰</div>
+
+          <div class="mt-5 space-y-2.5 text-left">
+            <p class="diff-sin flex items-start gap-2 text-xs text-slate-400"><svg class="icon-wiggle text-danger shrink-0 mt-0.5" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"/></svg>Decisiones a ciegas, por intuición</p>
+            <p class="diff-sin flex items-start gap-2 text-xs text-slate-400"><svg class="icon-wiggle text-danger shrink-0 mt-0.5" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"/></svg>Factoring sin saber si de verdad conviene</p>
+            <p class="diff-sin flex items-start gap-2 text-xs text-slate-400"><svg class="icon-wiggle text-danger shrink-0 mt-0.5" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"/></svg>Analista full-time: $900 mil - $1,2M/mes</p>
+          </div>
+        </div>
+
+        <!-- DIVIDER -->
+        <div class="hidden lg:flex flex-col items-center gap-3 py-2">
+          <span class="vs-line" style="background: linear-gradient(180deg, rgba(248,113,113,0.7), transparent)"></span>
+          <span class="vs-badge">VS</span>
+          <span class="vs-line" style="background: linear-gradient(180deg, transparent, rgba(111,176,0,0.7))"></span>
+        </div>
+        <div class="reveal flex lg:hidden justify-center -my-2">
+          <span class="vs-badge">VS</span>
+        </div>
+
+        <!-- CON ARGOS -->
+        <div class="reveal-right relative rounded-2xl border border-accent/20 p-5 sm:p-7"
+             style="transition-delay:0.1s; background: radial-gradient(80% 70% at 35% 80%, rgba(111,176,0,0.12) 0%, transparent 60%);">
+          <span class="diff-badge diff-badge-accent"><span class="diff-badge-dot"></span>CON ARGOS INSIGHTS</span>
+
+          <div class="mock-win mock-win-accent mt-5">
+            <div class="mock-chrome">
+              <span class="mock-dot" style="background:#3a3a4a"></span>
+              <span class="mock-dot" style="background:#3a3a4a"></span>
+              <span class="mock-dot" style="background:#3a3a4a"></span>
+              <span class="mock-chrome-title">Dashboard Argos</span>
+            </div>
+            <div class="mock-body px-4 py-3">
+              <div class="mock-row"><span class="text-slate-300">Por cobrar</span><span class="text-white font-semibold">$84,2M</span></div>
+              <div class="mock-row"><span class="text-slate-300">Plazo promedio</span><span class="text-accent font-semibold">32 días</span></div>
+              <div class="mock-row"><span class="text-slate-300">Facturas en riesgo</span><span class="text-danger font-semibold">6</span></div>
+            </div>
+          </div>
+
+          <div class="mock-win mock-win-accent mt-3">
+            <div class="mock-chrome">
+              <span class="mock-dot" style="background:#3a3a4a"></span>
+              <span class="mock-dot" style="background:#3a3a4a"></span>
+              <span class="mock-dot" style="background:#3a3a4a"></span>
+              <span class="mock-chrome-title">Alertas</span>
+            </div>
+            <div class="mock-body px-4 py-3">
+              <div class="mock-row"><span class="text-slate-300">Constructora ABC</span><span class="mock-tag mock-tag-accent">pagada ✓</span></div>
+              <div class="mock-row"><span class="text-slate-300">Minera Sur</span><span class="mock-tag mock-tag-accent">al día ✓</span></div>
+              <div class="mock-row"><span class="text-slate-300">Retail Norte</span><span class="mock-tag mock-tag-accent">seguimiento ✓</span></div>
+            </div>
+          </div>
+
+          <div class="mt-5 space-y-2.5 text-left">
+            <p class="diff-con flex items-start gap-2 text-xs text-slate-300"><svg class="icon-pulse text-accent shrink-0 mt-0.5" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>Proyección de caja concreta al frente</p>
+            <p class="diff-con flex items-start gap-2 text-xs text-slate-300"><svg class="icon-pulse text-accent shrink-0 mt-0.5" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>Factoring solo cuando realmente conviene</p>
+            <p class="diff-con flex items-start gap-2 text-xs text-slate-300"><svg class="icon-pulse text-accent shrink-0 mt-0.5" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>Fracción del costo de un analista, sin contrato</p>
+            <p class="diff-con flex items-start gap-2 text-xs text-slate-300"><svg class="icon-pulse text-accent shrink-0 mt-0.5" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>Más fácil y ordenado que revisar una planilla Excel</p>
+          </div>
+        </div>
+      </div>
+
+      <p class="reveal text-center text-slate-400 mt-10">¿En cuál de los dos lados está tu negocio hoy?</p>
+    </div>
+  </section>
+
+  <!-- ============ 3. QUÉ ES EL SERVICIO ============ -->
+  <section class="py-14 sm:py-20 lg:py-28 bg-card/40 border-b border-white/5">
+    <div class="max-w-6xl mx-auto px-5 sm:px-8">
+      <div class="reveal max-w-3xl mx-auto text-center">
+        <p class="eyebrow text-accent justify-center w-full mb-4">QUÉ HACEMOS</p>
+        <h2 class="text-3xl sm:text-4xl font-bold text-white tracking-tight">Qué es Argos Insights</h2>
+        <div class="flex justify-center"><span class="underline-accent mt-5"></span></div>
+        <p class="mt-6 text-slate-400 leading-relaxed">
+          Un servicio de consultoría en datos financieros diseñado específicamente para pymes que facturan
+          a grandes empresas. Tomamos los datos que hoy viven dispersos en Excel, correos y portales de
+          proveedores, y los convertimos en un sistema de visibilidad financiera: dashboards, proyecciones
+          de flujo de caja y alertas de cobranza — sin instalar un ERP ni cambiar cómo trabaja tu equipo hoy.
+        </p>
+      </div>
+
+      <div class="reveal mt-10 sm:mt-14 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-5 max-w-2xl mx-auto">
+        <div class="mock-win mock-win-danger w-full sm:w-64">
+          <div class="mock-chrome">
+            <span class="mock-dot" style="background:#ff5f57"></span>
+            <span class="mock-dot" style="background:#febc2e"></span>
+            <span class="mock-dot" style="background:#28c840"></span>
+            <span class="mock-chrome-title">tus_datos.xlsx</span>
+          </div>
+          <div class="mock-body px-4 py-3">
+            <div class="mock-row"><span class="text-slate-500">Excel</span><span class="mock-tag mock-tag-danger">disperso</span></div>
+            <div class="mock-row"><span class="text-slate-500">Correos</span><span class="mock-tag mock-tag-danger">manual</span></div>
+            <div class="mock-row"><span class="text-slate-500">Portales</span><span class="mock-tag mock-tag-danger">manual</span></div>
+          </div>
+        </div>
+
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="icon-pulse text-accent rotate-90 sm:rotate-0 shrink-0"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+
+        <div class="mock-win mock-win-accent w-full sm:w-64">
+          <div class="mock-chrome">
+            <span class="mock-dot" style="background:#3a3a4a"></span>
+            <span class="mock-dot" style="background:#3a3a4a"></span>
+            <span class="mock-dot" style="background:#3a3a4a"></span>
+            <span class="mock-chrome-title">Dashboard Argos</span>
+          </div>
+          <div class="mock-body px-4 py-3">
+            <div class="mock-row"><span class="text-slate-300">Por cobrar</span><span class="text-white font-semibold">$84,2M</span></div>
+            <div class="mock-row"><span class="text-slate-300">Plazo</span><span class="text-accent font-semibold">32 días</span></div>
+            <div class="mock-row"><span class="text-slate-300">En riesgo</span><span class="text-danger font-semibold">6</span></div>
+          </div>
+        </div>
+      </div>
+      <p class="reveal text-center text-sm text-slate-500 mt-5">Más fácil y ordenado que revisar una planilla Excel.</p>
+
+      <div class="mt-10 sm:mt-14 grid sm:grid-cols-3 gap-5">
+        <div class="reveal card-hover bg-card border border-white/5 rounded-2xl text-center px-5 py-6 sm:px-6 sm:py-8" style="transition-delay:0s">
+          <p class="text-3xl font-bold text-accent mb-3">$</p>
+          <p class="text-white font-medium">¿Cuánta plata me deben y quién?</p>
+        </div>
+        <div class="reveal card-hover bg-card border border-white/5 rounded-2xl text-center px-5 py-6 sm:px-6 sm:py-8" style="transition-delay:0.1s">
+          <p class="text-3xl font-bold text-accent mb-3">→</p>
+          <p class="text-white font-medium">¿Cuándo me van a pagar realmente?</p>
+        </div>
+        <div class="reveal card-hover bg-card border border-white/5 rounded-2xl text-center px-5 py-6 sm:px-6 sm:py-8" style="transition-delay:0.2s">
+          <p class="text-3xl font-bold text-accent mb-3">%</p>
+          <p class="text-white font-medium">¿Me alcanza la caja para los próximos 60-90 días?</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 3b. SIN FRICCIÓN DE ADOPCIÓN ============ -->
+  <section class="py-12 sm:py-16 lg:py-20 border-b border-white/5">
+    <div class="max-w-4xl mx-auto px-5 sm:px-8 text-center">
+      <p class="reveal eyebrow text-accent justify-center w-full mb-5">SIN FRICCIÓN DE ADOPCIÓN</p>
+      <p class="reveal text-slate-400 max-w-xl mx-auto mb-8">
+        Se conecta con lo que ya usas. No hay que instalar un ERP ni migrar sistemas.
+      </p>
+      <div class="reveal marquee-mask">
+        <div class="marquee-track">
+          <span class="tool-chip inline-flex items-center gap-2 bg-card border border-white/10 rounded-full px-5 py-2.5 text-sm text-slate-300">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-accent"><path d="M9 3h6M9 21h6M7 3h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2zM9 8h6M9 12h6M9 16h3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Excel
+          </span>
+          <span class="tool-chip inline-flex items-center gap-2 bg-card border border-white/10 rounded-full px-5 py-2.5 text-sm text-slate-300">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-accent"><path d="M3 6l9 7 9-7M3 6v12h18V6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Correo
+          </span>
+          <span class="tool-chip inline-flex items-center gap-2 bg-card border border-white/10 rounded-full px-5 py-2.5 text-sm text-slate-300">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-accent"><path d="M12 8v4l3 3M20 12a8 8 0 11-16 0 8 8 0 0116 0z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            SAP Ariba
+          </span>
+          <span class="tool-chip inline-flex items-center gap-2 bg-card border border-white/10 rounded-full px-5 py-2.5 text-sm text-slate-300">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-accent"><path d="M4 4h16v16H4z" stroke="none"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4M5 5l3 3M16 16l3 3M5 19l3-3M16 8l3-3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Portales de pago corporativos
+          </span>
+          <!-- duplicado para loop continuo -->
+          <span class="tool-chip inline-flex items-center gap-2 bg-card border border-white/10 rounded-full px-5 py-2.5 text-sm text-slate-300" aria-hidden="true">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-accent"><path d="M9 3h6M9 21h6M7 3h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2zM9 8h6M9 12h6M9 16h3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Excel
+          </span>
+          <span class="tool-chip inline-flex items-center gap-2 bg-card border border-white/10 rounded-full px-5 py-2.5 text-sm text-slate-300" aria-hidden="true">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-accent"><path d="M3 6l9 7 9-7M3 6v12h18V6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Correo
+          </span>
+          <span class="tool-chip inline-flex items-center gap-2 bg-card border border-white/10 rounded-full px-5 py-2.5 text-sm text-slate-300" aria-hidden="true">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-accent"><path d="M12 8v4l3 3M20 12a8 8 0 11-16 0 8 8 0 0116 0z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            SAP Ariba
+          </span>
+          <span class="tool-chip inline-flex items-center gap-2 bg-card border border-white/10 rounded-full px-5 py-2.5 text-sm text-slate-300" aria-hidden="true">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-accent"><path d="M4 4h16v16H4z" stroke="none"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4M5 5l3 3M16 16l3 3M5 19l3-3M16 8l3-3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Portales de pago corporativos
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 4. PARA QUIÉN ES ============ -->
+  <section class="py-14 sm:py-20 lg:py-28 border-b border-white/5">
+    <div class="max-w-6xl mx-auto px-5 sm:px-8">
+      <p class="reveal eyebrow text-accent justify-center w-full mb-4">FIT DE CLIENTE</p>
+      <h2 class="reveal text-3xl sm:text-4xl font-bold text-white text-center tracking-tight">¿Para quién es este servicio?</h2>
+      <div class="reveal flex justify-center"><span class="underline-accent mt-5"></span></div>
+
+      <div class="mt-10 sm:mt-14 max-w-2xl mx-auto">
+        <div class="reveal card-hover bg-card border border-accent/20 rounded-2xl p-7 sm:p-8">
+          <div class="divider-label text-accent mb-6">Es para ti si</div>
+          <ul class="space-y-4 text-sm text-slate-300">
+            <li class="flex gap-3">
+              <svg class="text-accent shrink-0 mt-0.5" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Eres una pyme de servicios o suministro que factura a una o pocas grandes empresas
+              (energía, minería, construcción, retail, sector público) — sin importar tu tamaño.
+            </li>
+            <li class="flex gap-3">
+              <svg class="text-accent shrink-0 mt-0.5" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Ver tus números en Excel es un dolor de cabeza.
+            </li>
+            <li class="flex gap-3">
+              <svg class="text-accent shrink-0 mt-0.5" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Trabajas con portales de proveedores (SAP Ariba, portales de pago corporativos) y flujos
+              tipo OC → HES → EDP → factura.
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 5. POR QUÉ CONTRATARLO ============ -->
+  <section class="py-14 sm:py-20 lg:py-28 bg-card/40 border-b border-white/5">
+    <div class="max-w-6xl mx-auto px-5 sm:px-8">
+      <p class="reveal eyebrow text-accent justify-center w-full mb-4">POR QUÉ ARGOS</p>
+      <h2 class="reveal text-3xl sm:text-4xl font-bold text-white text-center tracking-tight">Por qué contratarlo</h2>
+      <div class="reveal flex justify-center"><span class="underline-accent mt-5"></span></div>
+
+      <div class="mt-10 sm:mt-14 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="reveal card-hover bg-card border border-white/5 rounded-2xl p-6 flex gap-4 items-start" style="transition-delay:0s">
+          <span class="w-9 h-9 rounded-lg bg-gradient-accent text-navy font-display font-bold text-sm flex items-center justify-center shrink-0">01</span>
+          <div>
+            <h3 class="text-white font-display font-semibold text-sm mb-1">Especialización real</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">Entendemos la diferencia entre "facturado" y "cobrable".</p>
+          </div>
+        </div>
+
+        <div class="reveal card-hover bg-card border border-white/5 rounded-2xl p-6 flex gap-4 items-start" style="transition-delay:0.06s">
+          <span class="w-9 h-9 rounded-lg bg-gradient-accent text-navy font-display font-bold text-sm flex items-center justify-center shrink-0">02</span>
+          <div>
+            <h3 class="text-white font-display font-semibold text-sm mb-1">Retorno medible</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">Evita sobregiros y detecta facturas trabadas a tiempo.</p>
+          </div>
+        </div>
+
+        <div class="reveal card-hover bg-card border border-white/5 rounded-2xl p-6 flex gap-4 items-start" style="transition-delay:0.12s">
+          <span class="w-9 h-9 rounded-lg bg-gradient-accent text-navy font-display font-bold text-sm flex items-center justify-center shrink-0">03</span>
+          <div>
+            <h3 class="text-white font-display font-semibold text-sm mb-1">Fracción del costo</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">Menos que un analista junior, sin contrato laboral.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-4 flex flex-col sm:flex-row justify-center gap-4">
+        <div class="reveal card-hover bg-card border border-white/5 rounded-2xl p-6 flex gap-4 items-start w-full sm:w-72 lg:w-[368px]" style="transition-delay:0.18s">
+          <span class="w-9 h-9 rounded-lg bg-gradient-accent text-navy font-display font-bold text-sm flex items-center justify-center shrink-0">04</span>
+          <div>
+            <h3 class="text-white font-display font-semibold text-sm mb-1">Sin fricción</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">Nada de software nuevo ni migrar sistemas.</p>
+          </div>
+        </div>
+
+        <div class="reveal card-hover bg-card border border-white/5 rounded-2xl p-6 flex gap-4 items-start w-full sm:w-72 lg:w-[368px]" style="transition-delay:0.24s">
+          <span class="w-9 h-9 rounded-lg bg-gradient-accent text-navy font-display font-bold text-sm flex items-center justify-center shrink-0">05</span>
+          <div>
+            <h3 class="text-white font-display font-semibold text-sm mb-1">Decisiones con respaldo</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">Proyección de caja al frente, no a ciegas.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 6. CÓMO FUNCIONA ============ -->
+  <section id="proceso" class="py-14 sm:py-20 lg:py-28 border-b border-white/5">
+    <div class="max-w-6xl mx-auto px-5 sm:px-8">
+      <p class="reveal eyebrow text-accent justify-center w-full mb-4">EL PROCESO</p>
+      <h2 class="reveal text-3xl sm:text-4xl font-bold text-white text-center tracking-tight">Cómo funciona</h2>
+      <div class="reveal flex justify-center"><span class="underline-accent mt-5"></span></div>
+
+      <div class="mt-10 sm:mt-16 grid md:grid-cols-3 gap-5 relative">
+        <div class="hidden md:block absolute top-[38px] left-[16.5%] right-[16.5%] h-px bg-white/10"></div>
+
+        <div class="reveal card-hover relative bg-card border border-white/5 rounded-2xl p-5 sm:p-7" style="transition-delay:0s">
+          <div class="w-10 h-10 rounded-lg bg-gradient-accent text-navy font-display font-bold flex items-center justify-center mb-5">1</div>
+          <h3 class="text-white font-display font-semibold text-lg mb-2">Diagnóstico</h3>
+          <p class="text-sm text-slate-400 leading-relaxed mb-4">
+            Mapeo del flujo documental y de caja, identificación de dolores.
+          </p>
+          <p class="text-xs uppercase tracking-wide text-accent font-semibold">1 a 5 días</p>
+        </div>
+
+        <div class="reveal card-hover relative bg-card border border-white/5 rounded-2xl p-5 sm:p-7" style="transition-delay:0.1s">
+          <div class="w-10 h-10 rounded-lg bg-gradient-accent text-navy font-display font-bold flex items-center justify-center mb-5">2</div>
+          <h3 class="text-white font-display font-semibold text-lg mb-2">Implementación</h3>
+          <p class="text-sm text-slate-400 leading-relaxed mb-4">
+            Consolidación de datos, construcción del dashboard y proyecciones.
+          </p>
+          <p class="text-xs uppercase tracking-wide text-accent font-semibold">5 a 7 días</p>
+        </div>
+
+        <div class="reveal card-hover relative bg-card border border-white/5 rounded-2xl p-5 sm:p-7" style="transition-delay:0.2s">
+          <div class="w-10 h-10 rounded-lg bg-gradient-accent text-navy font-display font-bold flex items-center justify-center mb-5">3</div>
+          <h3 class="text-white font-display font-semibold text-lg mb-2">Acompañamiento</h3>
+          <p class="text-sm text-slate-400 leading-relaxed mb-4">
+            Reportes automáticos, mantención, mejoras y asesoría mensual.
+          </p>
+          <p class="text-xs uppercase tracking-wide text-accent font-semibold">Continuo (mensual)</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TESTIMONIOS (placeholder, desactivado) ============ -->
+  <!--
+  <section class="py-14 sm:py-20 lg:py-28 bg-card/40 border-b border-white/5">
+    <div class="max-w-6xl mx-auto px-5 sm:px-8">
+      <h2 class="text-3xl sm:text-4xl font-bold text-white text-center tracking-tight">Lo que dicen nuestros clientes</h2>
+      <div class="mt-10 sm:mt-14 grid md:grid-cols-3 gap-5">
+        <!-- TODO: reemplazar con testimonios reales cuando existan. -->
+        <!-- <div class="bg-card border border-white/5 rounded-2xl p-5 sm:p-7">
+          <p class="text-sm text-slate-300 italic">"Cita del cliente."</p>
+          <p class="mt-4 text-sm text-white font-semibold">Nombre Apellido</p>
+          <p class="text-xs text-slate-400">Cargo, Empresa</p>
+        </div> -->
+      </div>
+    </div>
+  </section>
+  -->
+
+  <!-- ============ 6b. PREGUNTAS FRECUENTES ============ -->
+  <section class="py-14 sm:py-20 lg:py-28 bg-card/40 border-b border-white/5">
+    <div class="max-w-3xl mx-auto px-5 sm:px-8">
+      <p class="reveal eyebrow text-accent justify-center w-full mb-4">PREGUNTAS FRECUENTES</p>
+      <h2 class="reveal text-3xl sm:text-4xl font-bold text-white text-center tracking-tight">Antes de escribirnos</h2>
+      <div class="reveal flex justify-center"><span class="underline-accent mt-5"></span></div>
+
+      <div class="mt-10 sm:mt-14 divide-y divide-white/10">
+        <div class="faq-item reveal py-5" style="transition-delay:0s">
+          <button type="button" class="faq-trigger w-full flex items-center justify-between gap-4 text-left">
+            <span class="text-white font-display font-semibold">¿Tengo que cambiar de sistema o aprender un software nuevo?</span>
+            <svg class="faq-chevron shrink-0 text-accent transition-transform duration-300" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="faq-panel grid transition-[grid-template-rows] duration-300" style="grid-template-rows: 0fr;">
+            <div class="overflow-hidden">
+              <p class="text-sm text-slate-400 pt-3 leading-relaxed">
+                No. Ordenamos y potenciamos lo que ya existe: Excel, correos y portales de proveedores.
+                No hay que aprender un software nuevo ni migrar sistemas.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item reveal py-5" style="transition-delay:0.06s">
+          <button type="button" class="faq-trigger w-full flex items-center justify-between gap-4 text-left">
+            <span class="text-white font-display font-semibold">¿Cuánto dura el diagnóstico inicial?</span>
+            <svg class="faq-chevron shrink-0 text-accent transition-transform duration-300" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="faq-panel grid transition-[grid-template-rows] duration-300" style="grid-template-rows: 0fr;">
+            <div class="overflow-hidden">
+              <p class="text-sm text-slate-400 pt-3 leading-relaxed">
+                Entre 1 y 5 días: mapeamos tu flujo documental y de caja, e identificamos los dolores principales.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item reveal py-5" style="transition-delay:0.12s">
+          <button type="button" class="faq-trigger w-full flex items-center justify-between gap-4 text-left">
+            <span class="text-white font-display font-semibold">¿Qué pasa después del diagnóstico?</span>
+            <svg class="faq-chevron shrink-0 text-accent transition-transform duration-300" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="faq-panel grid transition-[grid-template-rows] duration-300" style="grid-template-rows: 0fr;">
+            <div class="overflow-hidden">
+              <p class="text-sm text-slate-400 pt-3 leading-relaxed">
+                Pasamos a la implementación (5 a 7 días): consolidamos tus datos y construimos el dashboard
+                y las proyecciones. Después, el acompañamiento es continuo, con reportes automáticos y asesoría mensual.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item reveal py-5" style="transition-delay:0.18s">
+          <button type="button" class="faq-trigger w-full flex items-center justify-between gap-4 text-left">
+            <span class="text-white font-display font-semibold">¿Para qué tipo de empresa es esto?</span>
+            <svg class="faq-chevron shrink-0 text-accent transition-transform duration-300" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="faq-panel grid transition-[grid-template-rows] duration-300" style="grid-template-rows: 0fr;">
+            <div class="overflow-hidden">
+              <p class="text-sm text-slate-400 pt-3 leading-relaxed">
+                Para pymes de servicios o suministro que facturan a una o pocas grandes empresas (energía, minería,
+                construcción, retail, sector público), sin importar su tamaño.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item reveal py-5" style="transition-delay:0.24s">
+          <button type="button" class="faq-trigger w-full flex items-center justify-between gap-4 text-left">
+            <span class="text-white font-display font-semibold">¿Reemplaza a un analista financiero?</span>
+            <svg class="faq-chevron shrink-0 text-accent transition-transform duration-300" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="faq-panel grid transition-[grid-template-rows] duration-300" style="grid-template-rows: 0fr;">
+            <div class="overflow-hidden">
+              <p class="text-sm text-slate-400 pt-3 leading-relaxed">
+                Entrega la parte más valiosa de ese rol —visibilidad y proyección de caja— por una fracción del
+                costo de un analista junior ($900 mil - $1,2 millones mensuales), sin contrato laboral.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 7. CTA FINAL ============ -->
+  <section class="relative overflow-hidden py-16 sm:py-24 lg:py-32">
+    <div class="dot-field opacity-40"></div>
+    <div class="relative max-w-3xl mx-auto px-5 sm:px-8 text-center">
+      <h2 class="reveal text-3xl sm:text-5xl font-bold text-white tracking-tight">
+        ¿Tu caja depende de cuándo te paguen? Hablemos.
+      </h2>
+      <div class="reveal flex justify-center"><span class="underline-accent mt-6"></span></div>
+      <p class="reveal mt-7 text-slate-400 leading-relaxed text-lg">
+        Agenda una conversación de 20 minutos, sin costo, para ver si tu empresa calza con este servicio.
+      </p>
+      <div class="reveal mt-10 flex justify-center">
+        <a href="mailto:argosconsulta@gmail.com"
+           class="inline-flex items-center justify-center gap-2 bg-gradient-accent text-navy font-bold px-7 py-3.5 rounded-full transition-[filter] hover:brightness-110">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 4h16v16H4z" stroke="none"/><path d="M3 6l9 7 9-7M3 6v12h18V6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          argosconsulta@gmail.com
+        </a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="border-t border-white/5 py-10">
+  <div class="max-w-6xl mx-auto px-5 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-500">
+    <div class="flex items-center gap-3">
+      <span class="logo-streaks">
+        <picture>
+          <source srcset="/assets/logo-horizontal-footer.webp" type="image/webp">
+          <img src="/assets/logo-horizontal-footer.png" alt="Argos Insights" class="h-9 w-auto opacity-90 block">
+        </picture>
+        <span class="streak" style="top:28%; left:4%; width:12px; animation-delay:0.2s; animation-duration:2.4s"></span>
+        <span class="streak" style="top:50%; left:2%; width:16px; animation-delay:1s; animation-duration:2.7s"></span>
+        <span class="streak" style="top:72%; left:5%; width:11px; animation-delay:1.6s; animation-duration:2.3s"></span>
+      </span>
+      <span>· argosconsulta@gmail.com</span>
+      <a href="https://www.instagram.com/argosinsights/" target="_blank" rel="noopener" aria-label="Instagram de Argos Insights"
+         class="text-slate-500 hover:text-accent transition-colors">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+      </a>
+    </div>
+    <p class="flex items-center gap-2 text-center sm:text-right">
+      Servicio de consultoría en datos financieros para pymes proveedoras de grandes empresas
+      <span aria-hidden="true">🇨🇱</span>
+    </p>
+  </div>
+</footer>
+
+<script>
+  function animateCounters(scope) {
+    scope.querySelectorAll('.counter').forEach((el) => {
+      const target = parseFloat(el.dataset.value);
+      const decimals = parseInt(el.dataset.decimals || '0', 10);
+      const prefix = el.dataset.prefix || '';
+      const suffix = el.dataset.suffix || '';
+      const duration = 1100;
+      let start = null;
+      function step(ts) {
+        if (start === null) start = ts;
+        const progress = Math.min((ts - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const value = target * eased;
+        el.textContent = prefix + value.toFixed(decimals).replace('.', ',') + suffix;
+        if (progress < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    });
+  }
+
+  document.querySelectorAll('.faq-trigger').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const item = btn.closest('.faq-item');
+      const panel = item.querySelector('.faq-panel');
+      const chevron = item.querySelector('.faq-chevron');
+      const isOpen = item.classList.toggle('is-open');
+      panel.style.gridTemplateRows = isOpen ? '1fr' : '0fr';
+      chevron.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+    });
+  });
+
+  const revealEls = document.querySelectorAll('.reveal, .reveal-left, .reveal-right');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+        if (entry.target.querySelector('.counter')) {
+          animateCounters(entry.target);
+        }
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+  revealEls.forEach((el) => observer.observe(el));
+
+  const scrollProgressBar = document.getElementById('scrollProgressBar');
+  function updateScrollProgress() {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = docHeight > 0 ? Math.min(scrollTop / docHeight, 1) : 0;
+    scrollProgressBar.style.transform = `scaleX(${progress})`;
+  }
+  window.addEventListener('scroll', updateScrollProgress, { passive: true });
+  window.addEventListener('resize', updateScrollProgress);
+  updateScrollProgress();
+
+  function hideSplash() {
+    const splash = document.getElementById('splash');
+    if (!splash || splash.dataset.hidden) return;
+    splash.dataset.hidden = 'true';
+    document.body.style.overflow = '';
+    splash.classList.add('splash-hide');
+    setTimeout(() => splash.remove(), 800);
+  }
+  setTimeout(hideSplash, 1500);
+  window.addEventListener('load', () => setTimeout(hideSplash, 300));
+</script>
+
+</body>
+</html>

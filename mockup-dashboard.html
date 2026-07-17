@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Argos Insights — Dashboard (mockup)</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#0a0a0a; --panel:#141414; --card:#161616; --line:#262626;
+    --green:#7fb102; --green-l:#a3e635; --green-d:#3d6600;
+    --white:#ffffff; --muted:#9a9a9a; --muted2:#707070;
+    --red:#f87171; --red-bg:#2a1414; --yellow:#facc15; --yellow-bg:#2a2410; --green-bg:#132a10;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--white);font-family:Poppins,Arial,sans-serif;}
+  .wrap{max-width:1180px;margin:0 auto;padding:32px 28px 60px;}
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand .dot{width:28px;height:28px;border-radius:50%;background:conic-gradient(var(--green),var(--green-d),var(--green));}
+  .brand span{font-weight:700;font-size:18px;letter-spacing:.5px;}
+  .brand small{display:block;color:var(--green);font-size:10px;letter-spacing:2px;font-weight:600;}
+  .client-select{background:var(--panel);border:1px solid var(--line);color:var(--white);border-radius:10px;padding:10px 14px;font-size:13px;font-family:inherit;}
+  h1{font-size:22px;margin:0 0 4px;font-weight:700;}
+  .sub{color:var(--muted);font-size:13px;margin:0 0 22px;}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:30px;}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 18px;}
+  .kpi .label{color:var(--muted);font-size:12px;margin-bottom:10px;}
+  .kpi .value{font-size:26px;font-weight:700;}
+  .kpi .value.green{color:var(--green-l);}
+  .kpi .value.red{color:var(--red);}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 22px 8px;margin-bottom:22px;}
+  .panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .panel-head h2{font-size:15px;margin:0;font-weight:700;}
+  .panel-head .hint{color:var(--muted2);font-size:11px;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{text-align:left;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.4px;padding:8px 10px;border-bottom:1px solid var(--line);}
+  td{padding:12px 10px;border-bottom:1px solid var(--line);color:var(--white);}
+  tr:last-child td{border-bottom:none;}
+  .badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;}
+  .badge.pend{background:var(--yellow-bg);color:var(--yellow);}
+  .badge.venc{background:var(--red-bg);color:var(--red);}
+  .badge.pag{background:var(--green-bg);color:var(--green-l);}
+  .amount{font-weight:600;}
+  .muted{color:var(--muted);}
+  .chart-wrap{height:220px;margin:6px 0 18px;}
+  .cycle-row{display:grid;grid-template-columns:1.4fr repeat(5,1fr);gap:6px;align-items:center;padding:12px 10px;border-bottom:1px solid var(--line);font-size:12px;}
+  .cycle-row:last-child{border-bottom:none;}
+  .cycle-row.head{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.4px;font-weight:600;}
+  .step{width:100%;height:6px;border-radius:4px;background:var(--line);position:relative;overflow:hidden;}
+  .step i{position:absolute;left:0;top:0;bottom:0;background:var(--green);border-radius:4px;}
+  .mock-note{margin-top:26px;padding:14px 18px;border:1px dashed var(--line);border-radius:12px;color:var(--muted2);font-size:12px;line-height:1.6;}
+  .mock-note b{color:var(--muted);}
+  .section-label{display:flex;align-items:center;gap:8px;margin:0 0 12px;}
+  .section-label .tag{background:var(--green);color:#0a0a0a;font-size:10px;font-weight:700;letter-spacing:.5px;padding:3px 9px;border-radius:6px;}
+  .section-label span{color:var(--muted);font-size:11px;letter-spacing:.5px;}
+  .upload-panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:20px;}
+  .upload-left{display:flex;align-items:center;gap:14px;}
+  .upload-icon{width:42px;height:42px;border-radius:10px;background:var(--green-bg);display:flex;align-items:center;justify-content:center;color:var(--green-l);font-size:18px;font-weight:700;flex-shrink:0;}
+  .upload-file{font-size:13px;font-weight:600;}
+  .upload-meta{color:var(--muted);font-size:11px;margin-top:3px;}
+  .upload-status{display:flex;align-items:center;gap:6px;color:var(--green-l);font-size:12px;font-weight:600;background:var(--green-bg);padding:6px 12px;border-radius:20px;}
+  .upload-status i{width:7px;height:7px;border-radius:50%;background:var(--green-l);display:inline-block;}
+  .upload-sheets{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+  .sheet-chip{background:var(--panel);border:1px solid var(--line);color:var(--muted);font-size:11px;padding:5px 10px;border-radius:8px;}
+  .sheet-chip b{color:var(--white);}
+  .divider{border-top:1px solid var(--line);margin:34px 0 26px;}
+
+  .tabs{display:flex;gap:6px;margin-bottom:22px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:5px;width:fit-content;}
+  .tab-btn{border:none;background:transparent;color:var(--muted);font-family:inherit;font-size:13px;font-weight:600;padding:9px 18px;border-radius:9px;cursor:pointer;}
+  .tab-btn.active{background:var(--green);color:#0a0a0a;}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  .xls-card{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:20px;overflow:hidden;}
+  .xls-title{display:flex;align-items:center;justify-content:between;gap:10px;padding:16px 20px;border-bottom:1px solid var(--line);}
+  .xls-title .dotcol{width:10px;height:10px;border-radius:3px;background:var(--green);}
+  .xls-title h3{font-size:14px;margin:0;font-weight:700;}
+  .xls-title .n{margin-left:auto;color:var(--muted2);font-size:11px;}
+  .xls-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  .xls-table thead th{background:#1c2118;color:var(--green-l);text-align:left;font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;padding:10px 14px;border-bottom:1px solid var(--line);white-space:nowrap;}
+  .xls-table thead th.num{text-align:right;}
+  .xls-table td{padding:10px 14px;border-bottom:1px solid var(--line);color:var(--white);white-space:nowrap;}
+  .xls-table td.num{text-align:right;font-variant-numeric:tabular-nums;}
+  .xls-table tbody tr:nth-child(even){background:#131313;}
+  .xls-table tbody tr:hover{background:#1a1f16;}
+  .xls-table tfoot td{padding:11px 14px;font-weight:700;border-top:1px solid var(--line);color:var(--green-l);background:#141a10;}
+  .xls-table tfoot td.num{text-align:right;font-variant-numeric:tabular-nums;}
+  .xls-wrap-scroll{overflow-x:auto;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="dot"></div>
+      <div>
+        <span>ARGOS INSIGHTS</span>
+        <small>PLATAFORMA DE CLIENTES · MOCKUP</small>
+      </div>
+    </div>
+    <select class="client-select">
+      <option>Constructora ABC</option>
+      <option>Minera Sur</option>
+      <option>Retail Norte</option>
+    </select>
+  </div>
+
+  <div class="section-label">
+    <span class="tag">VISTA ADMIN</span>
+    <span>ASÍ CARGAS LOS DATOS DE UN CLIENTE</span>
+  </div>
+
+  <div class="upload-panel">
+    <div class="upload-left">
+      <div class="upload-icon">XLS</div>
+      <div>
+        <div class="upload-file">Argos-Insights-Orden-Financiero.xlsx</div>
+        <div class="upload-meta">Subido para Constructora ABC · hace 2 minutos</div>
+        <div class="upload-sheets">
+          <div class="sheet-chip"><b>28</b> filas · Cuentas por Cobrar</div>
+          <div class="sheet-chip"><b>6</b> meses · Flujo de Caja</div>
+          <div class="sheet-chip"><b>23</b> filas · Ciclo Documental</div>
+        </div>
+      </div>
+    </div>
+    <div class="upload-status"><i></i>Procesado</div>
+  </div>
+
+  <div class="mock-note" style="margin-top:0;margin-bottom:34px;">
+    Subes el mismo Excel que ya usas hoy (la plantilla que te armamos) y la plataforma lee sus 3 hojas automáticamente para armar lo que ve el cliente abajo. Sin doble digitación.
+  </div>
+
+  <div class="section-label">
+    <span class="tag" style="background:var(--white);">VISTA CLIENTE</span>
+    <span>LO QUE VE CONSTRUCTORA ABC AL ENTRAR</span>
+  </div>
+
+  <h1>Hola, Constructora ABC</h1>
+  <p class="sub">Así se vería tu caja en un solo lugar, siempre al día. Datos de ejemplo para mostrar el diseño.</p>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('resumen', this)">Resumen</button>
+    <button class="tab-btn" onclick="showTab('excel', this)">Vista Excel</button>
+  </div>
+
+  <div id="tab-resumen" class="tab-panel active">
+
+    <div class="kpis">
+      <div class="kpi"><div class="label">Por cobrar</div><div class="value">$6.150.000</div></div>
+      <div class="kpi"><div class="label">Plazo promedio</div><div class="value">45 días</div></div>
+      <div class="kpi"><div class="label">Facturas vencidas</div><div class="value red">1</div></div>
+      <div class="kpi"><div class="label">Saldo proyectado (90 días)</div><div class="value green">$12.800.000</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Cuentas por cobrar</h2>
+        <span class="hint">actualizado hoy</span>
+      </div>
+      <table>
+        <thead><tr><th>Cliente</th><th>Factura</th><th>Monto</th><th>Vence</th><th>Estado</th></tr></thead>
+        <tbody>
+          <tr><td>Constructora ABC</td><td class="muted">F-1042</td><td class="amount">$4.200.000</td><td class="muted">25-07-2026</td><td><span class="badge pend">Pendiente</span></td></tr>
+          <tr><td>Minera Sur</td><td class="muted">F-1043</td><td class="amount">$6.800.000</td><td class="muted">19-08-2026</td><td><span class="badge pag">Pagada</span></td></tr>
+          <tr><td>Retail Norte</td><td class="muted">F-1044</td><td class="amount">$1.950.000</td><td class="muted">31-07-2026</td><td><span class="badge pend">Pendiente</span></td></tr>
+          <tr><td>Constructora ABC</td><td class="muted">F-1039</td><td class="amount">$2.100.000</td><td class="muted">02-07-2026</td><td><span class="badge venc">Vencida · 14 días</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Flujo de caja proyectado</h2>
+        <span class="hint">próximos 6 meses</span>
+      </div>
+      <div class="chart-wrap"><canvas id="cashChart"></canvas></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Ciclo documental</h2>
+        <span class="hint">OC → HES → EDP → Factura → Pago</span>
+      </div>
+      <div class="cycle-row head"><div>Cliente</div><div>OC</div><div>HES</div><div>EDP</div><div>Factura</div><div>Pago</div></div>
+      <div class="cycle-row">
+        <div>Constructora ABC</div>
+        <div class="step"><i style="width:100%"></i></div>
+        <div class="step"><i style="width:100%"></i></div>
+        <div class="step"><i style="width:100%"></i></div>
+        <div class="step"><i style="width:100%"></i></div>
+        <div class="step"><i style="width:0%"></i></div>
+      </div>
+      <div class="cycle-row">
+        <div>Minera Sur</div>
+        <div class="step"><i style="width:100%"></i></div>
+        <div class="step"><i style="width:100%"></i></div>
+        <div class="step"><i style="width:0%"></i></div>
+        <div class="step"><i style="width:0%"></i></div>
+        <div class="step"><i style="width:0%"></i></div>
+      </div>
+      <div class="cycle-row">
+        <div>Retail Norte</div>
+        <div class="step"><i style="width:100%"></i></div>
+        <div class="step"><i style="width:0%"></i></div>
+        <div class="step"><i style="width:0%"></i></div>
+        <div class="step"><i style="width:0%"></i></div>
+        <div class="step"><i style="width:0%"></i></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="tab-excel" class="tab-panel">
+
+    <div class="mock-note" style="margin-top:0;margin-bottom:20px;">
+      Los mismos números de tu Excel, en una tabla limpia y fácil de leer — sin celdas rotas, sin desorden, sin tener que hacer scroll para todos lados.
+    </div>
+
+    <div class="xls-card">
+      <div class="xls-title"><span class="dotcol"></span><h3>Cuentas por cobrar</h3><span class="n">4 filas</span></div>
+      <div class="xls-wrap-scroll">
+      <table class="xls-table">
+        <thead>
+          <tr><th>Cliente</th><th>N° Factura</th><th class="num">Monto</th><th>Emisión</th><th>Vence</th><th>Estado</th><th class="num">Atraso</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Constructora ABC</td><td class="muted">F-1042</td><td class="num">$4.200.000</td><td class="muted">10-06-2026</td><td class="muted">25-07-2026</td><td><span class="badge pend">Pendiente</span></td><td class="num muted">—</td></tr>
+          <tr><td>Minera Sur</td><td class="muted">F-1043</td><td class="num">$6.800.000</td><td class="muted">20-06-2026</td><td class="muted">19-08-2026</td><td><span class="badge pag">Pagada</span></td><td class="num muted">0</td></tr>
+          <tr><td>Retail Norte</td><td class="muted">F-1044</td><td class="num">$1.950.000</td><td class="muted">01-07-2026</td><td class="muted">31-07-2026</td><td><span class="badge pend">Pendiente</span></td><td class="num muted">—</td></tr>
+          <tr><td>Constructora ABC</td><td class="muted">F-1039</td><td class="num">$2.100.000</td><td class="muted">18-05-2026</td><td class="muted">02-07-2026</td><td><span class="badge venc">Vencida</span></td><td class="num" style="color:var(--red);">14</td></tr>
+        </tbody>
+        <tfoot>
+          <tr><td colspan="2">Total por cobrar</td><td class="num">$8.250.000</td><td colspan="4"></td></tr>
+        </tfoot>
+      </table>
+      </div>
+    </div>
+
+    <div class="xls-card">
+      <div class="xls-title"><span class="dotcol"></span><h3>Flujo de caja</h3><span class="n">6 meses</span></div>
+      <div class="xls-wrap-scroll">
+      <table class="xls-table">
+        <thead>
+          <tr><th>Mes</th><th class="num">Saldo inicial</th><th class="num">Cobros esperados</th><th class="num">Egresos</th><th class="num">Saldo final</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Agosto 2026</td><td class="num">$8.000.000</td><td class="num">$6.800.000</td><td class="num">$2.000.000</td><td class="num" style="color:var(--green-l);font-weight:600;">$12.800.000</td></tr>
+          <tr><td>Septiembre 2026</td><td class="num">$12.800.000</td><td class="num">$0</td><td class="num">$0</td><td class="num" style="color:var(--green-l);font-weight:600;">$12.800.000</td></tr>
+          <tr><td>Octubre 2026</td><td class="num">$12.800.000</td><td class="num">$0</td><td class="num">$0</td><td class="num" style="color:var(--green-l);font-weight:600;">$12.800.000</td></tr>
+          <tr><td>Noviembre 2026</td><td class="num">$12.800.000</td><td class="num">$0</td><td class="num">$0</td><td class="num" style="color:var(--green-l);font-weight:600;">$12.800.000</td></tr>
+        </tbody>
+        <tfoot>
+          <tr><td colspan="4">Saldo proyectado a 90 días</td><td class="num">$12.800.000</td></tr>
+        </tfoot>
+      </table>
+      </div>
+    </div>
+
+    <div class="xls-card">
+      <div class="xls-title"><span class="dotcol"></span><h3>Ciclo documental</h3><span class="n">3 filas</span></div>
+      <div class="xls-wrap-scroll">
+      <table class="xls-table">
+        <thead>
+          <tr><th>Cliente</th><th>N° OC</th><th>Fecha OC</th><th>Fecha HES</th><th>Fecha EDP</th><th>Fecha Factura</th><th>Etapa actual</th><th class="num">Días</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Constructora ABC</td><td class="muted">OC-3301</td><td class="muted">02-05-2026</td><td class="muted">20-05-2026</td><td class="muted">03-06-2026</td><td class="muted">10-06-2026</td><td><span class="badge pend">Facturado</span></td><td class="num">75</td></tr>
+          <tr><td>Minera Sur</td><td class="muted">OC-3302</td><td class="muted">01-06-2026</td><td class="muted">15-06-2026</td><td class="muted">—</td><td class="muted">—</td><td><span class="badge venc">HES Emitida</span></td><td class="num">45</td></tr>
+          <tr><td>Retail Norte</td><td class="muted">OC-3303</td><td class="muted">05-07-2026</td><td class="muted">—</td><td class="muted">—</td><td class="muted">—</td><td><span class="badge venc">OC Emitida</span></td><td class="num">11</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="mock-note">
+    <b>Esto es un mockup estático</b> — los datos son de ejemplo (los mismos de la plantilla Excel) y nada de esto se guarda ni se conecta a ninguna base de datos todavía. Sirve para validar cómo se vería la plataforma antes de construirla de verdad.
+  </div>
+
+</div>
+<script>
+  function showTab(name, btn){
+    document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active'); });
+    document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+    document.getElementById('tab-' + name).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  const ctx = document.getElementById('cashChart');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['Ago','Sep','Oct','Nov','Dic','Ene'],
+      datasets: [{
+        label: 'Saldo final',
+        data: [12800000,12800000,12800000,12800000,12800000,12800000],
+        borderColor: '#7fb102',
+        backgroundColor: 'rgba(127,177,2,0.12)',
+        fill: true,
+        tension: 0.35,
+        pointBackgroundColor: '#a3e635',
+        pointRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#262626' }, ticks: { color: '#9a9a9a' } },
+        y: { grid: { color: '#262626' }, ticks: { color: '#9a9a9a', callback: v => '$' + (v/1000000).toFixed(0) + 'M' } }
+      }
+    }
+  });
+</script>
+</body>
+</html>

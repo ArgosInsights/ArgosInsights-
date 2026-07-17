@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Argos Insights — Web vs App (mockup comparativo)</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#0a0a0a; --panel:#141414; --card:#161616; --line:#262626;
+    --green:#7fb102; --green-l:#a3e635; --green-d:#3d6600;
+    --white:#ffffff; --muted:#9a9a9a; --muted2:#707070;
+    --red:#f87171; --red-bg:#2a1414; --yellow:#facc15; --yellow-bg:#2a2410; --green-bg:#132a10;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:#050505;color:var(--white);font-family:Poppins,Arial,sans-serif;}
+
+  .page{max-width:1400px;margin:0 auto;padding:36px 24px 80px;}
+
+  .header{text-align:center;margin-bottom:8px;}
+  .header .brand{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:14px;}
+  .header .dot{width:26px;height:26px;border-radius:50%;background:conic-gradient(var(--green),var(--green-d),var(--green));}
+  .header .brand span{font-weight:700;font-size:16px;letter-spacing:.5px;}
+  .header h1{font-size:24px;margin:0 0 8px;font-weight:700;}
+  .header p{color:var(--muted);font-size:13px;max-width:560px;margin:0 auto 30px;line-height:1.6;}
+
+  .compare{display:flex;gap:36px;align-items:flex-start;justify-content:center;flex-wrap:wrap;}
+  .col{flex:0 0 auto;}
+  .col-label{display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:16px;}
+  .col-label .tag{background:var(--green);color:#0a0a0a;font-size:10px;font-weight:700;letter-spacing:.6px;padding:4px 10px;border-radius:6px;}
+  .col-label span{color:var(--muted);font-size:11px;letter-spacing:.5px;}
+
+  /* ---------- WEB (browser chrome) ---------- */
+  .browser{width:640px;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 30px 60px rgba(0,0,0,.5);}
+  .browser-bar{display:flex;align-items:center;gap:14px;padding:12px 16px;background:#111;border-bottom:1px solid var(--line);}
+  .browser-dots{display:flex;gap:6px;}
+  .browser-dots i{width:10px;height:10px;border-radius:50%;background:#333;}
+  .browser-url{flex:1;background:#0a0a0a;border:1px solid var(--line);border-radius:8px;padding:6px 12px;color:var(--muted2);font-size:11px;}
+  .browser-body{background:var(--bg);padding:22px 22px 26px;max-height:640px;overflow-y:auto;}
+
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+  .brand{display:flex;align-items:center;gap:9px;}
+  .brand .dot{width:24px;height:24px;border-radius:50%;background:conic-gradient(var(--green),var(--green-d),var(--green));}
+  .brand span{font-weight:700;font-size:15px;letter-spacing:.5px;}
+  .brand small{display:block;color:var(--green);font-size:8.5px;letter-spacing:1.6px;font-weight:600;}
+  .client-select{background:var(--card);border:1px solid var(--line);color:var(--white);border-radius:8px;padding:7px 10px;font-size:11px;font-family:inherit;}
+
+  h1.h1w{font-size:18px;margin:0 0 3px;font-weight:700;}
+  .sub{color:var(--muted);font-size:11.5px;margin:0 0 18px;}
+
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 12px;}
+  .kpi .label{color:var(--muted);font-size:10px;margin-bottom:7px;}
+  .kpi .value{font-size:17px;font-weight:700;}
+  .kpi .value.green{color:var(--green-l);}
+  .kpi .value.red{color:var(--red);}
+
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 16px 6px;margin-bottom:14px;}
+  .panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .panel-head h2{font-size:12.5px;margin:0;font-weight:700;}
+  .panel-head .hint{color:var(--muted2);font-size:10px;}
+  table{width:100%;border-collapse:collapse;font-size:11.5px;}
+  th{text-align:left;color:var(--muted);font-weight:600;font-size:9.5px;text-transform:uppercase;letter-spacing:.3px;padding:6px 8px;border-bottom:1px solid var(--line);}
+  td{padding:9px 8px;border-bottom:1px solid var(--line);color:var(--white);}
+  tr:last-child td{border-bottom:none;}
+  .badge{display:inline-block;padding:3px 8px;border-radius:20px;font-size:9.5px;font-weight:600;}
+  .badge.pend{background:var(--yellow-bg);color:var(--yellow);}
+  .badge.venc{background:var(--red-bg);color:var(--red);}
+  .badge.pag{background:var(--green-bg);color:var(--green-l);}
+  .amount{font-weight:600;}
+  .muted{color:var(--muted);}
+  .chart-wrap{height:150px;margin:4px 0 12px;}
+
+  /* ---------- MOBILE (phone frame) ---------- */
+  .phone{width:340px;height:700px;background:#000;border-radius:44px;padding:14px;box-shadow:0 30px 60px rgba(0,0,0,.55);position:relative;}
+  .phone-screen{width:100%;height:100%;background:var(--bg);border-radius:32px;overflow:hidden;position:relative;display:flex;flex-direction:column;}
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:22px;background:#000;border-bottom-left-radius:14px;border-bottom-right-radius:14px;z-index:5;}
+  .status-row{display:flex;justify-content:space-between;padding:16px 22px 4px;font-size:11px;color:var(--muted);}
+  .app-scroll{flex:1;overflow-y:auto;padding:8px 18px 90px;}
+
+  .app-topbar{display:flex;align-items:center;justify-content:space-between;margin:6px 0 16px;}
+  .app-brand{display:flex;align-items:center;gap:8px;}
+  .app-brand .dot{width:20px;height:20px;border-radius:50%;background:conic-gradient(var(--green),var(--green-d),var(--green));}
+  .app-brand span{font-weight:700;font-size:13px;}
+  .app-avatar{width:30px;height:30px;border-radius:50%;background:var(--green-bg);color:var(--green-l);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;}
+
+  .greet{font-size:11px;color:var(--muted);margin:0 0 2px;}
+  .greet-name{font-size:17px;font-weight:700;margin:0 0 16px;}
+
+  .balance-card{background:linear-gradient(135deg,#132a10,#0a0a0a);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:14px;}
+  .balance-card .lbl{color:var(--muted);font-size:10.5px;margin-bottom:6px;}
+  .balance-card .val{font-size:24px;font-weight:700;color:var(--green-l);margin-bottom:10px;}
+  .balance-pills{display:flex;gap:8px;}
+  .pill{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:20px;padding:5px 10px;font-size:9.5px;color:var(--muted);}
+  .pill b{color:var(--white);}
+
+  .quick-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;}
+  .qa{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-align:center;}
+  .qa .ic{width:26px;height:26px;border-radius:8px;background:var(--green-bg);color:var(--green-l);display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:12px;font-weight:700;}
+  .qa .lbl{font-size:9px;color:var(--muted);}
+
+  .app-section-head{display:flex;align-items:center;justify-content:space-between;margin:4px 0 10px;}
+  .app-section-head h3{font-size:12px;margin:0;font-weight:700;}
+  .app-section-head .link{font-size:10px;color:var(--green-l);}
+
+  .inv-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;}
+  .inv-left .name{font-size:12px;font-weight:600;margin-bottom:3px;}
+  .inv-left .meta{font-size:9.5px;color:var(--muted2);}
+  .inv-right{text-align:right;}
+  .inv-right .amt{font-size:12.5px;font-weight:700;margin-bottom:4px;}
+
+  .mini-chart-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 14px 6px;margin:4px 0 16px;}
+  .mini-chart-card .lbl{font-size:11px;color:var(--muted);margin-bottom:8px;}
+  .mini-chart-wrap{height:100px;}
+
+  .tabbar{position:absolute;bottom:0;left:0;right:0;background:rgba(10,10,10,.92);backdrop-filter:blur(6px);border-top:1px solid var(--line);display:flex;padding:10px 8px 16px;}
+  .tab-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted2);font-size:9px;}
+  .tab-item .ti-ic{width:20px;height:20px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;}
+  .tab-item.active{color:var(--green-l);}
+  .tab-item.active .ti-ic{background:var(--green-bg);}
+
+  .mock-note{margin-top:26px;padding:14px 18px;border:1px dashed var(--line);border-radius:12px;color:var(--muted2);font-size:11.5px;line-height:1.6;max-width:1000px;margin-left:auto;margin-right:auto;text-align:center;}
+  .mock-note b{color:var(--muted);}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <div class="brand"><div class="dot"></div><span>ARGOS INSIGHTS</span></div>
+    <h1>¿Dashboard web o app móvil?</h1>
+    <p>Mismo dato, dos formatos. Comparación lado a lado con datos de ejemplo para decidir qué camino construir primero.</p>
+  </div>
+
+  <div class="compare">
+
+    <!-- ===================== WEB ===================== -->
+    <div class="col">
+      <div class="col-label"><span class="tag">OPCIÓN A</span><span>DASHBOARD WEB</span></div>
+      <div class="browser">
+        <div class="browser-bar">
+          <div class="browser-dots"><i></i><i></i><i></i></div>
+          <div class="browser-url">app.argosinsights.cl/dashboard</div>
+        </div>
+        <div class="browser-body">
+          <div class="topbar">
+            <div class="brand">
+              <div class="dot"></div>
+              <div><span>ARGOS INSIGHTS</span><small>PLATAFORMA DE CLIENTES</small></div>
+            </div>
+            <select class="client-select"><option>Constructora ABC</option></select>
+          </div>
+
+          <h1 class="h1w">Hola, Constructora ABC</h1>
+          <p class="sub">Tu caja en un solo lugar, siempre al día.</p>
+
+          <div class="kpis">
+            <div class="kpi"><div class="label">Por cobrar</div><div class="value">$6.150.000</div></div>
+            <div class="kpi"><div class="label">Plazo promedio</div><div class="value">45 días</div></div>
+            <div class="kpi"><div class="label">Vencidas</div><div class="value red">1</div></div>
+            <div class="kpi"><div class="label">Proyectado 90d</div><div class="value green">$12.800.000</div></div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head"><h2>Cuentas por cobrar</h2><span class="hint">actualizado hoy</span></div>
+            <table>
+              <thead><tr><th>Cliente</th><th>Factura</th><th>Monto</th><th>Vence</th><th>Estado</th></tr></thead>
+              <tbody>
+                <tr><td>Constructora ABC</td><td class="muted">F-1042</td><td class="amount">$4.200.000</td><td class="muted">25-07-2026</td><td><span class="badge pend">Pendiente</span></td></tr>
+                <tr><td>Minera Sur</td><td class="muted">F-1043</td><td class="amount">$6.800.000</td><td class="muted">19-08-2026</td><td><span class="badge pag">Pagada</span></td></tr>
+                <tr><td>Constructora ABC</td><td class="muted">F-1039</td><td class="amount">$2.100.000</td><td class="muted">02-07-2026</td><td><span class="badge venc">Vencida · 14d</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head"><h2>Flujo de caja proyectado</h2><span class="hint">6 meses</span></div>
+            <div class="chart-wrap"><canvas id="webChart"></canvas></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== MOBILE ===================== -->
+    <div class="col">
+      <div class="col-label"><span class="tag">OPCIÓN B</span><span>APP MÓVIL</span></div>
+      <div class="phone">
+        <div class="phone-screen">
+          <div class="notch"></div>
+          <div class="status-row"><span>9:41</span><span>●●●●  📶  🔋</span></div>
+          <div class="app-scroll">
+
+            <div class="app-topbar">
+              <div class="app-brand"><div class="dot"></div><span>Argos Insights</span></div>
+              <div class="app-avatar">CA</div>
+            </div>
+
+            <p class="greet">Hola,</p>
+            <p class="greet-name">Constructora ABC</p>
+
+            <div class="balance-card">
+              <div class="lbl">Saldo proyectado · 90 días</div>
+              <div class="val">$12.800.000</div>
+              <div class="balance-pills">
+                <div class="pill">Por cobrar <b>$6.150.000</b></div>
+                <div class="pill">Vencidas <b style="color:var(--red);">1</b></div>
+              </div>
+            </div>
+
+            <div class="quick-actions">
+              <div class="qa"><div class="ic">$</div><div class="lbl">Cobros</div></div>
+              <div class="qa"><div class="ic">↗</div><div class="lbl">Caja</div></div>
+              <div class="qa"><div class="ic">📄</div><div class="lbl">Excel</div></div>
+            </div>
+
+            <div class="app-section-head"><h3>Cuentas por cobrar</h3><span class="link">Ver todas</span></div>
+
+            <div class="inv-card">
+              <div class="inv-left"><div class="name">Constructora ABC</div><div class="meta">F-1042 · vence 25-07</div></div>
+              <div class="inv-right"><div class="amt">$4.200.000</div><span class="badge pend">Pendiente</span></div>
+            </div>
+            <div class="inv-card">
+              <div class="inv-left"><div class="name">Minera Sur</div><div class="meta">F-1043 · pagada</div></div>
+              <div class="inv-right"><div class="amt">$6.800.000</div><span class="badge pag">Pagada</span></div>
+            </div>
+            <div class="inv-card">
+              <div class="inv-left"><div class="name">Constructora ABC</div><div class="meta">F-1039 · vencida 14d</div></div>
+              <div class="inv-right"><div class="amt">$2.100.000</div><span class="badge venc">Vencida</span></div>
+            </div>
+
+            <div class="mini-chart-card">
+              <div class="lbl">Flujo de caja · 6 meses</div>
+              <div class="mini-chart-wrap"><canvas id="appChart"></canvas></div>
+            </div>
+
+          </div>
+
+          <div class="tabbar">
+            <div class="tab-item active"><div class="ti-ic">⌂</div>Inicio</div>
+            <div class="tab-item"><div class="ti-ic">$</div>Cobros</div>
+            <div class="tab-item"><div class="ti-ic">↗</div>Caja</div>
+            <div class="tab-item"><div class="ti-ic">☰</div>Excel</div>
+            <div class="tab-item"><div class="ti-ic">◎</div>Perfil</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="mock-note">
+    <b>Esto es un mockup estático</b> — ambas versiones usan los mismos datos de ejemplo (la plantilla Excel de Constructora ABC). Ninguna se conecta a datos reales todavía. Sirve para decidir el formato antes de construir la plataforma de verdad.
+  </div>
+
+</div>
+
+<script>
+  const chartOpts = (compact) => ({
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false }, ticks: { color: '#707070', font: { size: compact ? 8 : 10 } } },
+      y: { display: !compact, grid: { color: '#262626' }, ticks: { color: '#9a9a9a', font: { size: 9 }, callback: v => '$' + (v/1000000).toFixed(0) + 'M' } }
+    }
+  });
+
+  const data = {
+    labels: ['Ago','Sep','Oct','Nov','Dic','Ene'],
+    datasets: [{
+      data: [8000000,9500000,10200000,11400000,12100000,12800000],
+      borderColor: '#7fb102',
+      backgroundColor: 'rgba(127,177,2,0.14)',
+      fill: true,
+      tension: 0.35,
+      pointBackgroundColor: '#a3e635',
+      pointRadius: 3,
+    }]
+  };
+
+  new Chart(document.getElementById('webChart'), { type: 'line', data: data, options: chartOpts(false) });
+  new Chart(document.getElementById('appChart'), { type: 'line', data: data, options: chartOpts(true) });
+</script>
+</body>
+</html>
