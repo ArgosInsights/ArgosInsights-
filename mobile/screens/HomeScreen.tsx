@@ -170,7 +170,7 @@ export default function HomeScreen({
             </Text>
             <Text style={styles.statSub}>{pendientes.length} fact.</Text>
           </PressableScale>
-          <PressableScale style={styles.statCard} onPress={() => navigation.navigate('Cobros')}>
+          <PressableScale style={[styles.statCard, { flex: 1.25 }]} onPress={() => navigation.navigate('Cobros')}>
             <Text style={styles.statLabel}>Vencido</Text>
             <Text
               style={[styles.statValue, { color: colors.red }]}
@@ -183,7 +183,7 @@ export default function HomeScreen({
             <Text style={styles.statSub}>{vencidas.length} fact.</Text>
           </PressableScale>
           {ultimoMes && (
-            <PressableScale style={styles.statCard} onPress={() => navigation.navigate('Caja')}>
+            <PressableScale style={[styles.statCard, { flex: 1.25 }]} onPress={() => navigation.navigate('Caja')}>
               <Text style={styles.statLabel}>Ingresos y costos</Text>
               <View style={styles.icSideRow}>
                 <Text
