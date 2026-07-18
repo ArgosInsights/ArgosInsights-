@@ -133,6 +133,8 @@ export default function HomeScreen({
   // Ingresos y costos del mes más reciente cargado.
   const ingresosMes = ultimoMes ? ultimoMes.cobros_esperados + ultimoMes.otros_ingresos : 0;
   const costosMes = ultimoMes ? ultimoMes.egresos_fijos + ultimoMes.egresos_variables : 0;
+  const totalMes = Math.max(ingresosMes + costosMes, 1);
+  const pctIngresos = (ingresosMes / totalMes) * 100;
 
   return (
     <View style={styles.root}>
@@ -181,32 +183,29 @@ export default function HomeScreen({
             <Text style={styles.statSub}>{vencidas.length} fact.</Text>
           </PressableScale>
           {ultimoMes && (
-            <>
-              <PressableScale style={styles.statCard} onPress={() => navigation.navigate('Caja')}>
-                <Text style={styles.statLabel}>Ingresos</Text>
-                <Text
-                  style={[styles.statValue, { color: colors.greenLight }]}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.7}
-                >
-                  {formatCLP(ingresosMes)}
-                </Text>
-                <Text style={styles.statSub}>{nombreMes(ultimoMes.mes)}</Text>
-              </PressableScale>
-              <PressableScale style={styles.statCard} onPress={() => navigation.navigate('Caja')}>
-                <Text style={styles.statLabel}>Costos</Text>
-                <Text
-                  style={[styles.statValue, { color: colors.red }]}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.7}
-                >
-                  {formatCLP(costosMes)}
-                </Text>
-                <Text style={styles.statSub}>{nombreMes(ultimoMes.mes)}</Text>
-              </PressableScale>
-            </>
+            <PressableScale style={styles.statCard} onPress={() => navigation.navigate('Caja')}>
+              <Text style={styles.statLabel}>Ingresos y costos</Text>
+              <Text
+                style={[styles.statValue, { color: colors.greenLight }]}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.7}
+              >
+                {formatCLP(ingresosMes)}
+              </Text>
+              <Text
+                style={[styles.statValue, { color: colors.red, marginBottom: 6 }]}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.7}
+              >
+                {formatCLP(costosMes)}
+              </Text>
+              <View style={styles.statBarTrack}>
+                <View style={[styles.statBarFill, { width: `${pctIngresos}%`, backgroundColor: colors.green }]} />
+              </View>
+              <Text style={styles.statSub}>{nombreMes(ultimoMes.mes)}</Text>
+            </PressableScale>
           )}
         </View>
 
@@ -313,6 +312,8 @@ function getStyles(colors: ColorPalette) {
   statLabel: { color: colors.muted, fontSize: 10.5, marginBottom: 7 },
   statValue: { color: colors.white, fontSize: 16.5, fontWeight: '700', marginBottom: 4 },
   statSub: { color: colors.muted2, fontSize: 10 },
+  statBarTrack: { height: 4, borderRadius: 2, backgroundColor: colors.red, overflow: 'hidden', marginBottom: 6 },
+  statBarFill: { height: '100%', borderRadius: 2 },
   sectionTitle: { color: colors.white, fontSize: 14, fontWeight: '700', marginBottom: 10 },
   chartCard: {
     backgroundColor: colors.card,
