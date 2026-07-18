@@ -128,7 +128,7 @@ export default function HomeScreen({
       >
         <View style={styles.topbar}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <Image source={require('../assets/icon.png')} style={styles.logo} />
+            <Image source={require('../assets/logo-mark.png')} style={styles.logo} resizeMode="contain" />
             <Text style={styles.brand}>ARGOS INSIGHTS</Text>
           </View>
         </View>
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: 20, paddingTop: 60, paddingBottom: 40 },
   topbar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 },
-  logo: { width: 26, height: 26 },
+  logo: { width: 28, height: 26 },
   brand: { color: colors.white, fontWeight: '700', fontSize: 13, letterSpacing: 0.5 },
   greet: { color: colors.muted, fontSize: 12 },
   greetName: { color: colors.white, fontSize: 18, fontWeight: '700', marginBottom: 4 },

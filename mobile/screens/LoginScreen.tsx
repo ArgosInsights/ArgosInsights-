@@ -70,7 +70,7 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-        <Image source={require('../assets/icon.png')} style={styles.logo} />
+        <Image source={require('../assets/logo-mark.png')} style={styles.logo} resizeMode="contain" />
         <Text style={styles.brand}>ARGOS INSIGHTS</Text>
         <Text style={styles.title}>{modo === 'entrar' ? 'Iniciar sesión' : 'Crear cuenta'}</Text>
 
@@ -180,7 +180,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   scroll: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', padding: 28, paddingVertical: 60 },
-  logo: { width: 64, height: 64, marginBottom: 14 },
+  logo: { width: 72, height: 67, marginBottom: 14 },
   brand: { color: colors.white, fontWeight: '700', fontSize: 14, letterSpacing: 1, marginBottom: 30 },
   title: { color: colors.white, fontSize: 18, fontWeight: '700', marginBottom: 20, alignSelf: 'flex-start' },
   input: {
