@@ -98,6 +98,27 @@ export function formatFechaOrGuion(iso: string | null) {
   return iso ? formatFecha(iso) : '—';
 }
 
+// Días transcurridos desde que se completó el último paso (o sea, hace cuánto está
+// "trabado" en la etapa actual). null si ya está pagado o si todavía no arrancó nada
+// (no hay ninguna fecha de referencia para contar los días).
+export function diasEnEtapaActual(ciclo: DocumentCycle): number | null {
+  const etapa = etapaActual(ciclo);
+  if (etapa === 'Pagado' || etapa === 'Sin iniciar') return null;
+
+  const fechaReferencia =
+    etapa === 'Facturado'
+      ? ciclo.fecha_factura
+      : etapa === 'EDP emitido'
+        ? ciclo.fecha_edp
+        : etapa === 'HES emitida'
+          ? ciclo.fecha_hes
+          : ciclo.fecha_oc; // 'OC emitida'
+
+  if (!fechaReferencia) return null;
+  const ms = new Date().getTime() - new Date(fechaReferencia + 'T00:00:00').getTime();
+  return Math.floor(ms / (1000 * 60 * 60 * 24));
+}
+
 // Una entrada del historial de planillas Excel subidas por el cliente.
 export type ExcelUpload = {
   id: string;

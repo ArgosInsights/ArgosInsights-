@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Text } from '../components/Text';
+import CicloDetailModal from '../components/CicloDetailModal';
 import { ColorPalette } from '../constants/theme';
 import { useTheme } from '../lib/ThemeContext';
 import { supabase } from '../lib/supabase';
@@ -24,6 +25,7 @@ export default function CicloScreen({ userId }: { userId: string }) {
   const [refreshing, setRefreshing] = useState(false);
   const [ciclos, setCiclos] = useState<DocumentCycle[]>([]);
   const [filtro, setFiltro] = useState<'todas' | (typeof ETAPAS)[number]>('todas');
+  const [seleccionado, setSeleccionado] = useState<DocumentCycle | null>(null);
 
   async function cargar() {
     const { data } = await supabase
@@ -102,7 +104,12 @@ export default function CicloScreen({ userId }: { userId: string }) {
             { label: 'Pago', fecha: c.fecha_pago },
           ];
           return (
-            <View key={c.id} style={styles.card}>
+            <TouchableOpacity
+              key={c.id}
+              style={styles.card}
+              activeOpacity={0.7}
+              onPress={() => setSeleccionado(c)}
+            >
               <View style={styles.cardHead}>
                 <Text style={styles.cliente} numberOfLines={1}>
                   {c.cliente_nombre}
@@ -120,10 +127,12 @@ export default function CicloScreen({ userId }: { userId: string }) {
                   </View>
                 ))}
               </View>
-            </View>
+            </TouchableOpacity>
           );
         })}
       </ScrollView>
+
+      <CicloDetailModal ciclo={seleccionado} onClose={() => setSeleccionado(null)} />
     </View>
   );
 }
