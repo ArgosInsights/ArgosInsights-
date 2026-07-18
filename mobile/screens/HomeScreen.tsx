@@ -22,6 +22,7 @@ import {
   formatCLP,
   formatFecha,
   Invoice,
+  nombreMes,
   saldoFinal,
 } from '../lib/format';
 
@@ -49,7 +50,7 @@ export default function HomeScreen({
   const [nombreSaludo, setNombreSaludo] = useState<string | null>(null);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [ciclos, setCiclos] = useState<DocumentCycle[]>([]);
-  const [saldoProyectado, setSaldoProyectado] = useState<number | null>(null);
+  const [meses, setMeses] = useState<CashFlowMonth[]>([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [seleccionada, setSeleccionada] = useState<Invoice | null>(null);
 
@@ -68,8 +69,7 @@ export default function HomeScreen({
           .from('cash_flow_months')
           .select('*')
           .eq('client_id', userId)
-          .order('mes', { ascending: false })
-          .limit(1),
+          .order('mes', { ascending: true }),
         supabase.from('document_cycle').select('*').eq('client_id', userId),
       ]);
 
@@ -81,9 +81,7 @@ export default function HomeScreen({
 
     setCiclos((ciclosData as DocumentCycle[]) ?? []);
     setNombreSaludo(profile?.full_name ?? profile?.company_name ?? null);
-
-    const ultimoMes = (cashData as CashFlowMonth[] | null)?.[0];
-    setSaldoProyectado(ultimoMes ? saldoFinal(ultimoMes) : null);
+    setMeses((cashData as CashFlowMonth[]) ?? []);
   }
 
   useEffect(() => {
@@ -121,6 +119,22 @@ export default function HomeScreen({
     etapaCounts[etapa] = (etapaCounts[etapa] ?? 0) + 1;
   });
   const etapasConDatos = Object.entries(etapaCounts);
+
+  const ultimoMes = meses[meses.length - 1] ?? null;
+  const saldoProyectado = ultimoMes ? saldoFinal(ultimoMes) : null;
+
+  // Evolución de caja: los últimos meses cargados, para un mini gráfico de barras.
+  const mesesChart = meses.slice(-6);
+  const saldosChart = mesesChart.map(saldoFinal);
+  const maxChart = Math.max(...saldosChart, 1);
+  const minChart = Math.min(...saldosChart, 0);
+  const rangoChart = Math.max(maxChart - minChart, 1);
+
+  // Ingresos y costos del mes más reciente cargado.
+  const ingresosMes = ultimoMes ? ultimoMes.cobros_esperados + ultimoMes.otros_ingresos : 0;
+  const costosMes = ultimoMes ? ultimoMes.egresos_fijos + ultimoMes.egresos_variables : 0;
+  const totalMes = Math.max(ingresosMes + costosMes, 1);
+  const pctIngresos = (ingresosMes / totalMes) * 100;
 
   return (
     <View style={styles.root}>
@@ -160,6 +174,54 @@ export default function HomeScreen({
             <Text style={styles.statSub}>{vencidas.length} factura{vencidas.length === 1 ? '' : 's'}</Text>
           </PressableScale>
         </View>
+
+        {mesesChart.length > 0 && (
+          <>
+            <Text style={styles.sectionTitle}>Evolución de caja</Text>
+            <PressableScale style={styles.chartCard} onPress={() => navigation.navigate('Caja')}>
+              <View style={styles.chart}>
+                {mesesChart.map((mes, i) => {
+                  const valor = saldosChart[i];
+                  const alturaPct = Math.max(((valor - minChart) / rangoChart) * 100, 4);
+                  return (
+                    <View key={i} style={styles.barCol}>
+                      <View style={styles.barTrack}>
+                        <View
+                          style={[
+                            styles.barFill,
+                            { height: `${alturaPct}%`, backgroundColor: valor >= 0 ? colors.green : colors.red },
+                          ]}
+                        />
+                      </View>
+                      <Text style={styles.barLabel}>{nombreMes(mes.mes)}</Text>
+                    </View>
+                  );
+                })}
+              </View>
+            </PressableScale>
+          </>
+        )}
+
+        {ultimoMes && (
+          <>
+            <Text style={styles.sectionTitle}>Ingresos y costos ({nombreMes(ultimoMes.mes)})</Text>
+            <PressableScale style={styles.icCard} onPress={() => navigation.navigate('Caja')}>
+              <View style={styles.icRow}>
+                <View>
+                  <Text style={styles.icLabel}>Ingresos</Text>
+                  <Text style={[styles.icValue, { color: colors.greenLight }]}>{formatCLP(ingresosMes)}</Text>
+                </View>
+                <View style={{ alignItems: 'flex-end' }}>
+                  <Text style={styles.icLabel}>Costos</Text>
+                  <Text style={[styles.icValue, { color: colors.red }]}>{formatCLP(costosMes)}</Text>
+                </View>
+              </View>
+              <View style={styles.icBarTrack}>
+                <View style={[styles.icBarFill, { width: `${pctIngresos}%`, backgroundColor: colors.green }]} />
+              </View>
+            </PressableScale>
+          </>
+        )}
 
         <Text style={styles.sectionTitle}>Próximos vencimientos</Text>
 
@@ -237,6 +299,32 @@ function getStyles(colors: ColorPalette) {
   statValue: { color: colors.white, fontSize: 16, fontWeight: '700', marginBottom: 3 },
   statSub: { color: colors.muted2, fontSize: 10 },
   sectionTitle: { color: colors.white, fontSize: 14, fontWeight: '700', marginBottom: 10 },
+  chartCard: {
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 24,
+  },
+  chart: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', height: 100 },
+  barCol: { flex: 1, alignItems: 'center', height: '100%', justifyContent: 'flex-end' },
+  barTrack: { width: 14, height: '75%', justifyContent: 'flex-end' },
+  barFill: { width: '100%', borderRadius: 4, minHeight: 4 },
+  barLabel: { color: colors.muted2, fontSize: 9, marginTop: 6 },
+  icCard: {
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 24,
+  },
+  icRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
+  icLabel: { color: colors.muted, fontSize: 11, marginBottom: 4 },
+  icValue: { fontSize: 16, fontWeight: '700' },
+  icBarTrack: { height: 6, borderRadius: 3, backgroundColor: colors.red, overflow: 'hidden' },
+  icBarFill: { height: '100%', borderRadius: 3 },
   invoiceCard: {
     backgroundColor: colors.card,
     borderWidth: 1,
