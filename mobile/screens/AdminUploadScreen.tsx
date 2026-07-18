@@ -32,16 +32,24 @@ export default function AdminUploadScreen() {
   }, []);
 
   async function elegirArchivo() {
+    // Usamos "*/*" en vez de filtrar por tipo Excel: con Google Drive y otros proveedores
+    // el tipo de archivo reportado a veces no coincide exacto y iOS deja el archivo
+    // "grisado" sin poder tocarlo. Validamos la extensión nosotros mismos abajo.
     const resultado = await DocumentPicker.getDocumentAsync({
-      type: [
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
-        'application/vnd.ms-excel', // .xls
-      ],
+      type: '*/*',
       copyToCacheDirectory: true,
     });
 
     if (resultado.canceled || !resultado.assets?.[0]) return;
     const archivo = resultado.assets[0];
+
+    const nombreMin = archivo.name.toLowerCase();
+    if (!nombreMin.endsWith('.xlsx') && !nombreMin.endsWith('.xls')) {
+      setEstado('error');
+      setMensaje(`"${archivo.name}" no parece un Excel (.xlsx). Elegí el archivo correcto.`);
+      return;
+    }
+
     setArchivoNombre(archivo.name);
     setEstado('idle');
     setMensaje(null);
