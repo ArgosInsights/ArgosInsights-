@@ -48,7 +48,7 @@ export default function MainTabs({
           name="Inicio"
           options={{ tabBarIcon: ({ focused }) => <TabIcon nombre="home" enfocado={focused} /> }}
         >
-          {() => <HomeScreen userId={userId} email={email} />}
+          {({ navigation }) => <HomeScreen userId={userId} email={email} navigation={navigation} />}
         </Tab.Screen>
         <Tab.Screen
           name="Cobros"

@@ -33,7 +33,15 @@ const etapaColor: Record<string, string> = {
   Pagado: colors.greenLight,
 };
 
-export default function HomeScreen({ userId, email }: { userId: string; email: string }) {
+export default function HomeScreen({
+  userId,
+  email,
+  navigation,
+}: {
+  userId: string;
+  email: string;
+  navigation: { navigate: (nombre: string) => void };
+}) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [nombreSaludo, setNombreSaludo] = useState<string | null>(null);
@@ -127,27 +135,40 @@ export default function HomeScreen({ userId, email }: { userId: string; email: s
 
         <Text style={styles.greet}>Hola,</Text>
         <Text style={styles.greetName}>{nombreSaludo ?? email}</Text>
+        <Text style={styles.resumenTitle}>Tu resumen</Text>
 
         {errorMsg && <Text style={styles.error}>{errorMsg}</Text>}
 
-        <View style={styles.balanceCard}>
+        <TouchableOpacity
+          style={styles.balanceCard}
+          activeOpacity={0.7}
+          onPress={() => navigation.navigate('Caja')}
+        >
           <Text style={styles.balanceLabel}>Saldo proyectado</Text>
           <Text style={styles.balanceValue}>
             {saldoProyectado != null ? formatCLP(saldoProyectado) : 'Sin datos todavía'}
           </Text>
-        </View>
+        </TouchableOpacity>
 
         <View style={styles.statsRow}>
-          <View style={styles.statCard}>
+          <TouchableOpacity
+            style={styles.statCard}
+            activeOpacity={0.7}
+            onPress={() => navigation.navigate('Cobros')}
+          >
             <Text style={styles.statLabel}>Por cobrar</Text>
             <Text style={styles.statValue}>{formatCLP(totalPorCobrar)}</Text>
             <Text style={styles.statSub}>{pendientes.length} factura{pendientes.length === 1 ? '' : 's'}</Text>
-          </View>
-          <View style={styles.statCard}>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.statCard}
+            activeOpacity={0.7}
+            onPress={() => navigation.navigate('Cobros')}
+          >
             <Text style={styles.statLabel}>Vencido</Text>
             <Text style={[styles.statValue, { color: colors.red }]}>{formatCLP(montoVencido)}</Text>
             <Text style={styles.statSub}>{vencidas.length} factura{vencidas.length === 1 ? '' : 's'}</Text>
-          </View>
+          </TouchableOpacity>
         </View>
 
         <Text style={styles.sectionTitle}>Próximos vencimientos</Text>
@@ -176,7 +197,11 @@ export default function HomeScreen({ userId, email }: { userId: string; email: s
         {etapasConDatos.length > 0 && (
           <>
             <Text style={styles.sectionTitle}>Ciclo documental</Text>
-            <View style={styles.cicloCard}>
+            <TouchableOpacity
+              style={styles.cicloCard}
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate('Excel')}
+            >
               {etapasConDatos.map(([etapa, cantidad]) => (
                 <View key={etapa} style={styles.cicloRow}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -186,7 +211,7 @@ export default function HomeScreen({ userId, email }: { userId: string; email: s
                   <Text style={styles.cicloValue}>{cantidad}</Text>
                 </View>
               ))}
-            </View>
+            </TouchableOpacity>
           </>
         )}
       </ScrollView>
@@ -203,7 +228,8 @@ const styles = StyleSheet.create({
   logo: { width: 24, height: 24, borderRadius: 12 },
   brand: { color: colors.white, fontWeight: '700', fontSize: 13, letterSpacing: 0.5 },
   greet: { color: colors.muted, fontSize: 12 },
-  greetName: { color: colors.white, fontSize: 18, fontWeight: '700', marginBottom: 18 },
+  greetName: { color: colors.white, fontSize: 18, fontWeight: '700', marginBottom: 4 },
+  resumenTitle: { color: colors.muted, fontSize: 12, fontWeight: '600', marginBottom: 14 },
   error: { color: colors.red, fontSize: 12, marginBottom: 12 },
   empty: { color: colors.muted2, fontSize: 12, marginBottom: 10 },
   balanceCard: {
