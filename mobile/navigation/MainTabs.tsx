@@ -5,6 +5,7 @@ import { colors } from '../constants/theme';
 import HomeScreen from '../screens/HomeScreen';
 import CobrosScreen from '../screens/CobrosScreen';
 import CajaScreen from '../screens/CajaScreen';
+import ExcelScreen from '../screens/ExcelScreen';
 import PerfilScreen from '../screens/PerfilScreen';
 
 const Tab = createBottomTabNavigator();
@@ -51,6 +52,12 @@ export default function MainTabs({ userId, email }: { userId: string; email: str
           options={{ tabBarIcon: ({ focused }) => <TabIcon simbolo="↗" enfocado={focused} /> }}
         >
           {() => <CajaScreen userId={userId} />}
+        </Tab.Screen>
+        <Tab.Screen
+          name="Excel"
+          options={{ tabBarIcon: ({ focused }) => <TabIcon simbolo="☰" enfocado={focused} /> }}
+        >
+          {() => <ExcelScreen userId={userId} />}
         </Tab.Screen>
         <Tab.Screen
           name="Perfil"

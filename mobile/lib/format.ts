@@ -61,3 +61,28 @@ export function nombreMes(iso: string) {
   const [, m] = iso.split('-');
   return meses[parseInt(m, 10) - 1];
 }
+
+export type DocumentCycle = {
+  id: string;
+  cliente_nombre: string;
+  numero_oc: string | null;
+  fecha_oc: string | null;
+  fecha_hes: string | null;
+  fecha_edp: string | null;
+  fecha_factura: string | null;
+  fecha_pago: string | null;
+};
+
+// Devuelve la etapa más avanzada que ya tiene fecha cargada.
+export function etapaActual(ciclo: DocumentCycle) {
+  if (ciclo.fecha_pago) return 'Pagado';
+  if (ciclo.fecha_factura) return 'Facturado';
+  if (ciclo.fecha_edp) return 'EDP emitido';
+  if (ciclo.fecha_hes) return 'HES emitida';
+  if (ciclo.fecha_oc) return 'OC emitida';
+  return 'Sin iniciar';
+}
+
+export function formatFechaOrGuion(iso: string | null) {
+  return iso ? formatFecha(iso) : '—';
+}
