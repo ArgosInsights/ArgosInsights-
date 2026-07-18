@@ -39,7 +39,11 @@ export default function App() {
   return (
     <>
       <StatusBar style="light" />
-      {session ? <HomeScreen email={session.user.email ?? ''} /> : <LoginScreen />}
+      {session ? (
+        <HomeScreen userId={session.user.id} email={session.user.email ?? ''} />
+      ) : (
+        <LoginScreen />
+      )}
     </>
   );
 }

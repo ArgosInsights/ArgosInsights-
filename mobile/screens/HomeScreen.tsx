@@ -1,14 +1,53 @@
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { colors } from '../constants/theme';
 import { supabase } from '../lib/supabase';
 
-// Datos de ejemplo — el próximo paso después de esto es reemplazarlos por una consulta
-// real: supabase.from('invoices').select('*').eq('client_id', session.user.id)
-const cuentasPorCobrar = [
-  { cliente: 'Constructora ABC', factura: 'F-1042', monto: '$4.200.000', vence: '25-07-2026', estado: 'pendiente' },
-  { cliente: 'Minera Sur', factura: 'F-1043', monto: '$6.800.000', vence: '19-08-2026', estado: 'pagada' },
-  { cliente: 'Constructora ABC', factura: 'F-1039', monto: '$2.100.000', vence: '02-07-2026', estado: 'vencida' },
-];
+type Invoice = {
+  id: string;
+  cliente_nombre: string;
+  numero_factura: string | null;
+  monto: number;
+  fecha_emision: string;
+  plazo_dias: number;
+  fecha_real_pago: string | null;
+};
+
+type CashFlowMonth = {
+  saldo_inicial: number;
+  otros_ingresos: number;
+  egresos_fijos: number;
+  egresos_variables: number;
+};
+
+function formatCLP(monto: number) {
+  return '$' + Math.round(monto).toLocaleString('es-CL');
+}
+
+function formatFecha(iso: string) {
+  const [y, m, d] = iso.split('-');
+  return `${d}-${m}-${y}`;
+}
+
+function addDias(iso: string, dias: number) {
+  const fecha = new Date(iso + 'T00:00:00');
+  fecha.setDate(fecha.getDate() + dias);
+  return fecha;
+}
+
+function estadoDe(inv: Invoice): 'pendiente' | 'pagada' | 'vencida' {
+  if (inv.fecha_real_pago) return 'pagada';
+  const vence = addDias(inv.fecha_emision, inv.plazo_dias);
+  return vence < new Date() ? 'vencida' : 'pendiente';
+}
 
 const estadoColor: Record<string, string> = {
   pendiente: colors.yellow,
@@ -22,10 +61,73 @@ const estadoTexto: Record<string, string> = {
   vencida: 'Vencida',
 };
 
-export default function HomeScreen({ email }: { email: string }) {
+export default function HomeScreen({ userId, email }: { userId: string; email: string }) {
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [companyName, setCompanyName] = useState<string | null>(null);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [saldoProyectado, setSaldoProyectado] = useState<number | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  async function cargarDatos() {
+    setErrorMsg(null);
+
+    const [{ data: profile }, { data: invoicesData, error: invError }, { data: cashData }] =
+      await Promise.all([
+        supabase.from('profiles').select('company_name').eq('id', userId).single(),
+        supabase
+          .from('invoices')
+          .select('*')
+          .eq('client_id', userId)
+          .order('fecha_emision', { ascending: false }),
+        supabase
+          .from('cash_flow_months')
+          .select('saldo_inicial, otros_ingresos, egresos_fijos, egresos_variables')
+          .eq('client_id', userId)
+          .order('mes', { ascending: false })
+          .limit(1),
+      ]);
+
+    if (invError) {
+      setErrorMsg(invError.message);
+    } else {
+      setInvoices((invoicesData as Invoice[]) ?? []);
+    }
+
+    setCompanyName(profile?.company_name ?? null);
+
+    const ultimoMes = (cashData as CashFlowMonth[] | null)?.[0];
+    if (ultimoMes) {
+      setSaldoProyectado(
+        ultimoMes.saldo_inicial + ultimoMes.otros_ingresos - ultimoMes.egresos_fijos - ultimoMes.egresos_variables
+      );
+    }
+  }
+
+  useEffect(() => {
+    cargarDatos().finally(() => setLoading(false));
+  }, [userId]);
+
+  async function onRefresh() {
+    setRefreshing(true);
+    await cargarDatos();
+    setRefreshing(false);
+  }
+
+  if (loading) {
+    return (
+      <View style={[styles.root, { alignItems: 'center', justifyContent: 'center' }]}>
+        <ActivityIndicator color={colors.green} />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.root}>
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.green} />}
+      >
 
         <View style={styles.topbar}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -38,29 +140,41 @@ export default function HomeScreen({ email }: { email: string }) {
         </View>
 
         <Text style={styles.greet}>Hola,</Text>
-        <Text style={styles.greetName}>{email}</Text>
+        <Text style={styles.greetName}>{companyName ?? email}</Text>
+
+        {errorMsg && <Text style={styles.error}>{errorMsg}</Text>}
 
         <View style={styles.balanceCard}>
-          <Text style={styles.balanceLabel}>Saldo proyectado · 90 días</Text>
-          <Text style={styles.balanceValue}>$12.800.000</Text>
+          <Text style={styles.balanceLabel}>Saldo proyectado</Text>
+          <Text style={styles.balanceValue}>
+            {saldoProyectado != null ? formatCLP(saldoProyectado) : 'Sin datos todavía'}
+          </Text>
         </View>
 
         <Text style={styles.sectionTitle}>Cuentas por cobrar</Text>
 
-        {cuentasPorCobrar.map((f, i) => (
-          <View key={i} style={styles.invoiceCard}>
-            <View>
-              <Text style={styles.invoiceName}>{f.cliente}</Text>
-              <Text style={styles.invoiceMeta}>{f.factura} · vence {f.vence}</Text>
+        {invoices.length === 0 && (
+          <Text style={styles.empty}>Todavía no hay facturas cargadas.</Text>
+        )}
+
+        {invoices.map((inv) => {
+          const estado = estadoDe(inv);
+          const vence = addDias(inv.fecha_emision, inv.plazo_dias);
+          return (
+            <View key={inv.id} style={styles.invoiceCard}>
+              <View>
+                <Text style={styles.invoiceName}>{inv.cliente_nombre}</Text>
+                <Text style={styles.invoiceMeta}>
+                  {inv.numero_factura ?? 'Sin número'} · vence {formatFecha(vence.toISOString().slice(0, 10))}
+                </Text>
+              </View>
+              <View style={{ alignItems: 'flex-end' }}>
+                <Text style={styles.invoiceAmount}>{formatCLP(inv.monto)}</Text>
+                <Text style={[styles.badge, { color: estadoColor[estado] }]}>{estadoTexto[estado]}</Text>
+              </View>
             </View>
-            <View style={{ alignItems: 'flex-end' }}>
-              <Text style={styles.invoiceAmount}>{f.monto}</Text>
-              <Text style={[styles.badge, { color: estadoColor[f.estado] }]}>
-                {estadoTexto[f.estado]}
-              </Text>
-            </View>
-          </View>
-        ))}
+          );
+        })}
 
       </ScrollView>
     </View>
@@ -76,6 +190,8 @@ const styles = StyleSheet.create({
   logout: { color: colors.muted, fontSize: 12 },
   greet: { color: colors.muted, fontSize: 12 },
   greetName: { color: colors.white, fontSize: 18, fontWeight: '700', marginBottom: 18 },
+  error: { color: colors.red, fontSize: 12, marginBottom: 12 },
+  empty: { color: colors.muted2, fontSize: 12, marginBottom: 10 },
   balanceCard: {
     backgroundColor: colors.card,
     borderWidth: 1,
