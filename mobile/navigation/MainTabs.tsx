@@ -35,9 +35,12 @@ export default function MainTabs({ userId, email }: { userId: string; email: str
           tabBarInactiveTintColor: colors.muted2,
           tabBarLabelStyle: { fontSize: 10 },
           animation: 'fade',
+          // Fondo oscuro detrás de las escenas mientras cruzan en fade, para que no
+          // se vea un flash blanco/gris de golpe en el medio de la transición.
+          sceneStyle: { backgroundColor: colors.bg },
           transitionSpec: {
             animation: 'timing',
-            config: { duration: 180, easing: Easing.out(Easing.ease) },
+            config: { duration: 280, easing: Easing.inOut(Easing.ease) },
           },
         }}
       >
