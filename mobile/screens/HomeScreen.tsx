@@ -184,7 +184,7 @@ export default function HomeScreen({
           </PressableScale>
 
           {ultimoMes && (
-            <PressableScale style={[styles.statCardRow, { flex: 2 }]} onPress={() => navigation.navigate('Caja')}>
+            <PressableScale style={[styles.statCardRow, { flex: 2.6 }]} onPress={() => navigation.navigate('Caja')}>
               <Text style={styles.statLabel}>Ingresos/costos</Text>
               <View style={styles.icSideRow}>
                 <Text
@@ -301,7 +301,7 @@ function getStyles(colors: ColorPalette) {
   },
   balanceLabel: { color: colors.muted, fontSize: 11, marginBottom: 6 },
   balanceValue: { color: colors.greenLight, fontSize: 26, fontWeight: '700' },
-  statsRow: { flexDirection: 'row', gap: 8, marginBottom: 24 },
+  statsRow: { flexDirection: 'row', gap: 8, marginBottom: 24, marginRight: -20 },
   statCardRow: {
     flex: 1,
     backgroundColor: colors.card,
