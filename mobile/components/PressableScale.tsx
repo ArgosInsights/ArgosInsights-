@@ -29,7 +29,11 @@ export default function PressableScale({
   }
 
   return (
-    <Pressable onPressIn={onPressIn} onPressOut={onPressOut} {...props}>
+    // El style (flex, width, margin, etc.) va también en el Pressable: es el hijo
+    // directo del contenedor flex del padre, así que si solo se lo pasamos al
+    // Animated.View de adentro, cosas como "flex: 1" no tienen ningún efecto
+    // (terminan aplicadas un nivel mas adentro de lo que necesita el layout).
+    <Pressable onPressIn={onPressIn} onPressOut={onPressOut} style={style} {...props}>
       <Animated.View style={[style, { transform: [{ scale }] }]}>{children}</Animated.View>
     </Pressable>
   );
