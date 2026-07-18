@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -61,7 +62,7 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-        <View style={styles.dot} />
+        <Image source={require('../assets/icon.png')} style={styles.logo} />
         <Text style={styles.brand}>ARGOS INSIGHTS</Text>
         <Text style={styles.title}>{modo === 'entrar' ? 'Iniciar sesión' : 'Crear cuenta'}</Text>
 
@@ -135,7 +136,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   scroll: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', padding: 28, paddingVertical: 60 },
-  dot: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.green, marginBottom: 10 },
+  logo: { width: 56, height: 56, borderRadius: 14, marginBottom: 14 },
   brand: { color: colors.white, fontWeight: '700', fontSize: 14, letterSpacing: 1, marginBottom: 30 },
   title: { color: colors.white, fontSize: 18, fontWeight: '700', marginBottom: 20, alignSelf: 'flex-start' },
   input: {
