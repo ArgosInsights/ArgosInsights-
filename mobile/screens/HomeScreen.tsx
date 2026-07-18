@@ -185,26 +185,27 @@ export default function HomeScreen({
           {ultimoMes && (
             <PressableScale style={styles.statCard} onPress={() => navigation.navigate('Caja')}>
               <Text style={styles.statLabel}>Ingresos y costos</Text>
-              <Text
-                style={[styles.statValue, { color: colors.greenLight }]}
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.7}
-              >
-                {formatCLP(ingresosMes)}
-              </Text>
-              <Text
-                style={[styles.statValue, { color: colors.red, marginBottom: 6 }]}
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.7}
-              >
-                {formatCLP(costosMes)}
-              </Text>
+              <View style={styles.icSideRow}>
+                <Text
+                  style={[styles.statValueSm, { color: colors.greenLight }]}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.6}
+                >
+                  {formatCLP(ingresosMes)}
+                </Text>
+                <Text
+                  style={[styles.statValueSm, { color: colors.red }]}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.6}
+                >
+                  {formatCLP(costosMes)}
+                </Text>
+              </View>
               <View style={styles.statBarTrack}>
                 <View style={[styles.statBarFill, { width: `${pctIngresos}%`, backgroundColor: colors.green }]} />
               </View>
-              <Text style={styles.statSub}>{nombreMes(ultimoMes.mes)}</Text>
             </PressableScale>
           )}
         </View>
@@ -312,7 +313,9 @@ function getStyles(colors: ColorPalette) {
   statLabel: { color: colors.muted, fontSize: 10.5, marginBottom: 7 },
   statValue: { color: colors.white, fontSize: 16.5, fontWeight: '700', marginBottom: 4 },
   statSub: { color: colors.muted2, fontSize: 10 },
-  statBarTrack: { height: 4, borderRadius: 2, backgroundColor: colors.red, overflow: 'hidden', marginBottom: 6 },
+  icSideRow: { flexDirection: 'row', gap: 6, marginBottom: 6 },
+  statValueSm: { fontSize: 12.5, fontWeight: '700', flexShrink: 1 },
+  statBarTrack: { height: 4, borderRadius: 2, backgroundColor: colors.red, overflow: 'hidden' },
   statBarFill: { height: '100%', borderRadius: 2 },
   sectionTitle: { color: colors.white, fontSize: 14, fontWeight: '700', marginBottom: 10 },
   chartCard: {
