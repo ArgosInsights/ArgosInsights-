@@ -184,11 +184,11 @@ export default function HomeScreen({
           </PressableScale>
 
           {ultimoMes && (
-            <PressableScale style={styles.statCardRow} onPress={() => navigation.navigate('Caja')}>
+            <PressableScale style={[styles.statCardRow, { flex: 2 }]} onPress={() => navigation.navigate('Caja')}>
               <Text style={styles.statLabel}>Ingresos/costos</Text>
               <View style={styles.icSideRow}>
                 <Text
-                  style={[styles.statValueSm, { color: colors.greenLight }]}
+                  style={[styles.statValueRow, { color: colors.greenLight, marginBottom: 0 }]}
                   numberOfLines={1}
                   adjustsFontSizeToFit
                   minimumFontScale={0.6}
@@ -196,7 +196,7 @@ export default function HomeScreen({
                   {formatCLP(ingresosMes)}
                 </Text>
                 <Text
-                  style={[styles.statValueSm, { color: colors.red }]}
+                  style={[styles.statValueRow, { color: colors.red, marginBottom: 0 }]}
                   numberOfLines={1}
                   adjustsFontSizeToFit
                   minimumFontScale={0.6}
@@ -314,8 +314,7 @@ function getStyles(colors: ColorPalette) {
   statValueRow: { color: colors.white, fontSize: 16.5, fontWeight: '700', marginBottom: 4 },
   statLabel: { color: colors.muted, fontSize: 11, marginBottom: 5 },
   statSub: { color: colors.muted2, fontSize: 10.5 },
-  icSideRow: { flexDirection: 'row', gap: 5, marginBottom: 6 },
-  statValueSm: { fontSize: 11.5, fontWeight: '700', flexShrink: 1 },
+  icSideRow: { flexDirection: 'row', gap: 12, marginBottom: 6 },
   statBarTrack: { height: 4, borderRadius: 2, backgroundColor: colors.red, overflow: 'hidden' },
   statBarFill: { height: '100%', borderRadius: 2 },
   sectionTitle: { color: colors.white, fontSize: 14, fontWeight: '700', marginBottom: 10 },
