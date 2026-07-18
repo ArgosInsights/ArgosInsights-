@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   StyleSheet,
   TextInput,
   TouchableOpacity,
@@ -17,6 +18,8 @@ import { supabase } from '../lib/supabase';
 // cliente las cree un admin desde la web, y acá el cliente solo inicie sesión.
 export default function LoginScreen() {
   const [nombre, setNombre] = useState('');
+  const [empresa, setEmpresa] = useState('');
+  const [tipoEmpresa, setTipoEmpresa] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -26,8 +29,8 @@ export default function LoginScreen() {
   async function handleSubmit() {
     setError(null);
 
-    if (modo === 'crear' && !nombre) {
-      setError('Completá tu nombre completo.');
+    if (modo === 'crear' && (!nombre || !empresa || !tipoEmpresa)) {
+      setError('Completá nombre, empresa y tipo de empresa.');
       return;
     }
     if (!email || !password) {
@@ -43,8 +46,10 @@ export default function LoginScreen() {
             email,
             password,
             // Esto viaja como "raw_user_meta_data" — el trigger que ya está en la base
-            // (handle_new_user) lo toma de ahí y lo guarda en profiles.full_name.
-            options: { data: { full_name: nombre } },
+            // (handle_new_user) lo toma de ahí y lo guarda en la tabla profiles.
+            options: {
+              data: { full_name: nombre, company_name: empresa, company_type: tipoEmpresa },
+            },
           });
     setLoading(false);
     if (authError) setError(authError.message);
@@ -55,60 +60,81 @@ export default function LoginScreen() {
       style={styles.root}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <View style={styles.dot} />
-      <Text style={styles.brand}>ARGOS INSIGHTS</Text>
-      <Text style={styles.title}>{modo === 'entrar' ? 'Iniciar sesión' : 'Crear cuenta'}</Text>
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+        <View style={styles.dot} />
+        <Text style={styles.brand}>ARGOS INSIGHTS</Text>
+        <Text style={styles.title}>{modo === 'entrar' ? 'Iniciar sesión' : 'Crear cuenta'}</Text>
 
-      {modo === 'crear' && (
+        {modo === 'crear' && (
+          <>
+            <TextInput
+              style={styles.input}
+              placeholder="Nombre completo"
+              placeholderTextColor={colors.muted2}
+              autoCapitalize="words"
+              value={nombre}
+              onChangeText={setNombre}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Nombre de la empresa"
+              placeholderTextColor={colors.muted2}
+              autoCapitalize="words"
+              value={empresa}
+              onChangeText={setEmpresa}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Tipo de empresa (ej: Construcción, Retail, Minería)"
+              placeholderTextColor={colors.muted2}
+              autoCapitalize="words"
+              value={tipoEmpresa}
+              onChangeText={setTipoEmpresa}
+            />
+          </>
+        )}
+
         <TextInput
           style={styles.input}
-          placeholder="Nombre completo"
+          placeholder="Email"
           placeholderTextColor={colors.muted2}
-          autoCapitalize="words"
-          value={nombre}
-          onChangeText={setNombre}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          value={email}
+          onChangeText={setEmail}
         />
-      )}
+        <TextInput
+          style={styles.input}
+          placeholder="Contraseña"
+          placeholderTextColor={colors.muted2}
+          secureTextEntry
+          value={password}
+          onChangeText={setPassword}
+        />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        placeholderTextColor={colors.muted2}
-        autoCapitalize="none"
-        keyboardType="email-address"
-        value={email}
-        onChangeText={setEmail}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Contraseña"
-        placeholderTextColor={colors.muted2}
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
+        {error && <Text style={styles.error}>{error}</Text>}
 
-      {error && <Text style={styles.error}>{error}</Text>}
+        <TouchableOpacity style={styles.button} onPress={handleSubmit} disabled={loading}>
+          {loading ? (
+            <ActivityIndicator color={colors.bg} />
+          ) : (
+            <Text style={styles.buttonText}>{modo === 'entrar' ? 'Entrar' : 'Crear cuenta'}</Text>
+          )}
+        </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={handleSubmit} disabled={loading}>
-        {loading ? (
-          <ActivityIndicator color={colors.bg} />
-        ) : (
-          <Text style={styles.buttonText}>{modo === 'entrar' ? 'Entrar' : 'Crear cuenta'}</Text>
-        )}
-      </TouchableOpacity>
-
-      <TouchableOpacity onPress={() => setModo(modo === 'entrar' ? 'crear' : 'entrar')}>
-        <Text style={styles.switchText}>
-          {modo === 'entrar' ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Entrar'}
-        </Text>
-      </TouchableOpacity>
+        <TouchableOpacity onPress={() => setModo(modo === 'entrar' ? 'crear' : 'entrar')}>
+          <Text style={styles.switchText}>
+            {modo === 'entrar' ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Entrar'}
+          </Text>
+        </TouchableOpacity>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center', padding: 28 },
+  root: { flex: 1, backgroundColor: colors.bg },
+  scroll: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', padding: 28, paddingVertical: 60 },
   dot: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.green, marginBottom: 10 },
   brand: { color: colors.white, fontWeight: '700', fontSize: 14, letterSpacing: 1, marginBottom: 30 },
   title: { color: colors.white, fontSize: 18, fontWeight: '700', marginBottom: 20, alignSelf: 'flex-start' },

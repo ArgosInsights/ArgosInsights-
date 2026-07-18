@@ -7,6 +7,7 @@ import { supabase } from '../lib/supabase';
 type Profile = {
   full_name: string | null;
   company_name: string | null;
+  company_type: string | null;
   role: string;
 };
 
@@ -17,7 +18,7 @@ export default function PerfilScreen({ userId, email }: { userId: string; email:
   useEffect(() => {
     supabase
       .from('profiles')
-      .select('full_name, company_name, role')
+      .select('full_name, company_name, company_type, role')
       .eq('id', userId)
       .single()
       .then(({ data }) => {
@@ -55,6 +56,14 @@ export default function PerfilScreen({ userId, email }: { userId: string; email:
             <Text style={styles.value}>{email}</Text>
           </View>
           <View style={styles.row}>
+            <Text style={styles.label}>Empresa</Text>
+            <Text style={styles.value}>{profile?.company_name ?? '—'}</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.label}>Tipo de empresa</Text>
+            <Text style={styles.value}>{profile?.company_type ?? '—'}</Text>
+          </View>
+          <View style={[styles.row, { borderBottomWidth: 0 }]}>
             <Text style={styles.label}>Rol</Text>
             <Text style={styles.value}>{profile?.role === 'admin' ? 'Administrador' : 'Cliente'}</Text>
           </View>
