@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Text } from '../components/Text';
+import InvoiceDetailModal from '../components/InvoiceDetailModal';
 import { colors } from '../constants/theme';
 import { supabase } from '../lib/supabase';
 import { formatCLP, formatFecha, addDias, estadoDe, estadoTexto, Invoice } from '../lib/format';
@@ -16,6 +17,7 @@ export default function CobrosScreen({ userId }: { userId: string }) {
   const [refreshing, setRefreshing] = useState(false);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [filtro, setFiltro] = useState<'todas' | 'pendiente' | 'vencida' | 'pagada'>('todas');
+  const [seleccionada, setSeleccionada] = useState<Invoice | null>(null);
 
   async function cargar() {
     const { data } = await supabase
@@ -80,7 +82,12 @@ export default function CobrosScreen({ userId }: { userId: string }) {
           const estado = estadoDe(inv);
           const vence = addDias(inv.fecha_emision, inv.plazo_dias);
           return (
-            <View key={inv.id} style={styles.invoiceCard}>
+            <TouchableOpacity
+              key={inv.id}
+              style={styles.invoiceCard}
+              activeOpacity={0.7}
+              onPress={() => setSeleccionada(inv)}
+            >
               <View>
                 <Text style={styles.invoiceName}>{inv.cliente_nombre}</Text>
                 <Text style={styles.invoiceMeta}>
@@ -91,10 +98,12 @@ export default function CobrosScreen({ userId }: { userId: string }) {
                 <Text style={styles.invoiceAmount}>{formatCLP(inv.monto)}</Text>
                 <Text style={[styles.badge, { color: estadoColor[estado] }]}>{estadoTexto[estado]}</Text>
               </View>
-            </View>
+            </TouchableOpacity>
           );
         })}
       </ScrollView>
+
+      <InvoiceDetailModal invoice={seleccionada} onClose={() => setSeleccionada(null)} />
     </View>
   );
 }

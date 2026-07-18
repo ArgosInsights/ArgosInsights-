@@ -41,6 +41,14 @@ export function estadoDe(inv: Invoice): 'pendiente' | 'pagada' | 'vencida' {
   return vence < new Date() ? 'vencida' : 'pendiente';
 }
 
+// Días de atraso desde el vencimiento hasta hoy (0 si todavía no vence o ya está pagada).
+export function diasAtraso(inv: Invoice) {
+  if (estadoDe(inv) !== 'vencida') return 0;
+  const vence = addDias(inv.fecha_emision, inv.plazo_dias);
+  const ms = new Date().getTime() - vence.getTime();
+  return Math.floor(ms / (1000 * 60 * 60 * 24));
+}
+
 export function saldoFinal(mes: CashFlowMonth) {
   return (
     mes.saldo_inicial + mes.cobros_esperados + mes.otros_ingresos - mes.egresos_fijos - mes.egresos_variables

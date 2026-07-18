@@ -5,9 +5,11 @@ import {
   RefreshControl,
   ScrollView,
   StyleSheet,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { Text } from '../components/Text';
+import InvoiceDetailModal from '../components/InvoiceDetailModal';
 import { colors } from '../constants/theme';
 import { supabase } from '../lib/supabase';
 import {
@@ -34,6 +36,7 @@ export default function HomeScreen({ userId, email }: { userId: string; email: s
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [saldoProyectado, setSaldoProyectado] = useState<number | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [seleccionada, setSeleccionada] = useState<Invoice | null>(null);
 
   async function cargarDatos() {
     setErrorMsg(null);
@@ -120,7 +123,12 @@ export default function HomeScreen({ userId, email }: { userId: string; email: s
           const estado = estadoDe(inv);
           const vence = addDias(inv.fecha_emision, inv.plazo_dias);
           return (
-            <View key={inv.id} style={styles.invoiceCard}>
+            <TouchableOpacity
+              key={inv.id}
+              style={styles.invoiceCard}
+              activeOpacity={0.7}
+              onPress={() => setSeleccionada(inv)}
+            >
               <View>
                 <Text style={styles.invoiceName}>{inv.cliente_nombre}</Text>
                 <Text style={styles.invoiceMeta}>
@@ -131,11 +139,13 @@ export default function HomeScreen({ userId, email }: { userId: string; email: s
                 <Text style={styles.invoiceAmount}>{formatCLP(inv.monto)}</Text>
                 <Text style={[styles.badge, { color: estadoColor[estado] }]}>{estadoTexto[estado]}</Text>
               </View>
-            </View>
+            </TouchableOpacity>
           );
         })}
 
       </ScrollView>
+
+      <InvoiceDetailModal invoice={seleccionada} onClose={() => setSeleccionada(null)} />
     </View>
   );
 }
