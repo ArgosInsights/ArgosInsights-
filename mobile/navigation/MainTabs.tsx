@@ -7,7 +7,6 @@ import CobrosScreen from '../screens/CobrosScreen';
 import CajaScreen from '../screens/CajaScreen';
 import ExcelScreen from '../screens/ExcelScreen';
 import PerfilScreen from '../screens/PerfilScreen';
-import AdminUploadScreen from '../screens/AdminUploadScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -24,15 +23,7 @@ function TabIcon({ nombre, enfocado }: { nombre: keyof typeof Feather.glyphMap; 
   return <Feather name={nombre} size={20} color={enfocado ? colors.greenLight : colors.muted2} />;
 }
 
-export default function MainTabs({
-  userId,
-  email,
-  esAdmin,
-}: {
-  userId: string;
-  email: string;
-  esAdmin: boolean;
-}) {
+export default function MainTabs({ userId, email }: { userId: string; email: string }) {
   return (
     <NavigationContainer theme={tema}>
       <Tab.Navigator
@@ -69,14 +60,6 @@ export default function MainTabs({
         >
           {() => <ExcelScreen userId={userId} />}
         </Tab.Screen>
-        {esAdmin && (
-          <Tab.Screen
-            name="Admin"
-            options={{ tabBarIcon: ({ focused }) => <TabIcon nombre="upload" enfocado={focused} /> }}
-          >
-            {() => <AdminUploadScreen />}
-          </Tab.Screen>
-        )}
         <Tab.Screen
           name="Perfil"
           options={{ tabBarIcon: ({ focused }) => <TabIcon nombre="user" enfocado={focused} /> }}
