@@ -5,6 +5,7 @@ import { useTheme } from '../lib/ThemeContext';
 import HomeScreen from '../screens/HomeScreen';
 import CobrosScreen from '../screens/CobrosScreen';
 import CajaScreen from '../screens/CajaScreen';
+import CicloScreen from '../screens/CicloScreen';
 import ExcelScreen from '../screens/ExcelScreen';
 import PerfilScreen from '../screens/PerfilScreen';
 
@@ -91,6 +92,16 @@ export default function MainTabs({ userId, email }: { userId: string; email: str
           }}
         >
           {() => <CajaScreen userId={userId} />}
+        </Tab.Screen>
+        <Tab.Screen
+          name="Ciclo"
+          options={{
+            tabBarIcon: ({ focused }) => (
+              <TabIcon nombre="repeat" enfocado={focused} activo={colors.greenLight} inactivo={colors.muted2} />
+            ),
+          }}
+        >
+          {() => <CicloScreen userId={userId} />}
         </Tab.Screen>
         <Tab.Screen
           name="Excel"

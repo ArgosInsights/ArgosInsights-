@@ -260,7 +260,7 @@ export default function HomeScreen({
         {etapasConDatos.length > 0 && (
           <>
             <Text style={styles.sectionTitle}>Ciclo documental</Text>
-            <PressableScale style={styles.cicloCard} onPress={() => navigation.navigate('Excel')}>
+            <PressableScale style={styles.cicloCard} onPress={() => navigation.navigate('Ciclo')}>
               {etapasConDatos.map(([etapa, cantidad]) => (
                 <View key={etapa} style={styles.cicloRow}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
