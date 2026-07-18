@@ -133,8 +133,6 @@ export default function HomeScreen({
   // Ingresos y costos del mes más reciente cargado.
   const ingresosMes = ultimoMes ? ultimoMes.cobros_esperados + ultimoMes.otros_ingresos : 0;
   const costosMes = ultimoMes ? ultimoMes.egresos_fijos + ultimoMes.egresos_variables : 0;
-  const totalMes = Math.max(ingresosMes + costosMes, 1);
-  const pctIngresos = (ingresosMes / totalMes) * 100;
 
   return (
     <View style={styles.root}>
@@ -162,7 +160,7 @@ export default function HomeScreen({
           </Text>
         </PressableScale>
 
-        <View style={styles.statsRow}>
+        <View style={[styles.statsRow, ultimoMes && { marginBottom: 10 }]}>
           <PressableScale style={styles.statCard} onPress={() => navigation.navigate('Cobros')}>
             <Text style={styles.statLabel}>Por cobrar</Text>
             <Text style={styles.statValue}>{formatCLP(totalPorCobrar)}</Text>
@@ -174,6 +172,21 @@ export default function HomeScreen({
             <Text style={styles.statSub}>{vencidas.length} factura{vencidas.length === 1 ? '' : 's'}</Text>
           </PressableScale>
         </View>
+
+        {ultimoMes && (
+          <View style={styles.statsRow}>
+            <PressableScale style={styles.statCard} onPress={() => navigation.navigate('Caja')}>
+              <Text style={styles.statLabel}>Ingresos</Text>
+              <Text style={[styles.statValue, { color: colors.greenLight }]}>{formatCLP(ingresosMes)}</Text>
+              <Text style={styles.statSub}>{nombreMes(ultimoMes.mes)}</Text>
+            </PressableScale>
+            <PressableScale style={styles.statCard} onPress={() => navigation.navigate('Caja')}>
+              <Text style={styles.statLabel}>Costos</Text>
+              <Text style={[styles.statValue, { color: colors.red }]}>{formatCLP(costosMes)}</Text>
+              <Text style={styles.statSub}>{nombreMes(ultimoMes.mes)}</Text>
+            </PressableScale>
+          </View>
+        )}
 
         {mesesChart.length > 0 && (
           <>
@@ -197,27 +210,6 @@ export default function HomeScreen({
                     </View>
                   );
                 })}
-              </View>
-            </PressableScale>
-          </>
-        )}
-
-        {ultimoMes && (
-          <>
-            <Text style={styles.sectionTitle}>Ingresos y costos ({nombreMes(ultimoMes.mes)})</Text>
-            <PressableScale style={styles.icCard} onPress={() => navigation.navigate('Caja')}>
-              <View style={styles.icRow}>
-                <View>
-                  <Text style={styles.icLabel}>Ingresos</Text>
-                  <Text style={[styles.icValue, { color: colors.greenLight }]}>{formatCLP(ingresosMes)}</Text>
-                </View>
-                <View style={{ alignItems: 'flex-end' }}>
-                  <Text style={styles.icLabel}>Costos</Text>
-                  <Text style={[styles.icValue, { color: colors.red }]}>{formatCLP(costosMes)}</Text>
-                </View>
-              </View>
-              <View style={styles.icBarTrack}>
-                <View style={[styles.icBarFill, { width: `${pctIngresos}%`, backgroundColor: colors.green }]} />
               </View>
             </PressableScale>
           </>
@@ -312,19 +304,6 @@ function getStyles(colors: ColorPalette) {
   barTrack: { width: 14, height: '75%', justifyContent: 'flex-end' },
   barFill: { width: '100%', borderRadius: 4, minHeight: 4 },
   barLabel: { color: colors.muted2, fontSize: 9, marginTop: 6 },
-  icCard: {
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 24,
-  },
-  icRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
-  icLabel: { color: colors.muted, fontSize: 11, marginBottom: 4 },
-  icValue: { fontSize: 16, fontWeight: '700' },
-  icBarTrack: { height: 6, borderRadius: 3, backgroundColor: colors.red, overflow: 'hidden' },
-  icBarFill: { height: '100%', borderRadius: 3 },
   invoiceCard: {
     backgroundColor: colors.card,
     borderWidth: 1,
