@@ -97,3 +97,20 @@ export function etapaActual(ciclo: DocumentCycle) {
 export function formatFechaOrGuion(iso: string | null) {
   return iso ? formatFecha(iso) : '—';
 }
+
+// Una entrada del historial de planillas Excel subidas por el cliente.
+export type ExcelUpload = {
+  id: string;
+  file_name: string;
+  uploaded_at: string;
+};
+
+export function formatFechaHora(iso: string) {
+  const fecha = new Date(iso);
+  const dd = String(fecha.getDate()).padStart(2, '0');
+  const mm = String(fecha.getMonth() + 1).padStart(2, '0');
+  const yyyy = fecha.getFullYear();
+  const hh = String(fecha.getHours()).padStart(2, '0');
+  const min = String(fecha.getMinutes()).padStart(2, '0');
+  return `${dd}-${mm}-${yyyy} ${hh}:${min}`;
+}

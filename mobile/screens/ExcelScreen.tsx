@@ -1,9 +1,11 @@
+import { Feather } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 // En Expo SDK 54, readAsStringAsync/EncodingType se movieron a esta ruta "legacy".
 import * as FileSystem from 'expo-file-system/legacy';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -18,11 +20,13 @@ import { parseArgosExcel } from '../lib/excelParser';
 import {
   CashFlowMonth,
   DocumentCycle,
+  ExcelUpload,
   estadoDe,
   estadoTexto,
   etapaActual,
   formatCLP,
   formatFecha,
+  formatFechaHora,
   formatFechaOrGuion,
   Invoice,
   nombreMes,
@@ -80,20 +84,29 @@ export default function ExcelScreen({ userId }: { userId: string }) {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [meses, setMeses] = useState<CashFlowMonth[]>([]);
   const [ciclos, setCiclos] = useState<DocumentCycle[]>([]);
+  const [historial, setHistorial] = useState<ExcelUpload[]>([]);
 
   const [archivoNombre, setArchivoNombre] = useState<string | null>(null);
   const [estadoSubida, setEstadoSubida] = useState<'idle' | 'procesando' | 'ok' | 'error'>('idle');
   const [mensajeSubida, setMensajeSubida] = useState<string | null>(null);
+  const [montoOculto, setMontoOculto] = useState(false);
+
+  // Devuelve el texto tal cual, o enmascarado si el cliente activó "ocultar montos".
+  function m(texto: string) {
+    return montoOculto ? '••••••' : texto;
+  }
 
   async function cargar() {
-    const [{ data: inv }, { data: cash }, { data: doc }] = await Promise.all([
+    const [{ data: inv }, { data: cash }, { data: doc }, { data: subs }] = await Promise.all([
       supabase.from('invoices').select('*').eq('client_id', userId).order('fecha_emision', { ascending: false }),
       supabase.from('cash_flow_months').select('*').eq('client_id', userId).order('mes', { ascending: true }),
       supabase.from('document_cycle').select('*').eq('client_id', userId).order('fecha_oc', { ascending: false }),
+      supabase.from('excel_uploads').select('*').eq('client_id', userId).order('uploaded_at', { ascending: false }),
     ]);
     setInvoices((inv as Invoice[]) ?? []);
     setMeses((cash as CashFlowMonth[]) ?? []);
     setCiclos((doc as DocumentCycle[]) ?? []);
+    setHistorial((subs as ExcelUpload[]) ?? []);
   }
 
   useEffect(() => {
@@ -129,16 +142,27 @@ export default function ExcelScreen({ userId }: { userId: string }) {
     setEstadoSubida('idle');
     setMensajeSubida(null);
 
-    await procesarArchivo(archivo.uri);
+    await procesarArchivo(archivo.uri, archivo.name);
   }
 
-  async function procesarArchivo(uri: string) {
+  async function procesarArchivo(uri: string, nombreArchivo: string) {
     setEstadoSubida('procesando');
     setMensajeSubida(null);
 
     try {
       const base64 = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
       const { invoices: nuevasFacturas, cashFlow, documentCycle } = parseArgosExcel(base64);
+
+      // Cada planilla subida queda registrada en el historial (excel_uploads), y las filas
+      // que carga se "tagean" con ese upload_id. Así, si más adelante el cliente borra esa
+      // planilla del historial, podemos ofrecerle también borrar los datos que trajo.
+      const { data: nuevoUpload, error: eUpload } = await supabase
+        .from('excel_uploads')
+        .insert({ client_id: userId, file_name: nombreArchivo })
+        .select()
+        .single();
+      if (eUpload) throw eUpload;
+      const uploadId = nuevoUpload.id;
 
       // Reemplaza los datos anteriores por los nuevos del Excel (borra y vuelve a insertar,
       // así una re-carga siempre refleja el archivo actual). Como client_id es tu propio
@@ -151,13 +175,17 @@ export default function ExcelScreen({ userId }: { userId: string }) {
 
       const [{ error: e1 }, { error: e2 }, { error: e3 }] = await Promise.all([
         nuevasFacturas.length
-          ? supabase.from('invoices').insert(nuevasFacturas.map((f) => ({ ...f, client_id: userId })))
+          ? supabase.from('invoices').insert(nuevasFacturas.map((f) => ({ ...f, client_id: userId, upload_id: uploadId })))
           : Promise.resolve({ error: null }),
         cashFlow.length
-          ? supabase.from('cash_flow_months').insert(cashFlow.map((f) => ({ ...f, client_id: userId })))
+          ? supabase
+              .from('cash_flow_months')
+              .insert(cashFlow.map((f) => ({ ...f, client_id: userId, upload_id: uploadId })))
           : Promise.resolve({ error: null }),
         documentCycle.length
-          ? supabase.from('document_cycle').insert(documentCycle.map((f) => ({ ...f, client_id: userId })))
+          ? supabase
+              .from('document_cycle')
+              .insert(documentCycle.map((f) => ({ ...f, client_id: userId, upload_id: uploadId })))
           : Promise.resolve({ error: null }),
       ]);
 
@@ -175,6 +203,43 @@ export default function ExcelScreen({ userId }: { userId: string }) {
     }
   }
 
+  // Al tocar la X de una planilla del historial, preguntamos si además de sacarla del
+  // historial también hay que actualizar (borrar) los datos que esa planilla cargó.
+  function eliminarUpload(upload: ExcelUpload) {
+    Alert.alert(
+      `Eliminar "${upload.file_name}"`,
+      '¿Querés que esto también actualice los datos que ves en las tablas, o solo sacarla del historial?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Solo el historial',
+          onPress: () => borrarDelHistorial(upload.id, false),
+        },
+        {
+          text: 'Actualizar datos también',
+          style: 'destructive',
+          onPress: () => borrarDelHistorial(upload.id, true),
+        },
+      ]
+    );
+  }
+
+  async function borrarDelHistorial(uploadId: string, borrarDatos: boolean) {
+    try {
+      if (borrarDatos) {
+        await Promise.all([
+          supabase.from('invoices').delete().eq('upload_id', uploadId),
+          supabase.from('cash_flow_months').delete().eq('upload_id', uploadId),
+          supabase.from('document_cycle').delete().eq('upload_id', uploadId),
+        ]);
+      }
+      await supabase.from('excel_uploads').delete().eq('id', uploadId);
+      await cargar();
+    } catch (err: any) {
+      Alert.alert('No se pudo eliminar', err?.message ?? 'Intentá de nuevo.');
+    }
+  }
+
   if (loading) {
     return (
       <View style={[styles.root, { alignItems: 'center', justifyContent: 'center' }]}>
@@ -189,11 +254,22 @@ export default function ExcelScreen({ userId }: { userId: string }) {
         contentContainerStyle={styles.scroll}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.green} />}
       >
-        <Text style={styles.title}>Excel</Text>
-        <Text style={styles.subtitle}>
-          Subí tu planilla de Orden Financiero y tus datos se actualizan solos. Deslizá cada tabla hacia los costados
-          para ver todas las columnas.
-        </Text>
+        <View style={styles.headerRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.title}>Excel</Text>
+            <Text style={styles.subtitle}>
+              Subí tu planilla de Orden Financiero y tus datos se actualizan solos. Deslizá cada tabla hacia los
+              costados para ver todas las columnas.
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={styles.ojoBoton}
+            onPress={() => setMontoOculto((v) => !v)}
+            accessibilityLabel={montoOculto ? 'Mostrar montos' : 'Ocultar montos'}
+          >
+            <Feather name={montoOculto ? 'eye-off' : 'eye'} size={18} color={colors.greenLight} />
+          </TouchableOpacity>
+        </View>
 
         <TouchableOpacity style={styles.button} onPress={elegirArchivo} disabled={estadoSubida === 'procesando'}>
           <Text style={styles.buttonText}>
@@ -222,6 +298,29 @@ export default function ExcelScreen({ userId }: { userId: string }) {
           </View>
         )}
 
+        {historial.length > 0 && (
+          <View style={styles.historialCard}>
+            <Text style={styles.historialTitulo}>Planillas subidas</Text>
+            {historial.map((h) => (
+              <View key={h.id} style={styles.historialFila}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.historialNombre} numberOfLines={1}>
+                    {h.file_name}
+                  </Text>
+                  <Text style={styles.historialFecha}>{formatFechaHora(h.uploaded_at)}</Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => eliminarUpload(h)}
+                  style={styles.historialX}
+                  accessibilityLabel={`Eliminar ${h.file_name}`}
+                >
+                  <Feather name="x" size={16} color={colors.red} />
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+        )}
+
         <Tabla titulo="Cuentas por cobrar" filas={invoices.length}>
           <Fila
             encabezado
@@ -241,7 +340,7 @@ export default function ExcelScreen({ userId }: { userId: string }) {
                 celdas={[
                   { texto: inv.cliente_nombre, ancho: 130 },
                   { texto: inv.numero_factura ?? '—', ancho: 90 },
-                  { texto: formatCLP(inv.monto), ancho: 100 },
+                  { texto: m(formatCLP(inv.monto)), ancho: 100 },
                   { texto: formatFecha(inv.fecha_emision), ancho: 90 },
                   {
                     texto: estadoTexto[estado],
@@ -272,11 +371,11 @@ export default function ExcelScreen({ userId }: { userId: string }) {
               key={i}
               celdas={[
                 { texto: nombreMes(mes.mes), ancho: 70 },
-                { texto: formatCLP(mes.saldo_inicial), ancho: 100 },
-                { texto: formatCLP(mes.cobros_esperados), ancho: 100 },
-                { texto: formatCLP(mes.otros_ingresos), ancho: 100 },
-                { texto: formatCLP(mes.egresos_fijos + mes.egresos_variables), ancho: 100 },
-                { texto: formatCLP(saldoFinal(mes)), ancho: 100, color: colors.greenLight },
+                { texto: m(formatCLP(mes.saldo_inicial)), ancho: 100 },
+                { texto: m(formatCLP(mes.cobros_esperados)), ancho: 100 },
+                { texto: m(formatCLP(mes.otros_ingresos)), ancho: 100 },
+                { texto: m(formatCLP(mes.egresos_fijos + mes.egresos_variables)), ancho: 100 },
+                { texto: m(formatCLP(saldoFinal(mes))), ancho: 100, color: colors.greenLight },
               ]}
             />
           ))}
@@ -321,8 +420,44 @@ function getStyles(colors: ColorPalette) {
   return StyleSheet.create({
     root: { flex: 1, backgroundColor: colors.bg },
     scroll: { padding: 20, paddingTop: 60, paddingBottom: 40 },
+    headerRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
     title: { color: colors.white, fontSize: 20, fontWeight: '700', marginBottom: 6 },
     subtitle: { color: colors.muted2, fontSize: 11.5, lineHeight: 16, marginBottom: 18 },
+    ojoBoton: {
+      width: 34,
+      height: 34,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: colors.line,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    historialCard: {
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.line,
+      borderRadius: 14,
+      marginBottom: 16,
+      padding: 14,
+    },
+    historialTitulo: { color: colors.white, fontSize: 12, fontWeight: '700', marginBottom: 8 },
+    historialFila: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 8,
+      borderTopWidth: 1,
+      borderTopColor: colors.line,
+    },
+    historialNombre: { color: colors.white, fontSize: 12 },
+    historialFecha: { color: colors.muted2, fontSize: 10.5, marginTop: 2 },
+    historialX: {
+      width: 28,
+      height: 28,
+      borderRadius: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginLeft: 10,
+    },
     button: {
       backgroundColor: colors.green,
       borderRadius: 12,
