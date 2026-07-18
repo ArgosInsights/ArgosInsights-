@@ -16,33 +16,37 @@ import { ColorPalette } from '../constants/theme';
 import { useTheme } from '../lib/ThemeContext';
 import { supabase } from '../lib/supabase';
 
-// Pantalla de login. Las cuentas de cliente las crea un admin invitándolas desde el
-// panel de Supabase (Authentication > Users > Invite), con el nombre/empresa/tipo de
-// empresa como metadata — el trigger handle_new_user ya toma esos datos y arma la fila
-// en "profiles" sola. Acá el cliente solo inicia sesión (o recupera su contraseña); no
-// hay auto-registro para no tener cuentas sueltas sin asociar a un cliente real.
+// Pantalla de login. El cliente se registra solo, pero la cuenta arranca "pendiente de
+// aprobación" (columna profiles.aprobado, default false) hasta que un admin la revise y
+// la apruebe a mano desde Supabase (Table Editor > profiles > aprobado = true). Mientras
+// no esté aprobada, App.tsx la frena en una pantalla de espera en vez de dejarla entrar
+// a los datos. El trigger handle_new_user ya arma la fila en "profiles" con lo que se
+// manda acá (full_name/company_name/company_type) como raw_user_meta_data.
 export default function LoginScreen() {
   const { colors } = useTheme();
   const styles = getStyles(colors);
+  const [nombre, setNombre] = useState('');
+  const [empresa, setEmpresa] = useState('');
+  const [tipoEmpresa, setTipoEmpresa] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [mostrarPassword, setMostrarPassword] = useState(false);
+  const [mostrarConfirmPassword, setMostrarConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [modo, setModo] = useState<'entrar' | 'recuperar'>('entrar');
+  const [modo, setModo] = useState<'entrar' | 'crear' | 'recuperar'>('entrar');
   const [recuperarEnviado, setRecuperarEnviado] = useState(false);
 
   async function handleSubmit() {
     setError(null);
 
-    if (!email || (modo === 'entrar' && !password)) {
-      setError(modo === 'entrar' ? 'Completá email y contraseña.' : 'Completá tu email.');
-      return;
-    }
-
-    setLoading(true);
-
     if (modo === 'recuperar') {
+      if (!email) {
+        setError('Completá tu email.');
+        return;
+      }
+      setLoading(true);
       const { error: authError } = await supabase.auth.resetPasswordForEmail(email);
       setLoading(false);
       if (authError) {
@@ -53,14 +57,41 @@ export default function LoginScreen() {
       return;
     }
 
-    const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
+    if (modo === 'crear' && (!nombre || !empresa || !tipoEmpresa)) {
+      setError('Completá nombre, empresa y tipo de empresa.');
+      return;
+    }
+    if (!email || !password) {
+      setError('Completá email y contraseña.');
+      return;
+    }
+    if (modo === 'crear' && password !== confirmPassword) {
+      setError('Las contraseñas no coinciden.');
+      return;
+    }
+
+    setLoading(true);
+    const { error: authError } =
+      modo === 'entrar'
+        ? await supabase.auth.signInWithPassword({ email, password })
+        : await supabase.auth.signUp({
+            email,
+            password,
+            // Esto viaja como "raw_user_meta_data" — el trigger que ya está en la base
+            // (handle_new_user) lo toma de ahí y lo guarda en la tabla profiles. La fila
+            // queda con aprobado = false hasta que un admin la apruebe.
+            options: {
+              data: { full_name: nombre, company_name: empresa, company_type: tipoEmpresa },
+            },
+          });
     setLoading(false);
     if (authError) setError(authError.message);
   }
 
-  function cambiarModo(nuevo: 'entrar' | 'recuperar') {
+  function cambiarModo(nuevo: 'entrar' | 'crear' | 'recuperar') {
     setModo(nuevo);
     setError(null);
+    setConfirmPassword('');
     setRecuperarEnviado(false);
   }
 
@@ -69,7 +100,9 @@ export default function LoginScreen() {
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <Image source={require('../assets/logo-mark.png')} style={styles.logo} resizeMode="contain" />
         <Text style={styles.brand}>ARGOS INSIGHTS</Text>
-        <Text style={styles.title}>{modo === 'entrar' ? 'Iniciar sesión' : 'Recuperar contraseña'}</Text>
+        <Text style={styles.title}>
+          {modo === 'entrar' ? 'Iniciar sesión' : modo === 'crear' ? 'Crear cuenta' : 'Recuperar contraseña'}
+        </Text>
 
         {modo === 'recuperar' && !recuperarEnviado && (
           <Text style={styles.recuperarTexto}>
@@ -88,6 +121,35 @@ export default function LoginScreen() {
           </>
         ) : (
           <>
+            {modo === 'crear' && (
+              <>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Nombre completo"
+                  placeholderTextColor={colors.muted2}
+                  autoCapitalize="words"
+                  value={nombre}
+                  onChangeText={setNombre}
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Nombre de la empresa"
+                  placeholderTextColor={colors.muted2}
+                  autoCapitalize="words"
+                  value={empresa}
+                  onChangeText={setEmpresa}
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Tipo de empresa (ej: Construcción, Retail, Minería)"
+                  placeholderTextColor={colors.muted2}
+                  autoCapitalize="words"
+                  value={tipoEmpresa}
+                  onChangeText={setTipoEmpresa}
+                />
+              </>
+            )}
+
             <TextInput
               style={styles.input}
               placeholder="Email"
@@ -98,7 +160,7 @@ export default function LoginScreen() {
               onChangeText={setEmail}
             />
 
-            {modo === 'entrar' && (
+            {modo !== 'recuperar' && (
               <View style={styles.passwordWrap}>
                 <TextInput
                   style={styles.passwordInput}
@@ -118,6 +180,26 @@ export default function LoginScreen() {
               </View>
             )}
 
+            {modo === 'crear' && (
+              <View style={styles.passwordWrap}>
+                <TextInput
+                  style={styles.passwordInput}
+                  placeholder="Confirmar contraseña"
+                  placeholderTextColor={colors.muted2}
+                  secureTextEntry={!mostrarConfirmPassword}
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                />
+                <TouchableOpacity
+                  style={styles.eyeButton}
+                  onPress={() => setMostrarConfirmPassword((v) => !v)}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Feather name={mostrarConfirmPassword ? 'eye-off' : 'eye'} size={18} color={colors.muted} />
+                </TouchableOpacity>
+              </View>
+            )}
+
             {modo === 'entrar' && (
               <TouchableOpacity onPress={() => cambiarModo('recuperar')} style={styles.olvideWrap}>
                 <Text style={styles.olvideText}>¿Olvidaste tu contraseña?</Text>
@@ -130,13 +212,21 @@ export default function LoginScreen() {
               {loading ? (
                 <ActivityIndicator color={colors.bg} />
               ) : (
-                <Text style={styles.buttonText}>{modo === 'entrar' ? 'Entrar' : 'Enviar instrucciones'}</Text>
+                <Text style={styles.buttonText}>
+                  {modo === 'entrar' ? 'Entrar' : modo === 'crear' ? 'Crear cuenta' : 'Enviar instrucciones'}
+                </Text>
               )}
             </TouchableOpacity>
 
-            {modo === 'recuperar' && (
+            {modo === 'recuperar' ? (
               <TouchableOpacity onPress={() => cambiarModo('entrar')}>
                 <Text style={styles.switchText}>Volver a iniciar sesión</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity onPress={() => cambiarModo(modo === 'crear' ? 'entrar' : 'crear')}>
+                <Text style={styles.switchText}>
+                  {modo === 'crear' ? '¿Ya tienes cuenta? Entrar' : '¿No tienes cuenta? Regístrate'}
+                </Text>
               </TouchableOpacity>
             )}
           </>
