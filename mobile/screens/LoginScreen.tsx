@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Image,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   ScrollView,
   StyleSheet,
@@ -37,6 +38,9 @@ export default function LoginScreen() {
   const [error, setError] = useState<string | null>(null);
   const [modo, setModo] = useState<'entrar' | 'crear' | 'recuperar'>('entrar');
   const [recuperarEnviado, setRecuperarEnviado] = useState(false);
+  const [aceptaPoliticas, setAceptaPoliticas] = useState(false);
+
+  const URL_POLITICA = 'https://argosinsights.org/privacidad.html';
 
   async function handleSubmit() {
     setError(null);
@@ -69,6 +73,10 @@ export default function LoginScreen() {
       setError('Las contraseñas no coinciden.');
       return;
     }
+    if (modo === 'crear' && !aceptaPoliticas) {
+      setError('Tenés que aceptar la política de privacidad para crear tu cuenta.');
+      return;
+    }
 
     setLoading(true);
     const { error: authError } =
@@ -93,6 +101,7 @@ export default function LoginScreen() {
     setError(null);
     setConfirmPassword('');
     setRecuperarEnviado(false);
+    setAceptaPoliticas(false);
   }
 
   return (
@@ -206,6 +215,24 @@ export default function LoginScreen() {
               </TouchableOpacity>
             )}
 
+            {modo === 'crear' && (
+              <TouchableOpacity
+                style={styles.checkboxRow}
+                onPress={() => setAceptaPoliticas((v) => !v)}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.checkbox, aceptaPoliticas && styles.checkboxChecked]}>
+                  {aceptaPoliticas && <Feather name="check" size={13} color={colors.bg} />}
+                </View>
+                <Text style={styles.checkboxText}>
+                  Acepto la{' '}
+                  <Text style={styles.checkboxLink} onPress={() => Linking.openURL(URL_POLITICA)}>
+                    política de privacidad
+                  </Text>
+                </Text>
+              </TouchableOpacity>
+            )}
+
             {error && <Text style={styles.error}>{error}</Text>}
 
             <TouchableOpacity style={styles.button} onPress={handleSubmit} disabled={loading}>
@@ -279,6 +306,20 @@ function getStyles(colors: ColorPalette) {
     recuperarOk: { color: colors.greenLight, fontSize: 13, lineHeight: 19, marginBottom: 18, textAlign: 'center' },
     olvideWrap: { width: '100%', alignItems: 'flex-end', marginBottom: 16, marginTop: -4 },
     olvideText: { color: colors.greenLight, fontSize: 11.5 },
+    checkboxRow: { flexDirection: 'row', alignItems: 'center', width: '100%', marginBottom: 16 },
+    checkbox: {
+      width: 20,
+      height: 20,
+      borderRadius: 5,
+      borderWidth: 1.5,
+      borderColor: colors.line,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: 10,
+    },
+    checkboxChecked: { backgroundColor: colors.green, borderColor: colors.green },
+    checkboxText: { color: colors.muted, fontSize: 12.5, flex: 1, flexShrink: 1 },
+    checkboxLink: { color: colors.greenLight, textDecorationLine: 'underline' },
     button: {
       width: '100%',
       backgroundColor: colors.green,
