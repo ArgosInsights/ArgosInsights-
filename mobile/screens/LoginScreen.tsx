@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { Text } from '../components/Text';
 import { colors } from '../constants/theme';
 import { supabase } from '../lib/supabase';
@@ -23,6 +24,9 @@ export default function LoginScreen() {
   const [tipoEmpresa, setTipoEmpresa] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [mostrarPassword, setMostrarPassword] = useState(false);
+  const [mostrarConfirmPassword, setMostrarConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [modo, setModo] = useState<'entrar' | 'crear'>('entrar');
@@ -36,6 +40,10 @@ export default function LoginScreen() {
     }
     if (!email || !password) {
       setError('Completá email y contraseña.');
+      return;
+    }
+    if (modo === 'crear' && password !== confirmPassword) {
+      setError('Las contraseñas no coinciden.');
       return;
     }
 
@@ -104,14 +112,44 @@ export default function LoginScreen() {
           value={email}
           onChangeText={setEmail}
         />
-        <TextInput
-          style={styles.input}
-          placeholder="Contraseña"
-          placeholderTextColor={colors.muted2}
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-        />
+
+        <View style={styles.passwordWrap}>
+          <TextInput
+            style={styles.passwordInput}
+            placeholder="Contraseña"
+            placeholderTextColor={colors.muted2}
+            secureTextEntry={!mostrarPassword}
+            value={password}
+            onChangeText={setPassword}
+          />
+          <TouchableOpacity
+            style={styles.eyeButton}
+            onPress={() => setMostrarPassword((v) => !v)}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Feather name={mostrarPassword ? 'eye-off' : 'eye'} size={18} color={colors.muted} />
+          </TouchableOpacity>
+        </View>
+
+        {modo === 'crear' && (
+          <View style={styles.passwordWrap}>
+            <TextInput
+              style={styles.passwordInput}
+              placeholder="Confirmar contraseña"
+              placeholderTextColor={colors.muted2}
+              secureTextEntry={!mostrarConfirmPassword}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+            />
+            <TouchableOpacity
+              style={styles.eyeButton}
+              onPress={() => setMostrarConfirmPassword((v) => !v)}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Feather name={mostrarConfirmPassword ? 'eye-off' : 'eye'} size={18} color={colors.muted} />
+            </TouchableOpacity>
+          </View>
+        )}
 
         {error && <Text style={styles.error}>{error}</Text>}
 
@@ -123,7 +161,13 @@ export default function LoginScreen() {
           )}
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => setModo(modo === 'entrar' ? 'crear' : 'entrar')}>
+        <TouchableOpacity
+          onPress={() => {
+            setModo(modo === 'entrar' ? 'crear' : 'entrar');
+            setError(null);
+            setConfirmPassword('');
+          }}
+        >
           <Text style={styles.switchText}>
             {modo === 'entrar' ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Entrar'}
           </Text>
@@ -149,6 +193,26 @@ const styles = StyleSheet.create({
     color: colors.white,
     marginBottom: 12,
     fontSize: 14,
+  },
+  passwordWrap: {
+    width: '100%',
+    marginBottom: 12,
+    justifyContent: 'center',
+  },
+  passwordInput: {
+    width: '100%',
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderRadius: 12,
+    padding: 14,
+    paddingRight: 44,
+    color: colors.white,
+    fontSize: 14,
+  },
+  eyeButton: {
+    position: 'absolute',
+    right: 14,
   },
   error: { color: colors.red, fontSize: 12, marginBottom: 10, alignSelf: 'flex-start' },
   button: {
