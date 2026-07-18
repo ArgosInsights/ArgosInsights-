@@ -162,53 +162,67 @@ export default function HomeScreen({
           </Text>
         </PressableScale>
 
-        <View style={styles.statsRow}>
-          <PressableScale style={styles.statCard} onPress={() => navigation.navigate('Cobros')}>
-            <Text style={styles.statLabel}>Por cobrar</Text>
-            <Text style={styles.statValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
+        <PressableScale style={styles.statCardWide} onPress={() => navigation.navigate('Cobros')}>
+          <View style={styles.statWideRow}>
+            <View>
+              <Text style={styles.statLabel}>Por cobrar</Text>
+              <Text style={styles.statSub}>{pendientes.length} factura{pendientes.length === 1 ? '' : 's'}</Text>
+            </View>
+            <Text style={styles.statValueWide} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
               {formatCLP(totalPorCobrar)}
             </Text>
-            <Text style={styles.statSub}>{pendientes.length} fact.</Text>
-          </PressableScale>
-          <PressableScale style={[styles.statCard, { flex: 1.25 }]} onPress={() => navigation.navigate('Cobros')}>
-            <Text style={styles.statLabel}>Vencido</Text>
+          </View>
+        </PressableScale>
+
+        <PressableScale style={styles.statCardWide} onPress={() => navigation.navigate('Cobros')}>
+          <View style={styles.statWideRow}>
+            <View>
+              <Text style={styles.statLabel}>Vencido</Text>
+              <Text style={styles.statSub}>{vencidas.length} factura{vencidas.length === 1 ? '' : 's'}</Text>
+            </View>
             <Text
-              style={[styles.statValue, { color: colors.red }]}
+              style={[styles.statValueWide, { color: colors.red }]}
               numberOfLines={1}
               adjustsFontSizeToFit
               minimumFontScale={0.7}
             >
               {formatCLP(montoVencido)}
             </Text>
-            <Text style={styles.statSub}>{vencidas.length} fact.</Text>
-          </PressableScale>
-          {ultimoMes && (
-            <PressableScale style={[styles.statCard, { flex: 1.25 }]} onPress={() => navigation.navigate('Caja')}>
-              <Text style={styles.statLabel}>Ingresos y costos</Text>
-              <View style={styles.icSideRow}>
+          </View>
+        </PressableScale>
+
+        {ultimoMes && (
+          <PressableScale style={[styles.statCardWide, { marginBottom: 24 }]} onPress={() => navigation.navigate('Caja')}>
+            <Text style={styles.statLabel}>Ingresos y costos</Text>
+            <View style={[styles.statWideRow, { marginTop: 8, marginBottom: 10 }]}>
+              <View>
+                <Text style={styles.statSub}>Ingresos</Text>
                 <Text
-                  style={[styles.statValueSm, { color: colors.greenLight }]}
+                  style={[styles.statValueWide, { color: colors.greenLight }]}
                   numberOfLines={1}
                   adjustsFontSizeToFit
-                  minimumFontScale={0.6}
+                  minimumFontScale={0.7}
                 >
                   {formatCLP(ingresosMes)}
                 </Text>
+              </View>
+              <View style={{ alignItems: 'flex-end' }}>
+                <Text style={styles.statSub}>Costos</Text>
                 <Text
-                  style={[styles.statValueSm, { color: colors.red }]}
+                  style={[styles.statValueWide, { color: colors.red }]}
                   numberOfLines={1}
                   adjustsFontSizeToFit
-                  minimumFontScale={0.6}
+                  minimumFontScale={0.7}
                 >
                   {formatCLP(costosMes)}
                 </Text>
               </View>
-              <View style={styles.statBarTrack}>
-                <View style={[styles.statBarFill, { width: `${pctIngresos}%`, backgroundColor: colors.green }]} />
-              </View>
-            </PressableScale>
-          )}
-        </View>
+            </View>
+            <View style={styles.statBarTrack}>
+              <View style={[styles.statBarFill, { width: `${pctIngresos}%`, backgroundColor: colors.green }]} />
+            </View>
+          </PressableScale>
+        )}
 
         {mesesChart.length > 0 && (
           <>
@@ -300,21 +314,18 @@ function getStyles(colors: ColorPalette) {
   },
   balanceLabel: { color: colors.muted, fontSize: 11, marginBottom: 6 },
   balanceValue: { color: colors.greenLight, fontSize: 26, fontWeight: '700' },
-  statsRow: { flexDirection: 'row', gap: 8, marginBottom: 24 },
-  statCard: {
-    flex: 1,
+  statCardWide: {
     backgroundColor: colors.card,
     borderWidth: 1,
     borderColor: colors.line,
     borderRadius: 14,
-    paddingVertical: 16,
-    paddingHorizontal: 8,
+    padding: 16,
+    marginBottom: 10,
   },
-  statLabel: { color: colors.muted, fontSize: 10.5, marginBottom: 7 },
-  statValue: { color: colors.white, fontSize: 16.5, fontWeight: '700', marginBottom: 4 },
-  statSub: { color: colors.muted2, fontSize: 10 },
-  icSideRow: { flexDirection: 'row', gap: 6, marginBottom: 6 },
-  statValueSm: { fontSize: 12.5, fontWeight: '700', flexShrink: 1 },
+  statWideRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  statLabel: { color: colors.muted, fontSize: 11, marginBottom: 5 },
+  statSub: { color: colors.muted2, fontSize: 10.5 },
+  statValueWide: { color: colors.white, fontSize: 20, fontWeight: '700' },
   statBarTrack: { height: 4, borderRadius: 2, backgroundColor: colors.red, overflow: 'hidden' },
   statBarFill: { height: '100%', borderRadius: 2 },
   sectionTitle: { color: colors.white, fontSize: 14, fontWeight: '700', marginBottom: 10 },
