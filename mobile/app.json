@@ -27,7 +27,9 @@
           "backgroundColor": "#0a0a0a",
           "imageWidth": 180
         }
-      ]
+      ],
+      "expo-font",
+      "expo-video"
     ]
   }
 }

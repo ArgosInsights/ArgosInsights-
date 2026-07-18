@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -92,7 +93,7 @@ export default function HomeScreen({ userId, email }: { userId: string; email: s
 
         <View style={styles.topbar}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <View style={styles.dot} />
+            <Image source={require('../assets/icon.png')} style={styles.logo} />
             <Text style={styles.brand}>ARGOS INSIGHTS</Text>
           </View>
         </View>
@@ -143,7 +144,7 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: 20, paddingTop: 60, paddingBottom: 40 },
   topbar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 },
-  dot: { width: 20, height: 20, borderRadius: 10, backgroundColor: colors.green },
+  logo: { width: 24, height: 24, borderRadius: 12 },
   brand: { color: colors.white, fontWeight: '700', fontSize: 13, letterSpacing: 0.5 },
   greet: { color: colors.muted, fontSize: 12 },
   greetName: { color: colors.white, fontSize: 18, fontWeight: '700', marginBottom: 18 },

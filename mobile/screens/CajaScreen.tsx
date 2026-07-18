@@ -1,12 +1,9 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Dimensions, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
-import { LineChart } from 'react-native-chart-kit';
+import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { Text } from '../components/Text';
 import { colors } from '../constants/theme';
 import { supabase } from '../lib/supabase';
 import { CashFlowMonth, formatCLP, nombreMes, saldoFinal } from '../lib/format';
-
-const anchoPantalla = Dimensions.get('window').width;
 
 export default function CajaScreen({ userId }: { userId: string }) {
   const [loading, setLoading] = useState(true);
@@ -41,6 +38,9 @@ export default function CajaScreen({ userId }: { userId: string }) {
   }
 
   const saldos = meses.map(saldoFinal);
+  const maximo = Math.max(...saldos, 1);
+  const minimo = Math.min(...saldos, 0);
+  const rango = Math.max(maximo - minimo, 1);
   const ultimo = saldos[saldos.length - 1] ?? null;
 
   return (
@@ -61,31 +61,20 @@ export default function CajaScreen({ userId }: { userId: string }) {
         ) : (
           <>
             <Text style={styles.sectionTitle}>Evolución</Text>
-            <View style={styles.chartCard}>
-              <LineChart
-                data={{
-                  labels: meses.map((m) => nombreMes(m.mes)),
-                  datasets: [{ data: saldos.length ? saldos : [0] }],
-                }}
-                width={anchoPantalla - 72}
-                height={190}
-                withInnerLines={false}
-                withOuterLines={false}
-                withShadow={false}
-                bezier
-                chartConfig={{
-                  backgroundColor: colors.card,
-                  backgroundGradientFrom: colors.card,
-                  backgroundGradientTo: colors.card,
-                  decimalPlaces: 0,
-                  color: () => colors.green,
-                  labelColor: () => colors.muted,
-                  propsForDots: { r: '4', strokeWidth: '2', stroke: colors.greenLight },
-                  propsForLabels: { fontSize: 10 },
-                  formatYLabel: (v) => `${(Number(v) / 1000000).toFixed(0)}M`,
-                }}
-                style={{ borderRadius: 14 }}
-              />
+            <View style={styles.chart}>
+              {meses.map((mes, i) => {
+                const valor = saldos[i];
+                const alturaPct = Math.max(((valor - minimo) / rango) * 100, 4);
+                return (
+                  <View key={i} style={styles.barCol}>
+                    <Text style={styles.barValor}>{(valor / 1000000).toFixed(1)}M</Text>
+                    <View style={styles.barTrack}>
+                      <View style={[styles.barFill, { height: `${alturaPct}%` }]} />
+                    </View>
+                    <Text style={styles.barLabel}>{nombreMes(mes.mes)}</Text>
+                  </View>
+                );
+              })}
             </View>
 
             <Text style={styles.sectionTitle}>Detalle por mes</Text>
@@ -145,15 +134,23 @@ const styles = StyleSheet.create({
   totalValue: { color: colors.greenLight, fontSize: 24, fontWeight: '700' },
   empty: { color: colors.muted2, fontSize: 12 },
   sectionTitle: { color: colors.white, fontSize: 14, fontWeight: '700', marginBottom: 10, marginTop: 6 },
-  chartCard: {
+  chart: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    height: 170,
     backgroundColor: colors.card,
     borderWidth: 1,
     borderColor: colors.line,
     borderRadius: 14,
-    padding: 10,
+    padding: 14,
     marginBottom: 20,
-    alignItems: 'center',
   },
+  barCol: { flex: 1, alignItems: 'center', height: '100%', justifyContent: 'flex-end' },
+  barValor: { color: colors.muted2, fontSize: 8.5, marginBottom: 4 },
+  barTrack: { width: 14, height: '70%', justifyContent: 'flex-end' },
+  barFill: { width: '100%', backgroundColor: colors.green, borderRadius: 4, minHeight: 4 },
+  barLabel: { color: colors.muted2, fontSize: 9, marginTop: 6 },
   mesCard: {
     backgroundColor: colors.card,
     borderWidth: 1,
