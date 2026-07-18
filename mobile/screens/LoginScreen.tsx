@@ -16,34 +16,33 @@ import { ColorPalette } from '../constants/theme';
 import { useTheme } from '../lib/ThemeContext';
 import { supabase } from '../lib/supabase';
 
-// Pantalla de login. Por ahora permite tanto entrar como registrarse desde acá mismo
-// (para poder probar rápido). Más adelante, lo normal va a ser que las cuentas de
-// cliente las cree un admin desde la web, y acá el cliente solo inicie sesión.
+// Pantalla de login. Las cuentas de cliente las crea un admin invitándolas desde el
+// panel de Supabase (Authentication > Users > Invite), con el nombre/empresa/tipo de
+// empresa como metadata — el trigger handle_new_user ya toma esos datos y arma la fila
+// en "profiles" sola. Acá el cliente solo inicia sesión (o recupera su contraseña); no
+// hay auto-registro para no tener cuentas sueltas sin asociar a un cliente real.
 export default function LoginScreen() {
   const { colors } = useTheme();
   const styles = getStyles(colors);
-  const [nombre, setNombre] = useState('');
-  const [empresa, setEmpresa] = useState('');
-  const [tipoEmpresa, setTipoEmpresa] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [mostrarPassword, setMostrarPassword] = useState(false);
-  const [mostrarConfirmPassword, setMostrarConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [modo, setModo] = useState<'entrar' | 'crear' | 'recuperar'>('entrar');
+  const [modo, setModo] = useState<'entrar' | 'recuperar'>('entrar');
   const [recuperarEnviado, setRecuperarEnviado] = useState(false);
 
   async function handleSubmit() {
     setError(null);
 
+    if (!email || (modo === 'entrar' && !password)) {
+      setError(modo === 'entrar' ? 'Completá email y contraseña.' : 'Completá tu email.');
+      return;
+    }
+
+    setLoading(true);
+
     if (modo === 'recuperar') {
-      if (!email) {
-        setError('Completá tu email.');
-        return;
-      }
-      setLoading(true);
       const { error: authError } = await supabase.auth.resetPasswordForEmail(email);
       setLoading(false);
       if (authError) {
@@ -54,54 +53,23 @@ export default function LoginScreen() {
       return;
     }
 
-    if (modo === 'crear' && (!nombre || !empresa || !tipoEmpresa)) {
-      setError('Completá nombre, empresa y tipo de empresa.');
-      return;
-    }
-    if (!email || !password) {
-      setError('Completá email y contraseña.');
-      return;
-    }
-    if (modo === 'crear' && password !== confirmPassword) {
-      setError('Las contraseñas no coinciden.');
-      return;
-    }
-
-    setLoading(true);
-    const { error: authError } =
-      modo === 'entrar'
-        ? await supabase.auth.signInWithPassword({ email, password })
-        : await supabase.auth.signUp({
-            email,
-            password,
-            // Esto viaja como "raw_user_meta_data" — el trigger que ya está en la base
-            // (handle_new_user) lo toma de ahí y lo guarda en la tabla profiles.
-            options: {
-              data: { full_name: nombre, company_name: empresa, company_type: tipoEmpresa },
-            },
-          });
+    const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (authError) setError(authError.message);
   }
 
-  function cambiarModo(nuevo: 'entrar' | 'crear' | 'recuperar') {
+  function cambiarModo(nuevo: 'entrar' | 'recuperar') {
     setModo(nuevo);
     setError(null);
-    setConfirmPassword('');
     setRecuperarEnviado(false);
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.root}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
+    <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <Image source={require('../assets/logo-mark.png')} style={styles.logo} resizeMode="contain" />
         <Text style={styles.brand}>ARGOS INSIGHTS</Text>
-        <Text style={styles.title}>
-          {modo === 'entrar' ? 'Iniciar sesión' : modo === 'crear' ? 'Crear cuenta' : 'Recuperar contraseña'}
-        </Text>
+        <Text style={styles.title}>{modo === 'entrar' ? 'Iniciar sesión' : 'Recuperar contraseña'}</Text>
 
         {modo === 'recuperar' && !recuperarEnviado && (
           <Text style={styles.recuperarTexto}>
@@ -120,114 +88,57 @@ export default function LoginScreen() {
           </>
         ) : (
           <>
-        {modo === 'crear' && (
-          <>
             <TextInput
               style={styles.input}
-              placeholder="Nombre completo"
+              placeholder="Email"
               placeholderTextColor={colors.muted2}
-              autoCapitalize="words"
-              value={nombre}
-              onChangeText={setNombre}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              value={email}
+              onChangeText={setEmail}
             />
-            <TextInput
-              style={styles.input}
-              placeholder="Nombre de la empresa"
-              placeholderTextColor={colors.muted2}
-              autoCapitalize="words"
-              value={empresa}
-              onChangeText={setEmpresa}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Tipo de empresa (ej: Construcción, Retail, Minería)"
-              placeholderTextColor={colors.muted2}
-              autoCapitalize="words"
-              value={tipoEmpresa}
-              onChangeText={setTipoEmpresa}
-            />
-          </>
-        )}
 
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          placeholderTextColor={colors.muted2}
-          autoCapitalize="none"
-          keyboardType="email-address"
-          value={email}
-          onChangeText={setEmail}
-        />
+            {modo === 'entrar' && (
+              <View style={styles.passwordWrap}>
+                <TextInput
+                  style={styles.passwordInput}
+                  placeholder="Contraseña"
+                  placeholderTextColor={colors.muted2}
+                  secureTextEntry={!mostrarPassword}
+                  value={password}
+                  onChangeText={setPassword}
+                />
+                <TouchableOpacity
+                  style={styles.eyeButton}
+                  onPress={() => setMostrarPassword((v) => !v)}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Feather name={mostrarPassword ? 'eye-off' : 'eye'} size={18} color={colors.muted} />
+                </TouchableOpacity>
+              </View>
+            )}
 
-        {modo !== 'recuperar' && (
-          <View style={styles.passwordWrap}>
-            <TextInput
-              style={styles.passwordInput}
-              placeholder="Contraseña"
-              placeholderTextColor={colors.muted2}
-              secureTextEntry={!mostrarPassword}
-              value={password}
-              onChangeText={setPassword}
-            />
-            <TouchableOpacity
-              style={styles.eyeButton}
-              onPress={() => setMostrarPassword((v) => !v)}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              <Feather name={mostrarPassword ? 'eye-off' : 'eye'} size={18} color={colors.muted} />
+            {modo === 'entrar' && (
+              <TouchableOpacity onPress={() => cambiarModo('recuperar')} style={styles.olvideWrap}>
+                <Text style={styles.olvideText}>¿Olvidaste tu contraseña?</Text>
+              </TouchableOpacity>
+            )}
+
+            {error && <Text style={styles.error}>{error}</Text>}
+
+            <TouchableOpacity style={styles.button} onPress={handleSubmit} disabled={loading}>
+              {loading ? (
+                <ActivityIndicator color={colors.bg} />
+              ) : (
+                <Text style={styles.buttonText}>{modo === 'entrar' ? 'Entrar' : 'Enviar instrucciones'}</Text>
+              )}
             </TouchableOpacity>
-          </View>
-        )}
 
-        {modo === 'crear' && (
-          <View style={styles.passwordWrap}>
-            <TextInput
-              style={styles.passwordInput}
-              placeholder="Confirmar contraseña"
-              placeholderTextColor={colors.muted2}
-              secureTextEntry={!mostrarConfirmPassword}
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-            />
-            <TouchableOpacity
-              style={styles.eyeButton}
-              onPress={() => setMostrarConfirmPassword((v) => !v)}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              <Feather name={mostrarConfirmPassword ? 'eye-off' : 'eye'} size={18} color={colors.muted} />
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {modo === 'entrar' && (
-          <TouchableOpacity onPress={() => cambiarModo('recuperar')} style={styles.olvideWrap}>
-            <Text style={styles.olvideText}>¿Olvidaste tu contraseña?</Text>
-          </TouchableOpacity>
-        )}
-
-        {error && <Text style={styles.error}>{error}</Text>}
-
-        <TouchableOpacity style={styles.button} onPress={handleSubmit} disabled={loading}>
-          {loading ? (
-            <ActivityIndicator color={colors.bg} />
-          ) : (
-            <Text style={styles.buttonText}>
-              {modo === 'entrar' ? 'Entrar' : modo === 'crear' ? 'Crear cuenta' : 'Enviar instrucciones'}
-            </Text>
-          )}
-        </TouchableOpacity>
-
-        {modo === 'recuperar' ? (
-          <TouchableOpacity onPress={() => cambiarModo('entrar')}>
-            <Text style={styles.switchText}>Volver a iniciar sesión</Text>
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity onPress={() => cambiarModo(modo === 'crear' ? 'entrar' : 'crear')}>
-            <Text style={styles.switchText}>
-              {modo === 'crear' ? '¿Ya tienes cuenta? Entrar' : '¿No tienes cuenta? Regístrate'}
-            </Text>
-          </TouchableOpacity>
-        )}
+            {modo === 'recuperar' && (
+              <TouchableOpacity onPress={() => cambiarModo('entrar')}>
+                <Text style={styles.switchText}>Volver a iniciar sesión</Text>
+              </TouchableOpacity>
+            )}
           </>
         )}
       </ScrollView>
@@ -237,56 +148,56 @@ export default function LoginScreen() {
 
 function getStyles(colors: ColorPalette) {
   return StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.bg },
-  scroll: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', padding: 28, paddingVertical: 60 },
-  logo: { width: 72, height: 67, marginBottom: 14 },
-  brand: { color: colors.white, fontWeight: '700', fontSize: 14, letterSpacing: 1, marginBottom: 30 },
-  title: { color: colors.white, fontSize: 18, fontWeight: '700', marginBottom: 20, alignSelf: 'flex-start' },
-  input: {
-    width: '100%',
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: 12,
-    padding: 14,
-    color: colors.white,
-    marginBottom: 12,
-    fontSize: 14,
-  },
-  passwordWrap: {
-    width: '100%',
-    marginBottom: 12,
-    justifyContent: 'center',
-  },
-  passwordInput: {
-    width: '100%',
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: 12,
-    padding: 14,
-    paddingRight: 44,
-    color: colors.white,
-    fontSize: 14,
-  },
-  eyeButton: {
-    position: 'absolute',
-    right: 14,
-  },
-  error: { color: colors.red, fontSize: 12, marginBottom: 10, alignSelf: 'flex-start' },
-  recuperarTexto: { color: colors.muted, fontSize: 12.5, lineHeight: 18, marginBottom: 16, alignSelf: 'flex-start' },
-  recuperarOk: { color: colors.greenLight, fontSize: 13, lineHeight: 19, marginBottom: 18, textAlign: 'center' },
-  olvideWrap: { width: '100%', alignItems: 'flex-end', marginBottom: 16, marginTop: -4 },
-  olvideText: { color: colors.greenLight, fontSize: 11.5 },
-  button: {
-    width: '100%',
-    backgroundColor: colors.green,
-    borderRadius: 12,
-    padding: 14,
-    alignItems: 'center',
-    marginTop: 6,
-  },
-  buttonText: { color: colors.bg, fontWeight: '700', fontSize: 14 },
-  switchText: { color: colors.greenLight, fontSize: 12, marginTop: 18 },
+    root: { flex: 1, backgroundColor: colors.bg },
+    scroll: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', padding: 28, paddingVertical: 60 },
+    logo: { width: 72, height: 67, marginBottom: 14 },
+    brand: { color: colors.white, fontWeight: '700', fontSize: 14, letterSpacing: 1, marginBottom: 30 },
+    title: { color: colors.white, fontSize: 18, fontWeight: '700', marginBottom: 20, alignSelf: 'flex-start' },
+    input: {
+      width: '100%',
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.line,
+      borderRadius: 12,
+      padding: 14,
+      color: colors.white,
+      marginBottom: 12,
+      fontSize: 14,
+    },
+    passwordWrap: {
+      width: '100%',
+      marginBottom: 12,
+      justifyContent: 'center',
+    },
+    passwordInput: {
+      width: '100%',
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.line,
+      borderRadius: 12,
+      padding: 14,
+      paddingRight: 44,
+      color: colors.white,
+      fontSize: 14,
+    },
+    eyeButton: {
+      position: 'absolute',
+      right: 14,
+    },
+    error: { color: colors.red, fontSize: 12, marginBottom: 10, alignSelf: 'flex-start' },
+    recuperarTexto: { color: colors.muted, fontSize: 12.5, lineHeight: 18, marginBottom: 16, alignSelf: 'flex-start' },
+    recuperarOk: { color: colors.greenLight, fontSize: 13, lineHeight: 19, marginBottom: 18, textAlign: 'center' },
+    olvideWrap: { width: '100%', alignItems: 'flex-end', marginBottom: 16, marginTop: -4 },
+    olvideText: { color: colors.greenLight, fontSize: 11.5 },
+    button: {
+      width: '100%',
+      backgroundColor: colors.green,
+      borderRadius: 12,
+      padding: 14,
+      alignItems: 'center',
+      marginTop: 6,
+    },
+    buttonText: { color: colors.bg, fontWeight: '700', fontSize: 14 },
+    switchText: { color: colors.greenLight, fontSize: 12, marginTop: 18 },
   });
 }
