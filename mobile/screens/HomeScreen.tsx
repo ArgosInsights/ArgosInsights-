@@ -162,34 +162,27 @@ export default function HomeScreen({
           </Text>
         </PressableScale>
 
-        <PressableScale style={styles.statCardWide} onPress={() => navigation.navigate('Cobros')}>
-          <View style={styles.statWideRow}>
-            <View>
-              <Text style={styles.statLabel}>Por cobrar</Text>
-              <Text style={styles.statSub}>{pendientes.length} factura{pendientes.length === 1 ? '' : 's'}</Text>
-            </View>
-            <Text style={styles.statValueWide} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
+        <View style={styles.statsRow}>
+          <PressableScale style={styles.statCardRow} onPress={() => navigation.navigate('Cobros')}>
+            <Text style={styles.statLabel}>Por cobrar</Text>
+            <Text style={styles.statValueRow} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
               {formatCLP(totalPorCobrar)}
             </Text>
-          </View>
-        </PressableScale>
-
-        <PressableScale style={styles.statCardWide} onPress={() => navigation.navigate('Cobros')}>
-          <View style={styles.statWideRow}>
-            <View>
-              <Text style={styles.statLabel}>Vencido</Text>
-              <Text style={styles.statSub}>{vencidas.length} factura{vencidas.length === 1 ? '' : 's'}</Text>
-            </View>
+            <Text style={styles.statSub}>{pendientes.length} factura{pendientes.length === 1 ? '' : 's'}</Text>
+          </PressableScale>
+          <PressableScale style={styles.statCardRow} onPress={() => navigation.navigate('Cobros')}>
+            <Text style={styles.statLabel}>Vencido</Text>
             <Text
-              style={[styles.statValueWide, { color: colors.red }]}
+              style={[styles.statValueRow, { color: colors.red }]}
               numberOfLines={1}
               adjustsFontSizeToFit
               minimumFontScale={0.7}
             >
               {formatCLP(montoVencido)}
             </Text>
-          </View>
-        </PressableScale>
+            <Text style={styles.statSub}>{vencidas.length} factura{vencidas.length === 1 ? '' : 's'}</Text>
+          </PressableScale>
+        </View>
 
         {ultimoMes && (
           <PressableScale style={[styles.statCardWide, { marginBottom: 24 }]} onPress={() => navigation.navigate('Caja')}>
@@ -323,6 +316,17 @@ function getStyles(colors: ColorPalette) {
     marginBottom: 10,
   },
   statWideRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  statsRow: { flexDirection: 'row', gap: 8, marginBottom: 10 },
+  statCardRow: {
+    flex: 1,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderRadius: 14,
+    paddingVertical: 16,
+    paddingHorizontal: 10,
+  },
+  statValueRow: { color: colors.white, fontSize: 16.5, fontWeight: '700', marginBottom: 4 },
   statLabel: { color: colors.muted, fontSize: 11, marginBottom: 5 },
   statSub: { color: colors.muted2, fontSize: 10.5 },
   statValueWide: { color: colors.white, fontSize: 20, fontWeight: '700' },
