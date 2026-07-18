@@ -28,6 +28,11 @@ export default function MainTabs({ userId, email }: { userId: string; email: str
   return (
     <NavigationContainer theme={tema}>
       <Tab.Navigator
+        // Por defecto, React Navigation "desmonta" la vista nativa de las pestañas
+        // inactivas para ahorrar memoria. Eso hace que al volver a una pestaña se
+        // cree de cero y se vea un flash blanco antes de pintar el fondo oscuro.
+        // Con esto, las pestañas quedan siempre montadas y el cambio es instantáneo.
+        detachInactiveScreens={false}
         screenOptions={{
           headerShown: false,
           tabBarStyle: { backgroundColor: colors.panel, borderTopColor: colors.line },
