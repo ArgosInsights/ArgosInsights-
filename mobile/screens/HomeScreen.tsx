@@ -163,14 +163,14 @@ export default function HomeScreen({
         </PressableScale>
 
         <View style={styles.statsRow}>
-          <PressableScale style={[styles.statCardRow, { flex: 0.75 }]} onPress={() => navigation.navigate('Cobros')}>
+          <PressableScale style={[styles.statCardRow, { flex: undefined, width: 108 }]} onPress={() => navigation.navigate('Cobros')}>
             <Text style={styles.statLabel}>Por cobrar</Text>
             <Text style={styles.statValueRow} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6}>
               {formatCLP(totalPorCobrar)}
             </Text>
             <Text style={styles.statSub}>{pendientes.length} factura{pendientes.length === 1 ? '' : 's'}</Text>
           </PressableScale>
-          <PressableScale style={[styles.statCardRow, { flex: 0.75 }]} onPress={() => navigation.navigate('Cobros')}>
+          <PressableScale style={[styles.statCardRow, { flex: undefined, width: 108 }]} onPress={() => navigation.navigate('Cobros')}>
             <Text style={styles.statLabel}>Vencido</Text>
             <Text
               style={[styles.statValueRow, { color: colors.red }]}
@@ -184,7 +184,7 @@ export default function HomeScreen({
           </PressableScale>
 
           {ultimoMes && (
-            <PressableScale style={[styles.statCardRow, { flex: 2.5 }]} onPress={() => navigation.navigate('Caja')}>
+            <PressableScale style={[styles.statCardRow, { flex: 1 }]} onPress={() => navigation.navigate('Caja')}>
               <Text style={styles.statLabel}>Ingresos/costos</Text>
               <View style={styles.icSideRow}>
                 <Text
