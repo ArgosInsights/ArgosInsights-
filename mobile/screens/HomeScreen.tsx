@@ -5,11 +5,11 @@ import {
   RefreshControl,
   ScrollView,
   StyleSheet,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { Text } from '../components/Text';
 import InvoiceDetailModal from '../components/InvoiceDetailModal';
+import PressableScale from '../components/PressableScale';
 import { colors } from '../constants/theme';
 import { supabase } from '../lib/supabase';
 import {
@@ -139,36 +139,24 @@ export default function HomeScreen({
 
         {errorMsg && <Text style={styles.error}>{errorMsg}</Text>}
 
-        <TouchableOpacity
-          style={styles.balanceCard}
-          activeOpacity={0.7}
-          onPress={() => navigation.navigate('Caja')}
-        >
+        <PressableScale style={styles.balanceCard} onPress={() => navigation.navigate('Caja')}>
           <Text style={styles.balanceLabel}>Saldo proyectado</Text>
           <Text style={styles.balanceValue}>
             {saldoProyectado != null ? formatCLP(saldoProyectado) : 'Sin datos todavía'}
           </Text>
-        </TouchableOpacity>
+        </PressableScale>
 
         <View style={styles.statsRow}>
-          <TouchableOpacity
-            style={styles.statCard}
-            activeOpacity={0.7}
-            onPress={() => navigation.navigate('Cobros')}
-          >
+          <PressableScale style={styles.statCard} onPress={() => navigation.navigate('Cobros')}>
             <Text style={styles.statLabel}>Por cobrar</Text>
             <Text style={styles.statValue}>{formatCLP(totalPorCobrar)}</Text>
             <Text style={styles.statSub}>{pendientes.length} factura{pendientes.length === 1 ? '' : 's'}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.statCard}
-            activeOpacity={0.7}
-            onPress={() => navigation.navigate('Cobros')}
-          >
+          </PressableScale>
+          <PressableScale style={styles.statCard} onPress={() => navigation.navigate('Cobros')}>
             <Text style={styles.statLabel}>Vencido</Text>
             <Text style={[styles.statValue, { color: colors.red }]}>{formatCLP(montoVencido)}</Text>
             <Text style={styles.statSub}>{vencidas.length} factura{vencidas.length === 1 ? '' : 's'}</Text>
-          </TouchableOpacity>
+          </PressableScale>
         </View>
 
         <Text style={styles.sectionTitle}>Próximos vencimientos</Text>
@@ -178,12 +166,7 @@ export default function HomeScreen({
         )}
 
         {proximosVencimientos.map(({ inv, vence }) => (
-          <TouchableOpacity
-            key={inv.id}
-            style={styles.invoiceCard}
-            activeOpacity={0.7}
-            onPress={() => setSeleccionada(inv)}
-          >
+          <PressableScale key={inv.id} style={styles.invoiceCard} onPress={() => setSeleccionada(inv)}>
             <View>
               <Text style={styles.invoiceName}>{inv.cliente_nombre}</Text>
               <Text style={styles.invoiceMeta}>
@@ -191,17 +174,13 @@ export default function HomeScreen({
               </Text>
             </View>
             <Text style={styles.invoiceAmount}>{formatCLP(inv.monto)}</Text>
-          </TouchableOpacity>
+          </PressableScale>
         ))}
 
         {etapasConDatos.length > 0 && (
           <>
             <Text style={styles.sectionTitle}>Ciclo documental</Text>
-            <TouchableOpacity
-              style={styles.cicloCard}
-              activeOpacity={0.7}
-              onPress={() => navigation.navigate('Excel')}
-            >
+            <PressableScale style={styles.cicloCard} onPress={() => navigation.navigate('Excel')}>
               {etapasConDatos.map(([etapa, cantidad]) => (
                 <View key={etapa} style={styles.cicloRow}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -211,7 +190,7 @@ export default function HomeScreen({
                   <Text style={styles.cicloValue}>{cantidad}</Text>
                 </View>
               ))}
-            </TouchableOpacity>
+            </PressableScale>
           </>
         )}
       </ScrollView>

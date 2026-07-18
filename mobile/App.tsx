@@ -1,6 +1,6 @@
 import { Session } from '@supabase/supabase-js';
-import { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { useVideoPlayer, VideoView } from 'expo-video';
@@ -51,6 +51,8 @@ export default function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [esAdmin, setEsAdmin] = useState(false);
   const [sesionLista, setSesionLista] = useState(false);
+  const [mostrarIntro, setMostrarIntro] = useState(true);
+  const introOpacity = useRef(new Animated.Value(1)).current;
 
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
@@ -84,17 +86,34 @@ export default function App() {
     setSesionLista(true);
   }
 
-  if (!fontsLoaded || !sesionLista) {
-    return <IntroVideo />;
-  }
+  const listo = fontsLoaded && sesionLista;
+
+  // Cuando todo está listo, en vez de cortar el video de golpe lo dejamos
+  // desvanecerse mientras la pantalla de abajo ya está lista para verse.
+  useEffect(() => {
+    if (listo && mostrarIntro) {
+      Animated.timing(introOpacity, {
+        toValue: 0,
+        duration: 450,
+        delay: 150,
+        useNativeDriver: true,
+      }).start(() => setMostrarIntro(false));
+    }
+  }, [listo]);
 
   return (
     <>
       <StatusBar style="light" />
-      {session ? (
-        <MainTabs userId={session.user.id} email={session.user.email ?? ''} esAdmin={esAdmin} />
-      ) : (
-        <LoginScreen />
+      {listo &&
+        (session ? (
+          <MainTabs userId={session.user.id} email={session.user.email ?? ''} esAdmin={esAdmin} />
+        ) : (
+          <LoginScreen />
+        ))}
+      {mostrarIntro && (
+        <Animated.View style={[StyleSheet.absoluteFill, { opacity: introOpacity }]} pointerEvents="none">
+          <IntroVideo />
+        </Animated.View>
       )}
     </>
   );

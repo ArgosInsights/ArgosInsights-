@@ -42,6 +42,7 @@ export default function MainTabs({
           tabBarActiveTintColor: colors.greenLight,
           tabBarInactiveTintColor: colors.muted2,
           tabBarLabelStyle: { fontSize: 10 },
+          animation: 'shift',
         }}
       >
         <Tab.Screen
