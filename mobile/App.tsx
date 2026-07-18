@@ -1,6 +1,6 @@
 import { Session } from '@supabase/supabase-js';
 import { useEffect, useRef, useState } from 'react';
-import { Animated, StyleSheet, View } from 'react-native';
+import { Animated, Easing, StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { useVideoPlayer, VideoView } from 'expo-video';
@@ -79,13 +79,14 @@ export default function App() {
   const listo = fontsLoaded && sesionLista;
 
   // Cuando todo está listo, en vez de cortar el video de golpe lo dejamos
-  // desvanecerse mientras la pantalla de abajo ya está lista para verse.
+  // desvanecerse lentamente mientras la pantalla de abajo ya está lista para verse.
   useEffect(() => {
     if (listo && mostrarIntro) {
       Animated.timing(introOpacity, {
         toValue: 0,
-        duration: 450,
-        delay: 150,
+        duration: 900,
+        delay: 250,
+        easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       }).start(() => setMostrarIntro(false));
     }
@@ -110,6 +111,8 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  loading: { flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' },
+  // Negro puro (no colors.bg) para que coincida exacto con el fondo del video
+  // y no se note el borde del cuadro.
+  loading: { flex: 1, backgroundColor: '#000000', alignItems: 'center', justifyContent: 'center' },
   video: { width: '70%', aspectRatio: 1 },
 });

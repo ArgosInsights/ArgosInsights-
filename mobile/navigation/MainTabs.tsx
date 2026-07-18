@@ -1,6 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer, DarkTheme } from '@react-navigation/native';
+import { Easing } from 'react-native';
 import { colors } from '../constants/theme';
 import HomeScreen from '../screens/HomeScreen';
 import CobrosScreen from '../screens/CobrosScreen';
@@ -33,7 +34,11 @@ export default function MainTabs({ userId, email }: { userId: string; email: str
           tabBarActiveTintColor: colors.greenLight,
           tabBarInactiveTintColor: colors.muted2,
           tabBarLabelStyle: { fontSize: 10 },
-          animation: 'shift',
+          animation: 'fade',
+          transitionSpec: {
+            animation: 'timing',
+            config: { duration: 180, easing: Easing.out(Easing.ease) },
+          },
         }}
       >
         <Tab.Screen

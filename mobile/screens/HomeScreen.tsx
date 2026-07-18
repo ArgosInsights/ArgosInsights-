@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: 20, paddingTop: 60, paddingBottom: 40 },
   topbar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 },
-  logo: { width: 24, height: 24, borderRadius: 12 },
+  logo: { width: 26, height: 26 },
   brand: { color: colors.white, fontWeight: '700', fontSize: 13, letterSpacing: 0.5 },
   greet: { color: colors.muted, fontSize: 12 },
   greetName: { color: colors.white, fontSize: 18, fontWeight: '700', marginBottom: 4 },
