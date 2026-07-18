@@ -160,33 +160,55 @@ export default function HomeScreen({
           </Text>
         </PressableScale>
 
-        <View style={[styles.statsRow, ultimoMes && { marginBottom: 10 }]}>
+        <View style={styles.statsRow}>
           <PressableScale style={styles.statCard} onPress={() => navigation.navigate('Cobros')}>
             <Text style={styles.statLabel}>Por cobrar</Text>
-            <Text style={styles.statValue}>{formatCLP(totalPorCobrar)}</Text>
-            <Text style={styles.statSub}>{pendientes.length} factura{pendientes.length === 1 ? '' : 's'}</Text>
+            <Text style={styles.statValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
+              {formatCLP(totalPorCobrar)}
+            </Text>
+            <Text style={styles.statSub}>{pendientes.length} fact.</Text>
           </PressableScale>
           <PressableScale style={styles.statCard} onPress={() => navigation.navigate('Cobros')}>
             <Text style={styles.statLabel}>Vencido</Text>
-            <Text style={[styles.statValue, { color: colors.red }]}>{formatCLP(montoVencido)}</Text>
-            <Text style={styles.statSub}>{vencidas.length} factura{vencidas.length === 1 ? '' : 's'}</Text>
+            <Text
+              style={[styles.statValue, { color: colors.red }]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.7}
+            >
+              {formatCLP(montoVencido)}
+            </Text>
+            <Text style={styles.statSub}>{vencidas.length} fact.</Text>
           </PressableScale>
+          {ultimoMes && (
+            <>
+              <PressableScale style={styles.statCard} onPress={() => navigation.navigate('Caja')}>
+                <Text style={styles.statLabel}>Ingresos</Text>
+                <Text
+                  style={[styles.statValue, { color: colors.greenLight }]}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.7}
+                >
+                  {formatCLP(ingresosMes)}
+                </Text>
+                <Text style={styles.statSub}>{nombreMes(ultimoMes.mes)}</Text>
+              </PressableScale>
+              <PressableScale style={styles.statCard} onPress={() => navigation.navigate('Caja')}>
+                <Text style={styles.statLabel}>Costos</Text>
+                <Text
+                  style={[styles.statValue, { color: colors.red }]}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.7}
+                >
+                  {formatCLP(costosMes)}
+                </Text>
+                <Text style={styles.statSub}>{nombreMes(ultimoMes.mes)}</Text>
+              </PressableScale>
+            </>
+          )}
         </View>
-
-        {ultimoMes && (
-          <View style={styles.statsRow}>
-            <PressableScale style={styles.statCard} onPress={() => navigation.navigate('Caja')}>
-              <Text style={styles.statLabel}>Ingresos</Text>
-              <Text style={[styles.statValue, { color: colors.greenLight }]}>{formatCLP(ingresosMes)}</Text>
-              <Text style={styles.statSub}>{nombreMes(ultimoMes.mes)}</Text>
-            </PressableScale>
-            <PressableScale style={styles.statCard} onPress={() => navigation.navigate('Caja')}>
-              <Text style={styles.statLabel}>Costos</Text>
-              <Text style={[styles.statValue, { color: colors.red }]}>{formatCLP(costosMes)}</Text>
-              <Text style={styles.statSub}>{nombreMes(ultimoMes.mes)}</Text>
-            </PressableScale>
-          </View>
-        )}
 
         {mesesChart.length > 0 && (
           <>
@@ -278,18 +300,19 @@ function getStyles(colors: ColorPalette) {
   },
   balanceLabel: { color: colors.muted, fontSize: 11, marginBottom: 6 },
   balanceValue: { color: colors.greenLight, fontSize: 26, fontWeight: '700' },
-  statsRow: { flexDirection: 'row', gap: 10, marginBottom: 24 },
+  statsRow: { flexDirection: 'row', gap: 6, marginBottom: 24 },
   statCard: {
     flex: 1,
     backgroundColor: colors.card,
     borderWidth: 1,
     borderColor: colors.line,
-    borderRadius: 14,
-    padding: 14,
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
   },
-  statLabel: { color: colors.muted, fontSize: 10.5, marginBottom: 6 },
-  statValue: { color: colors.white, fontSize: 16, fontWeight: '700', marginBottom: 3 },
-  statSub: { color: colors.muted2, fontSize: 10 },
+  statLabel: { color: colors.muted, fontSize: 9, marginBottom: 5 },
+  statValue: { color: colors.white, fontSize: 13, fontWeight: '700', marginBottom: 3 },
+  statSub: { color: colors.muted2, fontSize: 8.5 },
   sectionTitle: { color: colors.white, fontSize: 14, fontWeight: '700', marginBottom: 10 },
   chartCard: {
     backgroundColor: colors.card,
