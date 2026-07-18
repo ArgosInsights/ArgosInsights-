@@ -114,3 +114,103 @@ export function formatFechaHora(iso: string) {
   const min = String(fecha.getMinutes()).padStart(2, '0');
   return `${dd}-${mm}-${yyyy} ${hh}:${min}`;
 }
+
+// --- Proyección de saldo a 30 días ---
+//
+// La idea: no usar directamente el "Cobros Esperados" que el cliente carga a mano en el
+// Excel (es una estimación suya, marcada con "*" en la plantilla), sino calcular nosotros
+// cuánto va a cobrar en los próximos 30 días a partir de:
+//   1) las facturas pendientes reales (invoices) y sus plazos, y
+//   2) cuánto atraso tiene ESE cliente en la práctica (comparando, en las facturas ya
+//      pagadas, la fecha real de pago contra el plazo pactado).
+// El resto (otros ingresos / egresos fijos y variables) no tiene detalle factura por
+// factura, así que se prorratea día a día a partir de lo cargado en Flujo de Caja.
+
+function isoAMes(iso: string) {
+  return iso.slice(0, 7); // "YYYY-MM"
+}
+
+function diasEntreISO(desde: string, hasta: string) {
+  const a = new Date(desde + 'T00:00:00').getTime();
+  const b = new Date(hasta + 'T00:00:00').getTime();
+  return Math.round((b - a) / (1000 * 60 * 60 * 24));
+}
+
+function diasEnMes(anio: number, mes: number) {
+  return new Date(anio, mes, 0).getDate(); // mes en base 1 (1=enero)
+}
+
+export type ProyeccionSaldo = {
+  saldo: number | null;
+  atrasoPromedioDias: number;
+};
+
+export function saldoProyectado30(
+  invoices: Invoice[],
+  meses: CashFlowMonth[],
+  hoy: Date = new Date()
+): ProyeccionSaldo {
+  if (meses.length === 0) return { saldo: null, atrasoPromedioDias: 0 };
+
+  const mesHoyISO = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}`;
+  const mesActual = meses.find((m) => isoAMes(m.mes) === mesHoyISO) ?? meses[meses.length - 1];
+
+  // 1) Atraso histórico promedio de pago (días reales de pago menos el plazo pactado,
+  // sobre las facturas que ya se pagaron). Positivo = paga tarde, negativo = paga antes.
+  const pagadas = invoices.filter((inv) => inv.fecha_real_pago);
+  const atrasoPromedio =
+    pagadas.length > 0
+      ? pagadas.reduce(
+          (acc, inv) => acc + (diasEntreISO(inv.fecha_emision, inv.fecha_real_pago!) - inv.plazo_dias),
+          0
+        ) / pagadas.length
+      : 0;
+
+  // 2) Saldo "de hoy": saldo inicial del mes + lo que ya se cobró de verdad este mes +
+  // la parte de otros ingresos/egresos que ya "pasó" según cuántos días del mes ya corrieron
+  // (en vez de usar el mes completo, que asumiría que ya terminó).
+  const [anioMesActual, numMesActual] = mesActual.mes.split('-').map(Number);
+  const diasDelMesActual = diasEnMes(anioMesActual, numMesActual);
+  const inicioMesActual = new Date(anioMesActual, numMesActual - 1, 1);
+  const diasTranscurridos = Math.min(
+    diasDelMesActual,
+    Math.max(1, Math.floor((hoy.getTime() - inicioMesActual.getTime()) / (1000 * 60 * 60 * 24)) + 1)
+  );
+  const fraccionMesTranscurrido = diasTranscurridos / diasDelMesActual;
+
+  const cobradoEsteMes = invoices
+    .filter((inv) => inv.fecha_real_pago && isoAMes(inv.fecha_real_pago) === mesActual.mes.slice(0, 7))
+    .reduce((acc, inv) => acc + inv.monto, 0);
+
+  const saldoHoy =
+    mesActual.saldo_inicial +
+    cobradoEsteMes +
+    fraccionMesTranscurrido * (mesActual.otros_ingresos - mesActual.egresos_fijos - mesActual.egresos_variables);
+
+  // 3) Proyección de los próximos 30 días desde hoy.
+  const finVentana = new Date(hoy);
+  finVentana.setDate(finVentana.getDate() + 30);
+
+  const cobrosEsperadosAjustados = invoices
+    .filter((inv) => !inv.fecha_real_pago)
+    .reduce((acc, inv) => {
+      const fechaEsperada = addDias(inv.fecha_emision, inv.plazo_dias + Math.round(atrasoPromedio));
+      return fechaEsperada >= hoy && fechaEsperada <= finVentana ? acc + inv.monto : acc;
+    }, 0);
+
+  let otrosIngresosVentana = 0;
+  let egresosVentana = 0;
+  for (let d = 0; d < 30; d++) {
+    const dia = new Date(hoy);
+    dia.setDate(dia.getDate() + d);
+    const mesDelDia = meses.find((m) => isoAMes(m.mes) === `${dia.getFullYear()}-${String(dia.getMonth() + 1).padStart(2, '0')}`);
+    if (mesDelDia) {
+      const totalDiasMes = diasEnMes(dia.getFullYear(), dia.getMonth() + 1);
+      otrosIngresosVentana += mesDelDia.otros_ingresos / totalDiasMes;
+      egresosVentana += (mesDelDia.egresos_fijos + mesDelDia.egresos_variables) / totalDiasMes;
+    }
+  }
+
+  const saldo = saldoHoy + cobrosEsperadosAjustados + otrosIngresosVentana - egresosVentana;
+  return { saldo, atrasoPromedioDias: Math.round(atrasoPromedio) };
+}

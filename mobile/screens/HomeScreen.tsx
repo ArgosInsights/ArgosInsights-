@@ -24,6 +24,7 @@ import {
   Invoice,
   nombreMes,
   saldoFinal,
+  saldoProyectado30,
 } from '../lib/format';
 
 export default function HomeScreen({
@@ -121,7 +122,7 @@ export default function HomeScreen({
   const etapasConDatos = Object.entries(etapaCounts);
 
   const ultimoMes = meses[meses.length - 1] ?? null;
-  const saldoProyectado = ultimoMes ? saldoFinal(ultimoMes) : null;
+  const { saldo: saldoProyectado } = saldoProyectado30(invoices, meses);
 
   // Evolución de caja: los últimos meses cargados, para un mini gráfico de barras.
   const mesesChart = meses.slice(-6);
@@ -156,7 +157,7 @@ export default function HomeScreen({
         {errorMsg && <Text style={styles.error}>{errorMsg}</Text>}
 
         <PressableScale style={styles.balanceCard} onPress={() => navigation.navigate('Caja')}>
-          <Text style={styles.balanceLabel}>Saldo proyectado</Text>
+          <Text style={styles.balanceLabel}>Saldo proyectado (próximos 30 días)</Text>
           <Text style={styles.balanceValue}>
             {saldoProyectado != null ? formatCLP(saldoProyectado) : 'Sin datos todavía'}
           </Text>
