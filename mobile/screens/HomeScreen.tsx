@@ -301,7 +301,7 @@ function getStyles(colors: ColorPalette) {
   },
   balanceLabel: { color: colors.muted, fontSize: 11, marginBottom: 6 },
   balanceValue: { color: colors.greenLight, fontSize: 26, fontWeight: '700' },
-  statsRow: { flexDirection: 'row', gap: 8, marginBottom: 24, marginRight: -20 },
+  statsRow: { flexDirection: 'row', gap: 8, marginBottom: 24 },
   statCardRow: {
     flex: 1,
     backgroundColor: colors.card,
