@@ -32,10 +32,27 @@ export default function LoginScreen() {
   const [mostrarConfirmPassword, setMostrarConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [modo, setModo] = useState<'entrar' | 'crear'>('entrar');
+  const [modo, setModo] = useState<'entrar' | 'crear' | 'recuperar'>('entrar');
+  const [recuperarEnviado, setRecuperarEnviado] = useState(false);
 
   async function handleSubmit() {
     setError(null);
+
+    if (modo === 'recuperar') {
+      if (!email) {
+        setError('Completá tu email.');
+        return;
+      }
+      setLoading(true);
+      const { error: authError } = await supabase.auth.resetPasswordForEmail(email);
+      setLoading(false);
+      if (authError) {
+        setError(authError.message);
+      } else {
+        setRecuperarEnviado(true);
+      }
+      return;
+    }
 
     if (modo === 'crear' && (!nombre || !empresa || !tipoEmpresa)) {
       setError('Completá nombre, empresa y tipo de empresa.');
@@ -67,6 +84,13 @@ export default function LoginScreen() {
     if (authError) setError(authError.message);
   }
 
+  function cambiarModo(nuevo: 'entrar' | 'crear' | 'recuperar') {
+    setModo(nuevo);
+    setError(null);
+    setConfirmPassword('');
+    setRecuperarEnviado(false);
+  }
+
   return (
     <KeyboardAvoidingView
       style={styles.root}
@@ -75,8 +99,27 @@ export default function LoginScreen() {
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <Image source={require('../assets/logo-mark.png')} style={styles.logo} resizeMode="contain" />
         <Text style={styles.brand}>ARGOS INSIGHTS</Text>
-        <Text style={styles.title}>{modo === 'entrar' ? 'Iniciar sesión' : 'Crear cuenta'}</Text>
+        <Text style={styles.title}>
+          {modo === 'entrar' ? 'Iniciar sesión' : modo === 'crear' ? 'Crear cuenta' : 'Recuperar contraseña'}
+        </Text>
 
+        {modo === 'recuperar' && !recuperarEnviado && (
+          <Text style={styles.recuperarTexto}>
+            Ingresá tu email y te mandamos un link para elegir una contraseña nueva.
+          </Text>
+        )}
+
+        {modo === 'recuperar' && recuperarEnviado ? (
+          <>
+            <Text style={styles.recuperarOk}>
+              Listo. Si {email} tiene una cuenta, te va a llegar un correo con las instrucciones.
+            </Text>
+            <TouchableOpacity style={styles.button} onPress={() => cambiarModo('entrar')}>
+              <Text style={styles.buttonText}>Volver a iniciar sesión</Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <>
         {modo === 'crear' && (
           <>
             <TextInput
@@ -116,23 +159,25 @@ export default function LoginScreen() {
           onChangeText={setEmail}
         />
 
-        <View style={styles.passwordWrap}>
-          <TextInput
-            style={styles.passwordInput}
-            placeholder="Contraseña"
-            placeholderTextColor={colors.muted2}
-            secureTextEntry={!mostrarPassword}
-            value={password}
-            onChangeText={setPassword}
-          />
-          <TouchableOpacity
-            style={styles.eyeButton}
-            onPress={() => setMostrarPassword((v) => !v)}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Feather name={mostrarPassword ? 'eye-off' : 'eye'} size={18} color={colors.muted} />
-          </TouchableOpacity>
-        </View>
+        {modo !== 'recuperar' && (
+          <View style={styles.passwordWrap}>
+            <TextInput
+              style={styles.passwordInput}
+              placeholder="Contraseña"
+              placeholderTextColor={colors.muted2}
+              secureTextEntry={!mostrarPassword}
+              value={password}
+              onChangeText={setPassword}
+            />
+            <TouchableOpacity
+              style={styles.eyeButton}
+              onPress={() => setMostrarPassword((v) => !v)}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Feather name={mostrarPassword ? 'eye-off' : 'eye'} size={18} color={colors.muted} />
+            </TouchableOpacity>
+          </View>
+        )}
 
         {modo === 'crear' && (
           <View style={styles.passwordWrap}>
@@ -154,27 +199,37 @@ export default function LoginScreen() {
           </View>
         )}
 
+        {modo === 'entrar' && (
+          <TouchableOpacity onPress={() => cambiarModo('recuperar')} style={styles.olvideWrap}>
+            <Text style={styles.olvideText}>¿Olvidaste tu contraseña?</Text>
+          </TouchableOpacity>
+        )}
+
         {error && <Text style={styles.error}>{error}</Text>}
 
         <TouchableOpacity style={styles.button} onPress={handleSubmit} disabled={loading}>
           {loading ? (
             <ActivityIndicator color={colors.bg} />
           ) : (
-            <Text style={styles.buttonText}>{modo === 'entrar' ? 'Entrar' : 'Crear cuenta'}</Text>
+            <Text style={styles.buttonText}>
+              {modo === 'entrar' ? 'Entrar' : modo === 'crear' ? 'Crear cuenta' : 'Enviar instrucciones'}
+            </Text>
           )}
         </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={() => {
-            setModo(modo === 'entrar' ? 'crear' : 'entrar');
-            setError(null);
-            setConfirmPassword('');
-          }}
-        >
-          <Text style={styles.switchText}>
-            {modo === 'entrar' ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Entrar'}
-          </Text>
-        </TouchableOpacity>
+        {modo === 'recuperar' ? (
+          <TouchableOpacity onPress={() => cambiarModo('entrar')}>
+            <Text style={styles.switchText}>Volver a iniciar sesión</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity onPress={() => cambiarModo(modo === 'crear' ? 'entrar' : 'crear')}>
+            <Text style={styles.switchText}>
+              {modo === 'crear' ? '¿Ya tienes cuenta? Entrar' : '¿No tienes cuenta? Regístrate'}
+            </Text>
+          </TouchableOpacity>
+        )}
+          </>
+        )}
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -219,6 +274,10 @@ function getStyles(colors: ColorPalette) {
     right: 14,
   },
   error: { color: colors.red, fontSize: 12, marginBottom: 10, alignSelf: 'flex-start' },
+  recuperarTexto: { color: colors.muted, fontSize: 12.5, lineHeight: 18, marginBottom: 16, alignSelf: 'flex-start' },
+  recuperarOk: { color: colors.greenLight, fontSize: 13, lineHeight: 19, marginBottom: 18, textAlign: 'center' },
+  olvideWrap: { width: '100%', alignItems: 'flex-end', marginBottom: 16, marginTop: -4 },
+  olvideText: { color: colors.greenLight, fontSize: 11.5 },
   button: {
     width: '100%',
     backgroundColor: colors.green,
