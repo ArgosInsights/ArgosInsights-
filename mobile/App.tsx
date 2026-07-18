@@ -11,8 +11,8 @@ import {
   Poppins_600SemiBold,
   Poppins_700Bold,
 } from '@expo-google-fonts/poppins';
-import { colors } from './constants/theme';
 import { supabase } from './lib/supabase';
+import { ThemeProvider, useTheme } from './lib/ThemeContext';
 import MainTabs from './navigation/MainTabs';
 import LoginScreen from './screens/LoginScreen';
 
@@ -23,6 +23,8 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 const logoIntro = require('./assets/argos-logo-intro.mp4');
 
 // Pantalla de carga con el logo animado, mientras se revisa la sesión y cargan las fuentes.
+// Siempre en negro puro (coincide con el fondo del propio video), sin importar el modo
+// día/noche elegido — es la misma intro de marca para todos.
 function IntroVideo() {
   const player = useVideoPlayer(logoIntro, (p) => {
     p.loop = true;
@@ -47,7 +49,8 @@ function IntroVideo() {
   );
 }
 
-export default function App() {
+function AppContent() {
+  const { modo, listo: temaListo } = useTheme();
   const [session, setSession] = useState<Session | null>(null);
   const [sesionLista, setSesionLista] = useState(false);
   const [mostrarIntro, setMostrarIntro] = useState(true);
@@ -76,7 +79,7 @@ export default function App() {
     return () => listener.subscription.unsubscribe();
   }, []);
 
-  const listo = fontsLoaded && sesionLista;
+  const listo = fontsLoaded && sesionLista && temaListo;
 
   // Cuando todo está listo, en vez de cortar el video de golpe lo dejamos
   // desvanecerse lentamente mientras la pantalla de abajo ya está lista para verse.
@@ -94,7 +97,7 @@ export default function App() {
 
   return (
     <>
-      <StatusBar style="light" />
+      <StatusBar style={modo === 'dia' ? 'dark' : 'light'} />
       {listo &&
         (session ? (
           <MainTabs userId={session.user.id} email={session.user.email ?? ''} />
@@ -107,6 +110,14 @@ export default function App() {
         </Animated.View>
       )}
     </>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   );
 }
 

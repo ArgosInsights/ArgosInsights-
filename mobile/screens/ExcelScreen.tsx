@@ -11,7 +11,8 @@ import {
   View,
 } from 'react-native';
 import { Text } from '../components/Text';
-import { colors } from '../constants/theme';
+import { ColorPalette } from '../constants/theme';
+import { useTheme } from '../lib/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { parseArgosExcel } from '../lib/excelParser';
 import {
@@ -28,43 +29,52 @@ import {
   saldoFinal,
 } from '../lib/format';
 
-// Una fila genérica de "tabla" — cada celda tiene un ancho fijo para que las
-// columnas queden alineadas cuando hay scroll horizontal.
-function Fila({ celdas, encabezado }: { celdas: { texto: string; ancho: number; color?: string }[]; encabezado?: boolean }) {
-  return (
-    <View style={[styles.fila, encabezado && styles.filaEncabezado]}>
-      {celdas.map((c, i) => (
-        <Text
-          key={i}
-          style={[
-            styles.celda,
-            { width: c.ancho, color: c.color ?? (encabezado ? colors.greenLight : colors.white) },
-            encabezado && styles.celdaEncabezado,
-          ]}
-          numberOfLines={1}
-        >
-          {c.texto}
-        </Text>
-      ))}
-    </View>
-  );
-}
-
-function Tabla({ titulo, filas, children }: { titulo: string; filas: number; children: React.ReactNode }) {
-  return (
-    <View style={styles.tablaCard}>
-      <View style={styles.tablaHead}>
-        <Text style={styles.tablaTitulo}>{titulo}</Text>
-        <Text style={styles.tablaN}>{filas} filas</Text>
-      </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={true}>
-        <View>{children}</View>
-      </ScrollView>
-    </View>
-  );
-}
-
 export default function ExcelScreen({ userId }: { userId: string }) {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
+
+  // Una fila genérica de "tabla" — cada celda tiene un ancho fijo para que las
+  // columnas queden alineadas cuando hay scroll horizontal.
+  function Fila({
+    celdas,
+    encabezado,
+  }: {
+    celdas: { texto: string; ancho: number; color?: string }[];
+    encabezado?: boolean;
+  }) {
+    return (
+      <View style={[styles.fila, encabezado && styles.filaEncabezado]}>
+        {celdas.map((c, i) => (
+          <Text
+            key={i}
+            style={[
+              styles.celda,
+              { width: c.ancho, color: c.color ?? (encabezado ? colors.greenLight : colors.white) },
+              encabezado && styles.celdaEncabezado,
+            ]}
+            numberOfLines={1}
+          >
+            {c.texto}
+          </Text>
+        ))}
+      </View>
+    );
+  }
+
+  function Tabla({ titulo, filas, children }: { titulo: string; filas: number; children: React.ReactNode }) {
+    return (
+      <View style={styles.tablaCard}>
+        <View style={styles.tablaHead}>
+          <Text style={styles.tablaTitulo}>{titulo}</Text>
+          <Text style={styles.tablaN}>{filas} filas</Text>
+        </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={true}>
+          <View>{children}</View>
+        </ScrollView>
+      </View>
+    );
+  }
+
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -307,54 +317,56 @@ export default function ExcelScreen({ userId }: { userId: string }) {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: 20, paddingTop: 60, paddingBottom: 40 },
-  title: { color: colors.white, fontSize: 20, fontWeight: '700', marginBottom: 6 },
-  subtitle: { color: colors.muted2, fontSize: 11.5, lineHeight: 16, marginBottom: 18 },
-  button: {
-    backgroundColor: colors.green,
-    borderRadius: 12,
-    padding: 14,
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  buttonText: { color: colors.bg, fontWeight: '700', fontSize: 13 },
-  archivo: { color: colors.muted, fontSize: 12, marginBottom: 4, textAlign: 'center' },
-  estadoBox: {
-    marginBottom: 18,
-    marginTop: 10,
-    borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: 12,
-    padding: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  estadoTexto: { color: colors.white, fontSize: 12, flex: 1, lineHeight: 17 },
-  tablaCard: {
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: 14,
-    marginBottom: 16,
-    overflow: 'hidden',
-  },
-  tablaHead: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.line,
-  },
-  tablaTitulo: { color: colors.white, fontSize: 13, fontWeight: '700' },
-  tablaN: { color: colors.muted2, fontSize: 10.5 },
-  fila: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: colors.line, paddingVertical: 4 },
-  filaEncabezado: { backgroundColor: '#1c2118' },
-  celda: { fontSize: 11, paddingVertical: 8, paddingHorizontal: 10 },
-  celdaEncabezado: { fontSize: 9.5, fontWeight: '700', textTransform: 'uppercase' },
-  empty: { color: colors.muted2, fontSize: 11, padding: 14 },
-});
+function getStyles(colors: ColorPalette) {
+  return StyleSheet.create({
+    root: { flex: 1, backgroundColor: colors.bg },
+    scroll: { padding: 20, paddingTop: 60, paddingBottom: 40 },
+    title: { color: colors.white, fontSize: 20, fontWeight: '700', marginBottom: 6 },
+    subtitle: { color: colors.muted2, fontSize: 11.5, lineHeight: 16, marginBottom: 18 },
+    button: {
+      backgroundColor: colors.green,
+      borderRadius: 12,
+      padding: 14,
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    buttonText: { color: colors.bg, fontWeight: '700', fontSize: 13 },
+    archivo: { color: colors.muted, fontSize: 12, marginBottom: 4, textAlign: 'center' },
+    estadoBox: {
+      marginBottom: 18,
+      marginTop: 10,
+      borderWidth: 1,
+      borderColor: colors.line,
+      borderRadius: 12,
+      padding: 14,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+    },
+    estadoTexto: { color: colors.white, fontSize: 12, flex: 1, lineHeight: 17 },
+    tablaCard: {
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.line,
+      borderRadius: 14,
+      marginBottom: 16,
+      overflow: 'hidden',
+    },
+    tablaHead: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.line,
+    },
+    tablaTitulo: { color: colors.white, fontSize: 13, fontWeight: '700' },
+    tablaN: { color: colors.muted2, fontSize: 10.5 },
+    fila: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: colors.line, paddingVertical: 4 },
+    filaEncabezado: { backgroundColor: colors.greenBg },
+    celda: { fontSize: 11, paddingVertical: 8, paddingHorizontal: 10 },
+    celdaEncabezado: { fontSize: 9.5, fontWeight: '700', textTransform: 'uppercase' },
+    empty: { color: colors.muted2, fontSize: 11, padding: 14 },
+  });
+}

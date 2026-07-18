@@ -10,7 +10,8 @@ import {
 import { Text } from '../components/Text';
 import InvoiceDetailModal from '../components/InvoiceDetailModal';
 import PressableScale from '../components/PressableScale';
-import { colors } from '../constants/theme';
+import { ColorPalette } from '../constants/theme';
+import { useTheme } from '../lib/ThemeContext';
 import { supabase } from '../lib/supabase';
 import {
   addDias,
@@ -24,15 +25,6 @@ import {
   saldoFinal,
 } from '../lib/format';
 
-const etapaColor: Record<string, string> = {
-  'Sin iniciar': colors.muted2,
-  'OC emitida': colors.yellow,
-  'HES emitida': colors.yellow,
-  'EDP emitido': colors.yellow,
-  Facturado: colors.greenLight,
-  Pagado: colors.greenLight,
-};
-
 export default function HomeScreen({
   userId,
   email,
@@ -42,6 +34,16 @@ export default function HomeScreen({
   email: string;
   navigation: { navigate: (nombre: string) => void };
 }) {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
+  const etapaColor: Record<string, string> = {
+    'Sin iniciar': colors.muted2,
+    'OC emitida': colors.yellow,
+    'HES emitida': colors.yellow,
+    'EDP emitido': colors.yellow,
+    Facturado: colors.greenLight,
+    Pagado: colors.greenLight,
+  };
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [nombreSaludo, setNombreSaludo] = useState<string | null>(null);
@@ -200,7 +202,8 @@ export default function HomeScreen({
   );
 }
 
-const styles = StyleSheet.create({
+function getStyles(colors: ColorPalette) {
+  return StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: 20, paddingTop: 60, paddingBottom: 40 },
   topbar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 },
@@ -267,4 +270,5 @@ const styles = StyleSheet.create({
   dot: { width: 8, height: 8, borderRadius: 4 },
   cicloLabel: { color: colors.white, fontSize: 12.5, fontWeight: '600' },
   cicloValue: { color: colors.muted, fontSize: 12.5, fontWeight: '700' },
-});
+  });
+}

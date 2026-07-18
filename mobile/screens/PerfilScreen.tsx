@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Switch, TouchableOpacity, View } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { Text } from '../components/Text';
-import { colors } from '../constants/theme';
+import { ColorPalette } from '../constants/theme';
+import { useTheme } from '../lib/ThemeContext';
 import { supabase } from '../lib/supabase';
 
 type Profile = {
@@ -12,6 +14,8 @@ type Profile = {
 };
 
 export default function PerfilScreen({ userId, email }: { userId: string; email: string }) {
+  const { colors, modo, toggleModo } = useTheme();
+  const styles = getStyles(colors);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
 
@@ -69,6 +73,22 @@ export default function PerfilScreen({ userId, email }: { userId: string; email:
           </View>
         </View>
 
+        <View style={[styles.card, styles.temaRow]}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <Feather name={modo === 'dia' ? 'sun' : 'moon'} size={16} color={colors.greenLight} />
+            <View>
+              <Text style={styles.temaLabel}>Modo {modo === 'dia' ? 'día' : 'noche'}</Text>
+              <Text style={styles.temaSub}>{modo === 'dia' ? 'Pantalla clara' : 'Pantalla oscura'}</Text>
+            </View>
+          </View>
+          <Switch
+            value={modo === 'dia'}
+            onValueChange={toggleModo}
+            trackColor={{ false: colors.line, true: colors.green }}
+            thumbColor="#ffffff"
+          />
+        </View>
+
         <TouchableOpacity style={styles.logoutButton} onPress={() => supabase.auth.signOut()}>
           <Text style={styles.logoutText}>Cerrar sesión</Text>
         </TouchableOpacity>
@@ -77,46 +97,56 @@ export default function PerfilScreen({ userId, email }: { userId: string; email:
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: 20, paddingTop: 60, paddingBottom: 40 },
-  title: { color: colors.white, fontSize: 20, fontWeight: '700', marginBottom: 24 },
-  avatarWrap: { alignItems: 'center', marginBottom: 24 },
-  avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: colors.greenBg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 10,
-  },
-  avatarInitial: { color: colors.greenLight, fontSize: 24, fontWeight: '700' },
-  nombre: { color: colors.white, fontSize: 16, fontWeight: '700' },
-  empresa: { color: colors.muted, fontSize: 12, marginTop: 2 },
-  card: {
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 24,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.line,
-  },
-  label: { color: colors.muted, fontSize: 12 },
-  value: { color: colors.white, fontSize: 12, fontWeight: '600' },
-  logoutButton: {
-    borderWidth: 1,
-    borderColor: colors.red,
-    borderRadius: 12,
-    padding: 14,
-    alignItems: 'center',
-  },
-  logoutText: { color: colors.red, fontWeight: '700', fontSize: 13 },
-});
+function getStyles(colors: ColorPalette) {
+  return StyleSheet.create({
+    root: { flex: 1, backgroundColor: colors.bg },
+    scroll: { padding: 20, paddingTop: 60, paddingBottom: 40 },
+    title: { color: colors.white, fontSize: 20, fontWeight: '700', marginBottom: 24 },
+    avatarWrap: { alignItems: 'center', marginBottom: 24 },
+    avatar: {
+      width: 64,
+      height: 64,
+      borderRadius: 32,
+      backgroundColor: colors.greenBg,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 10,
+    },
+    avatarInitial: { color: colors.greenLight, fontSize: 24, fontWeight: '700' },
+    nombre: { color: colors.white, fontSize: 16, fontWeight: '700' },
+    empresa: { color: colors.muted, fontSize: 12, marginTop: 2 },
+    card: {
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.line,
+      borderRadius: 14,
+      padding: 16,
+      marginBottom: 16,
+    },
+    row: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingVertical: 8,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.line,
+    },
+    label: { color: colors.muted, fontSize: 12 },
+    value: { color: colors.white, fontSize: 12, fontWeight: '600' },
+    temaRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 24,
+    },
+    temaLabel: { color: colors.white, fontSize: 13, fontWeight: '700' },
+    temaSub: { color: colors.muted, fontSize: 11, marginTop: 1 },
+    logoutButton: {
+      borderWidth: 1,
+      borderColor: colors.red,
+      borderRadius: 12,
+      padding: 14,
+      alignItems: 'center',
+    },
+    logoutText: { color: colors.red, fontWeight: '700', fontSize: 13 },
+  });
+}

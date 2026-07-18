@@ -2,17 +2,19 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Text } from '../components/Text';
 import InvoiceDetailModal from '../components/InvoiceDetailModal';
-import { colors } from '../constants/theme';
+import { ColorPalette } from '../constants/theme';
+import { useTheme } from '../lib/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { formatCLP, formatFecha, addDias, estadoDe, estadoTexto, Invoice } from '../lib/format';
 
-const estadoColor: Record<string, string> = {
-  pendiente: colors.yellow,
-  pagada: colors.greenLight,
-  vencida: colors.red,
-};
-
 export default function CobrosScreen({ userId }: { userId: string }) {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
+  const estadoColor: Record<string, string> = {
+    pendiente: colors.yellow,
+    pagada: colors.greenLight,
+    vencida: colors.red,
+  };
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -108,7 +110,8 @@ export default function CobrosScreen({ userId }: { userId: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+function getStyles(colors: ColorPalette) {
+  return StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: 20, paddingTop: 60, paddingBottom: 40 },
   title: { color: colors.white, fontSize: 20, fontWeight: '700', marginBottom: 16 },
@@ -151,4 +154,5 @@ const styles = StyleSheet.create({
   invoiceMeta: { color: colors.muted2, fontSize: 10.5 },
   invoiceAmount: { color: colors.white, fontSize: 13, fontWeight: '700', marginBottom: 4 },
   badge: { fontSize: 10.5, fontWeight: '700' },
-});
+  });
+}

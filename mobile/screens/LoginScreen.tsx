@@ -12,13 +12,16 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Text } from '../components/Text';
-import { colors } from '../constants/theme';
+import { ColorPalette } from '../constants/theme';
+import { useTheme } from '../lib/ThemeContext';
 import { supabase } from '../lib/supabase';
 
 // Pantalla de login. Por ahora permite tanto entrar como registrarse desde acá mismo
 // (para poder probar rápido). Más adelante, lo normal va a ser que las cuentas de
 // cliente las cree un admin desde la web, y acá el cliente solo inicie sesión.
 export default function LoginScreen() {
+  const { colors } = useTheme();
+  const styles = getStyles(colors);
   const [nombre, setNombre] = useState('');
   const [empresa, setEmpresa] = useState('');
   const [tipoEmpresa, setTipoEmpresa] = useState('');
@@ -177,7 +180,8 @@ export default function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function getStyles(colors: ColorPalette) {
+  return StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   scroll: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', padding: 28, paddingVertical: 60 },
   logo: { width: 72, height: 67, marginBottom: 14 },
@@ -225,4 +229,5 @@ const styles = StyleSheet.create({
   },
   buttonText: { color: colors.bg, fontWeight: '700', fontSize: 14 },
   switchText: { color: colors.greenLight, fontSize: 12, marginTop: 18 },
-});
+  });
+}
