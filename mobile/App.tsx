@@ -55,6 +55,7 @@ function AppContent() {
   const [session, setSession] = useState<Session | null>(null);
   const [sesionLista, setSesionLista] = useState(false);
   const [aprobado, setAprobado] = useState<boolean | null>(null);
+  const [role, setRole] = useState<string | null>(null);
   const [mostrarIntro, setMostrarIntro] = useState(true);
   const introOpacity = useRef(new Animated.Value(1)).current;
 
@@ -70,6 +71,7 @@ function AppContent() {
   async function revisarAprobacion(userId: string) {
     const { data } = await supabase.from('profiles').select('aprobado, role').eq('id', userId).single();
     setAprobado(data ? data.aprobado || data.role === 'admin' : false);
+    setRole(data?.role ?? null);
   }
 
   useEffect(() => {
@@ -85,6 +87,7 @@ function AppContent() {
     const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
       setAprobado(null);
+      setRole(null);
       if (newSession) revisarAprobacion(newSession.user.id);
     });
 
@@ -113,7 +116,7 @@ function AppContent() {
       {listo &&
         (session ? (
           aprobado ? (
-            <MainTabs userId={session.user.id} email={session.user.email ?? ''} />
+            <MainTabs userId={session.user.id} email={session.user.email ?? ''} esAdmin={role === 'admin'} />
           ) : (
             <PendienteScreen onReintentar={() => revisarAprobacion(session.user.id)} />
           )

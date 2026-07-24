@@ -8,6 +8,7 @@ import CajaScreen from '../screens/CajaScreen';
 import CicloScreen from '../screens/CicloScreen';
 import ExcelScreen from '../screens/ExcelScreen';
 import PerfilScreen from '../screens/PerfilScreen';
+import AdminScreen from '../screens/AdminScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -27,7 +28,15 @@ function TabIcon({
   return <Feather name={nombre} size={20} color={enfocado ? activo : inactivo} />;
 }
 
-export default function MainTabs({ userId, email }: { userId: string; email: string }) {
+export default function MainTabs({
+  userId,
+  email,
+  esAdmin = false,
+}: {
+  userId: string;
+  email: string;
+  esAdmin?: boolean;
+}) {
   const { colors, modo } = useTheme();
 
   // Tema de navegación acorde al modo día/noche, para que el fondo entre
@@ -123,6 +132,18 @@ export default function MainTabs({ userId, email }: { userId: string; email: str
         >
           {() => <PerfilScreen userId={userId} email={email} />}
         </Tab.Screen>
+        {esAdmin && (
+          <Tab.Screen
+            name="Admin"
+            options={{
+              tabBarIcon: ({ focused }) => (
+                <TabIcon nombre="shield" enfocado={focused} activo={colors.greenLight} inactivo={colors.muted2} />
+              ),
+            }}
+          >
+            {() => <AdminScreen />}
+          </Tab.Screen>
+        )}
       </Tab.Navigator>
     </NavigationContainer>
   );
