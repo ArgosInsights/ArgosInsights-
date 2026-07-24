@@ -23,6 +23,7 @@ import {
   formatFecha,
   Invoice,
   nombreMes,
+  PaymentPrediction,
   saldoFinal,
   saldoProyectado30,
 } from '../lib/format';
@@ -50,6 +51,7 @@ export default function HomeScreen({
   const [refreshing, setRefreshing] = useState(false);
   const [nombreSaludo, setNombreSaludo] = useState<string | null>(null);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [predicciones, setPredicciones] = useState<Record<string, PaymentPrediction>>({});
   const [ciclos, setCiclos] = useState<DocumentCycle[]>([]);
   const [meses, setMeses] = useState<CashFlowMonth[]>([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -58,27 +60,39 @@ export default function HomeScreen({
   async function cargarDatos() {
     setErrorMsg(null);
 
-    const [{ data: profile }, { data: invoicesData, error: invError }, { data: cashData }, { data: ciclosData }] =
-      await Promise.all([
-        supabase.from('profiles').select('full_name, company_name').eq('id', userId).single(),
-        supabase
-          .from('invoices')
-          .select('*')
-          .eq('client_id', userId)
-          .order('fecha_emision', { ascending: false }),
-        supabase
-          .from('cash_flow_months')
-          .select('*')
-          .eq('client_id', userId)
-          .order('mes', { ascending: true }),
-        supabase.from('document_cycle').select('*').eq('client_id', userId),
-      ]);
+    const [
+      { data: profile },
+      { data: invoicesData, error: invError },
+      { data: cashData },
+      { data: ciclosData },
+      { data: predsData },
+    ] = await Promise.all([
+      supabase.from('profiles').select('full_name, company_name').eq('id', userId).single(),
+      supabase
+        .from('invoices')
+        .select('*')
+        .eq('client_id', userId)
+        .order('fecha_emision', { ascending: false }),
+      supabase
+        .from('cash_flow_months')
+        .select('*')
+        .eq('client_id', userId)
+        .order('mes', { ascending: true }),
+      supabase.from('document_cycle').select('*').eq('client_id', userId),
+      supabase.from('payment_predictions_latest').select('*').eq('client_id', userId),
+    ]);
 
     if (invError) {
       setErrorMsg(invError.message);
     } else {
       setInvoices((invoicesData as Invoice[]) ?? []);
     }
+
+    const porFactura: Record<string, PaymentPrediction> = {};
+    ((predsData as PaymentPrediction[]) ?? []).forEach((p) => {
+      porFactura[p.invoice_id] = p;
+    });
+    setPredicciones(porFactura);
 
     setCiclos((ciclosData as DocumentCycle[]) ?? []);
     setNombreSaludo(profile?.full_name ?? profile?.company_name ?? null);
@@ -122,7 +136,7 @@ export default function HomeScreen({
   const etapasConDatos = Object.entries(etapaCounts);
 
   const ultimoMes = meses[meses.length - 1] ?? null;
-  const { saldo: saldoProyectado } = saldoProyectado30(invoices, meses);
+  const { saldo: saldoProyectado } = saldoProyectado30(invoices, meses, predicciones);
 
   // Evolución de caja: los últimos meses cargados, para un mini gráfico de barras.
   const mesesChart = meses.slice(-6);
@@ -275,7 +289,11 @@ export default function HomeScreen({
         )}
       </ScrollView>
 
-      <InvoiceDetailModal invoice={seleccionada} onClose={() => setSeleccionada(null)} />
+      <InvoiceDetailModal
+        invoice={seleccionada}
+        prediction={seleccionada ? predicciones[seleccionada.id] ?? null : null}
+        onClose={() => setSeleccionada(null)}
+      />
     </View>
   );
 }

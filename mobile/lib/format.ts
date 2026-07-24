@@ -161,6 +161,38 @@ function diasEnMes(anio: number, mes: number) {
   return new Date(anio, mes, 0).getDate(); // mes en base 1 (1=enero)
 }
 
+// Predicción de pago calculada en el backend (Edge Function predict-payments).
+// La app solo LEE la vista payment_predictions_latest; nunca calcula ni llama al LLM.
+export type PaymentPrediction = {
+  invoice_id: string;
+  predicted_payment_date: string;
+  risk_score: number;
+  risk_level: 'bajo' | 'medio' | 'alto';
+  confidence: 'alta' | 'media' | 'baja';
+  explanation: string;
+  factors: string[];
+  model_version: string;
+  created_at: string;
+};
+
+export const riesgoColorKey = {
+  bajo: 'greenLight',
+  medio: 'yellow',
+  alto: 'red',
+} as const;
+
+export const riesgoTexto: Record<string, string> = {
+  bajo: 'Riesgo bajo',
+  medio: 'Riesgo medio',
+  alto: 'Riesgo alto',
+};
+
+export const confianzaTexto: Record<string, string> = {
+  alta: 'confianza alta',
+  media: 'confianza media',
+  baja: 'confianza baja',
+};
+
 export type ProyeccionSaldo = {
   saldo: number | null;
   atrasoPromedioDias: number;
@@ -169,6 +201,7 @@ export type ProyeccionSaldo = {
 export function saldoProyectado30(
   invoices: Invoice[],
   meses: CashFlowMonth[],
+  predicciones: Record<string, PaymentPrediction> = {},
   hoy: Date = new Date()
 ): ProyeccionSaldo {
   if (meses.length === 0) return { saldo: null, atrasoPromedioDias: 0 };
@@ -212,10 +245,15 @@ export function saldoProyectado30(
   const finVentana = new Date(hoy);
   finVentana.setDate(finVentana.getDate() + 30);
 
+  // Si hay predicción del backend para la factura, usamos su fecha estimada;
+  // si no (recién cargada, cron aún no corrió), caemos a la heurística local.
   const cobrosEsperadosAjustados = invoices
     .filter((inv) => !inv.fecha_real_pago)
     .reduce((acc, inv) => {
-      const fechaEsperada = addDias(inv.fecha_emision, inv.plazo_dias + Math.round(atrasoPromedio));
+      const pred = predicciones[inv.id];
+      const fechaEsperada = pred
+        ? new Date(pred.predicted_payment_date + 'T00:00:00')
+        : addDias(inv.fecha_emision, inv.plazo_dias + Math.round(atrasoPromedio));
       return fechaEsperada >= hoy && fechaEsperada <= finVentana ? acc + inv.monto : acc;
     }, 0);
 

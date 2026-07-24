@@ -5,7 +5,16 @@ import InvoiceDetailModal from '../components/InvoiceDetailModal';
 import { ColorPalette } from '../constants/theme';
 import { useTheme } from '../lib/ThemeContext';
 import { supabase } from '../lib/supabase';
-import { formatCLP, formatFecha, addDias, estadoDe, estadoTexto, Invoice } from '../lib/format';
+import {
+  addDias,
+  estadoDe,
+  estadoTexto,
+  formatCLP,
+  formatFecha,
+  Invoice,
+  PaymentPrediction,
+  riesgoTexto,
+} from '../lib/format';
 
 export default function CobrosScreen({ userId }: { userId: string }) {
   const { colors } = useTheme();
@@ -15,19 +24,33 @@ export default function CobrosScreen({ userId }: { userId: string }) {
     pagada: colors.greenLight,
     vencida: colors.red,
   };
+  const riesgoColor: Record<string, string> = {
+    bajo: colors.greenLight,
+    medio: colors.yellow,
+    alto: colors.red,
+  };
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [predicciones, setPredicciones] = useState<Record<string, PaymentPrediction>>({});
   const [filtro, setFiltro] = useState<'todas' | 'pendiente' | 'vencida' | 'pagada'>('todas');
   const [seleccionada, setSeleccionada] = useState<Invoice | null>(null);
 
   async function cargar() {
-    const { data } = await supabase
-      .from('invoices')
-      .select('*')
-      .eq('client_id', userId)
-      .order('fecha_emision', { ascending: false });
+    const [{ data }, { data: predsData }] = await Promise.all([
+      supabase
+        .from('invoices')
+        .select('*')
+        .eq('client_id', userId)
+        .order('fecha_emision', { ascending: false }),
+      supabase.from('payment_predictions_latest').select('*').eq('client_id', userId),
+    ]);
     setInvoices((data as Invoice[]) ?? []);
+    const porFactura: Record<string, PaymentPrediction> = {};
+    ((predsData as PaymentPrediction[]) ?? []).forEach((p) => {
+      porFactura[p.invoice_id] = p;
+    });
+    setPredicciones(porFactura);
   }
 
   useEffect(() => {
@@ -83,6 +106,7 @@ export default function CobrosScreen({ userId }: { userId: string }) {
         {visibles.map((inv) => {
           const estado = estadoDe(inv);
           const vence = addDias(inv.fecha_emision, inv.plazo_dias);
+          const pred = estado !== 'pagada' ? predicciones[inv.id] : undefined;
           return (
             <TouchableOpacity
               key={inv.id}
@@ -90,22 +114,36 @@ export default function CobrosScreen({ userId }: { userId: string }) {
               activeOpacity={0.7}
               onPress={() => setSeleccionada(inv)}
             >
-              <View>
+              <View style={{ flexShrink: 1 }}>
                 <Text style={styles.invoiceName}>{inv.cliente_nombre}</Text>
                 <Text style={styles.invoiceMeta}>
                   {inv.numero_factura ?? 'Sin número'} · vence {formatFecha(vence.toISOString().slice(0, 10))}
                 </Text>
+                {pred && (
+                  <Text style={styles.invoicePred}>
+                    Cobro estimado: {formatFecha(pred.predicted_payment_date)}
+                  </Text>
+                )}
               </View>
               <View style={{ alignItems: 'flex-end' }}>
                 <Text style={styles.invoiceAmount}>{formatCLP(inv.monto)}</Text>
                 <Text style={[styles.badge, { color: estadoColor[estado] }]}>{estadoTexto[estado]}</Text>
+                {pred && (
+                  <Text style={[styles.badge, { color: riesgoColor[pred.risk_level] }]}>
+                    {riesgoTexto[pred.risk_level]}
+                  </Text>
+                )}
               </View>
             </TouchableOpacity>
           );
         })}
       </ScrollView>
 
-      <InvoiceDetailModal invoice={seleccionada} onClose={() => setSeleccionada(null)} />
+      <InvoiceDetailModal
+        invoice={seleccionada}
+        prediction={seleccionada ? predicciones[seleccionada.id] ?? null : null}
+        onClose={() => setSeleccionada(null)}
+      />
     </View>
   );
 }
@@ -152,7 +190,8 @@ function getStyles(colors: ColorPalette) {
   },
   invoiceName: { color: colors.white, fontSize: 13, fontWeight: '600', marginBottom: 3 },
   invoiceMeta: { color: colors.muted2, fontSize: 10.5 },
+  invoicePred: { color: colors.muted, fontSize: 10.5, marginTop: 3 },
   invoiceAmount: { color: colors.white, fontSize: 13, fontWeight: '700', marginBottom: 4 },
-  badge: { fontSize: 10.5, fontWeight: '700' },
+  badge: { fontSize: 10.5, fontWeight: '700', marginBottom: 2 },
   });
 }

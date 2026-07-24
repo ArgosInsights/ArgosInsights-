@@ -4,19 +4,24 @@ import { ColorPalette } from '../constants/theme';
 import { useTheme } from '../lib/ThemeContext';
 import {
   addDias,
+  confianzaTexto,
   diasAtraso,
   estadoDe,
   estadoTexto,
   formatCLP,
   formatFecha,
   Invoice,
+  PaymentPrediction,
+  riesgoTexto,
 } from '../lib/format';
 
 export default function InvoiceDetailModal({
   invoice,
+  prediction,
   onClose,
 }: {
   invoice: Invoice | null;
+  prediction?: PaymentPrediction | null;
   onClose: () => void;
 }) {
   const { colors } = useTheme();
@@ -26,6 +31,11 @@ export default function InvoiceDetailModal({
     pendiente: colors.yellow,
     pagada: colors.greenLight,
     vencida: colors.red,
+  };
+  const riesgoColor: Record<string, string> = {
+    bajo: colors.greenLight,
+    medio: colors.yellow,
+    alto: colors.red,
   };
 
   function Fila({ label, valor, color }: { label: string; valor: string; color?: string }) {
@@ -79,6 +89,28 @@ export default function InvoiceDetailModal({
               <Fila label="Días de atraso" valor={`${atraso} días`} color={colors.red} />
             )}
           </View>
+
+          {prediction && estado !== 'pagada' && (
+            <View style={styles.prediccion}>
+              <View style={styles.prediccionHead}>
+                <Text style={styles.prediccionTitulo}>Predicción de cobro</Text>
+                <View style={[styles.badge, { backgroundColor: riesgoColor[prediction.risk_level] + '22' }]}>
+                  <Text style={[styles.badgeTexto, { color: riesgoColor[prediction.risk_level] }]}>
+                    {riesgoTexto[prediction.risk_level]} · {prediction.risk_score}
+                  </Text>
+                </View>
+              </View>
+              <Fila
+                label="Fecha estimada de pago"
+                valor={formatFecha(prediction.predicted_payment_date)}
+                color={colors.greenLight}
+              />
+              <Text style={styles.prediccionExplicacion}>{prediction.explanation}</Text>
+              <Text style={styles.prediccionMeta}>
+                Estimación con {confianzaTexto[prediction.confidence]}, según el comportamiento real de pago.
+              </Text>
+            </View>
+          )}
 
           <Pressable style={styles.cerrar} onPress={onClose}>
             <Text style={styles.cerrarTexto}>Cerrar</Text>
@@ -139,6 +171,25 @@ function getStyles(colors: ColorPalette) {
     },
     filaLabel: { color: colors.muted, fontSize: 12.5 },
     filaValor: { color: colors.white, fontSize: 12.5, fontWeight: '600' },
+    prediccion: {
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.line,
+      borderRadius: 16,
+      paddingHorizontal: 16,
+      paddingBottom: 14,
+      marginBottom: 22,
+    },
+    prediccionHead: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingTop: 14,
+      marginBottom: 2,
+    },
+    prediccionTitulo: { color: colors.white, fontSize: 13, fontWeight: '700' },
+    prediccionExplicacion: { color: colors.muted, fontSize: 12, lineHeight: 17, marginTop: 10 },
+    prediccionMeta: { color: colors.muted2, fontSize: 10.5, marginTop: 8 },
     cerrar: {
       borderWidth: 1,
       borderColor: colors.line,
