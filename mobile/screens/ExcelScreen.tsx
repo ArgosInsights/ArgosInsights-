@@ -258,7 +258,7 @@ export default function ExcelScreen({ userId }: { userId: string }) {
           <View style={{ flex: 1 }}>
             <Text style={styles.title}>Excel</Text>
             <Text style={styles.subtitle}>
-              Subí tu planilla de Orden Financiero y tus datos se actualizan solos. Deslizá cada tabla hacia los
+              Sube tu planilla de Orden Financiero y tus datos se actualizan solos. Desliza cada tabla hacia los
               costados para ver todas las columnas.
             </Text>
           </View>

@@ -98,7 +98,7 @@ export default function AdminScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.green} />}
       >
         <Text style={styles.title}>Admin</Text>
-        <Text style={styles.subtitle}>Aprobá cuentas nuevas o revocá acceso a un cliente.</Text>
+        <Text style={styles.subtitle}>Aprueba cuentas nuevas o revoca acceso a un cliente.</Text>
 
         <View style={styles.filtros}>
           <Text
