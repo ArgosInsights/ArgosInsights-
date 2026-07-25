@@ -96,7 +96,7 @@ export default function InvoiceDetailModal({
                 <Text style={styles.prediccionTitulo}>Predicción de cobro</Text>
                 <View style={[styles.badge, { backgroundColor: riesgoColor[prediction.risk_level] + '22' }]}>
                   <Text style={[styles.badgeTexto, { color: riesgoColor[prediction.risk_level] }]}>
-                    {riesgoTexto[prediction.risk_level]} · {prediction.risk_score}
+                    {riesgoTexto[prediction.risk_level]} · {prediction.risk_score}/100
                   </Text>
                 </View>
               </View>
