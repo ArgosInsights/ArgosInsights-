@@ -546,6 +546,107 @@
     transform-style: preserve-3d;
     will-change: transform;
   }
+
+  /* ---- Proyección holográfica ---- */
+  .proj-frame {
+    position: relative;
+    width: min(290px, 76vw);
+    border-radius: 26px;
+    background: #000;
+    border: 1px solid rgba(127,177,2,0.55);
+    box-shadow:
+      0 0 22px rgba(127,177,2,0.4),
+      0 0 90px rgba(127,177,2,0.2),
+      inset 0 0 20px rgba(127,177,2,0.12);
+    overflow: hidden;
+    transition: transform 0.3s ease-out;
+    transform-style: preserve-3d;
+    will-change: transform;
+    animation: projFlicker 7s linear infinite;
+  }
+  .proj-frame .phone-screen {
+    border-radius: 25px;
+  }
+  @keyframes projFlicker {
+    0%, 91%, 94%, 96%, 100% { opacity: 1; }
+    92% { opacity: 0.82; }
+    95% { opacity: 0.9; }
+  }
+  .proj-scan {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+    border-radius: 25px;
+    background: repeating-linear-gradient(0deg,
+      rgba(163,230,53,0.05) 0px, rgba(163,230,53,0.05) 1px,
+      transparent 1px, transparent 4px);
+    overflow: hidden;
+  }
+  .proj-scan::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -90px;
+    height: 80px;
+    background: linear-gradient(180deg, transparent, rgba(163,230,53,0.16), transparent);
+    animation: scanMove 3.8s linear infinite;
+  }
+  @keyframes scanMove {
+    to { transform: translateY(800px); }
+  }
+  .proj-beam {
+    width: min(230px, 60vw);
+    height: 120px;
+    margin: -10px auto -108px;
+    clip-path: polygon(0 0, 100% 0, 59% 100%, 41% 100%);
+    background: linear-gradient(to top,
+      rgba(190,255,120,0.55) 0%,
+      rgba(127,177,2,0.18) 55%,
+      rgba(127,177,2,0.03) 100%);
+    filter: blur(5px);
+    animation: beamPulse 2.8s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes beamPulse {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 1; }
+  }
+  .proj-phone {
+    perspective: 900px;
+    position: relative;
+    z-index: 2;
+  }
+  .proj-phone .phone-frame {
+    width: 190px;
+    margin: 0 auto;
+    padding: 8px;
+    border-radius: 36px;
+    transform: rotateX(56deg);
+    box-shadow: 0 26px 46px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.18);
+  }
+  .proj-phone .phone-screen {
+    border-radius: 29px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .proj-source-glow {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(58% 40% at 50% 20%,
+      rgba(190,255,120,0.55) 0%,
+      rgba(127,177,2,0.14) 55%,
+      transparent 78%);
+    animation: beamPulse 2.8s ease-in-out infinite;
+  }
+  .proj-phone .phone-screen img {
+    position: relative;
+    width: 56px;
+    height: 56px;
+    z-index: 2;
+  }
   .app-float {
     position: absolute;
     z-index: 20;
@@ -1250,32 +1351,28 @@
       </p>
 
       <div class="reveal mt-12 sm:mt-16 flex flex-col items-center">
-        <!-- iPhone -->
+        <!-- iPhone proyectando las pantallas -->
         <div class="relative" id="appPhoneWrap">
           <div class="phone-glow"></div>
 
-          <span class="app-float text-accent" style="top:12%; left:-215px; animation-delay:0.2s">
+          <span class="app-float text-accent" style="top:8%; left:-215px; animation-delay:0.2s">
             <span class="app-float-dot"></span>Saldo proyectado&nbsp;<b class="text-white">$17,7M</b>
           </span>
-          <span class="app-float" style="top:58%; left:-190px; animation-delay:1.4s; color:#9ade2e">
+          <span class="app-float" style="top:46%; left:-190px; animation-delay:1.4s; color:#9ade2e">
             ✓&nbsp;F-1043 · Pagada
           </span>
-          <span class="app-float" style="top:26%; right:-195px; animation-delay:0.8s; color:#f5d90a">
+          <span class="app-float" style="top:20%; right:-195px; animation-delay:0.8s; color:#f5d90a">
             <span class="app-float-dot"></span>Predicción IA · 31-07
           </span>
-          <span class="app-float text-accent" style="top:70%; right:-175px; animation-delay:2s">
+          <span class="app-float text-accent" style="top:56%; right:-175px; animation-delay:2s">
             Riesgo bajo · 15
           </span>
 
-          <div class="phone-tilt">
+          <!-- Pantalla proyectada (holograma) -->
+          <div class="phone-tilt relative z-10">
             <div class="floaty">
-              <div class="phone-frame">
-                <span class="phone-btn" style="left:-2px; top:110px; width:3px; height:26px;"></span>
-                <span class="phone-btn" style="left:-2px; top:150px; width:3px; height:44px;"></span>
-                <span class="phone-btn" style="left:-2px; top:204px; width:3px; height:44px;"></span>
-                <span class="phone-btn" style="right:-2px; top:160px; width:3px; height:64px;"></span>
+              <div class="proj-frame">
                 <div class="phone-screen" id="appScreen">
-                  <span class="phone-island"></span>
                   <div class="app-track" id="appTrack">
                     <img src="/assets/app/app-inicio.png" alt="Pantalla de Inicio de la app Argos Insights" width="1170" height="2532">
                     <img src="/assets/app/app-cobros.png" alt="Pantalla de Cobros con facturas y filtros por estado" width="1170" height="2532">
@@ -1285,7 +1382,29 @@
                     <img src="/assets/app/app-excel.png" alt="Pantalla de Excel para subir tu planilla" width="1170" height="2532">
                     <img src="/assets/app/app-perfil.png" alt="Pantalla de Perfil con datos de tu empresa" width="1170" height="2532">
                   </div>
+                  <span class="proj-scan"></span>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Haz de luz -->
+          <div class="proj-beam"></div>
+
+          <!-- iPhone emisor -->
+          <div class="proj-phone">
+            <div class="phone-frame">
+              <span class="phone-btn" style="left:-2px; top:70px; width:3px; height:20px;"></span>
+              <span class="phone-btn" style="left:-2px; top:100px; width:3px; height:32px;"></span>
+              <span class="phone-btn" style="left:-2px; top:140px; width:3px; height:32px;"></span>
+              <span class="phone-btn" style="right:-2px; top:105px; width:3px; height:48px;"></span>
+              <div class="phone-screen">
+                <span class="phone-island"></span>
+                <div class="proj-source-glow"></div>
+                <picture>
+                  <source srcset="/assets/logo-icon-512.webp" type="image/webp">
+                  <img src="/assets/logo-icon-512.png" alt="">
+                </picture>
               </div>
             </div>
           </div>
@@ -1591,9 +1710,9 @@
     screen.addEventListener('mouseenter', () => { clearInterval(timer); dotsWrap.classList.add('is-paused'); });
     screen.addEventListener('mouseleave', () => { dotsWrap.classList.remove('is-paused'); restart(); });
 
-    // Tilt 3D del teléfono siguiendo el mouse
+    // Tilt 3D de la proyección siguiendo el mouse
     const phoneWrap = document.getElementById('appPhoneWrap');
-    const phoneFrame = phoneWrap.querySelector('.phone-frame');
+    const phoneFrame = phoneWrap.querySelector('.proj-frame');
     if (window.matchMedia('(hover: hover)').matches) {
       phoneWrap.addEventListener('mousemove', (e) => {
         const r = phoneWrap.getBoundingClientRect();
