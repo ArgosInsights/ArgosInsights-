@@ -238,7 +238,7 @@
   .toggle-mini button.on{background:var(--brand);color:#0a0a0a;}
 
   /* ================= CAPA PÚBLICA Y ACCESO (v3) ================= */
-  .screen{display:none;} .screen.on{display:block;animation:fadein var(--dur-panel) var(--ease-out);}
+  .screen{display:none;position:relative;z-index:1;} .screen.on{display:block;animation:fadein var(--dur-panel) var(--ease-out);}
   /* nav pública */
   .pnav{position:sticky;top:0;z-index:30;background:rgba(13,16,19,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line-soft);}
   .pnav-in{max-width:1120px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:22px;}
@@ -428,9 +428,11 @@
 
 <div class="toast-wrap" id="toast-wrap" aria-live="polite"></div>
 
+<!-- Fondo negro con brillos verdes ambientales — fijo, detrás de TODAS las pantallas (público, acceso y app), igual que en la landing -->
+<div class="ambient" aria-hidden="true"><div class="grid-tex"></div><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+
 <!-- ================= SITIO PÚBLICO ================= -->
 <div class="screen on" id="screen-public">
-  <div class="ambient" aria-hidden="true"><div class="grid-tex"></div><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
   <div class="pub-content">
   <nav class="pnav">
     <div class="pnav-in">
