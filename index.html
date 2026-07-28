@@ -784,6 +784,20 @@
   @media (min-width: 640px) {
     .app-arrow { width: 42px; height: 42px; }
   }
+  .app-arrow-side {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 30;
+    background: rgba(10,10,10,0.55);
+  }
+  .app-arrow-side.left { left: -42px; }
+  .app-arrow-side.right { right: -42px; }
+  .app-arrow-side:active { transform: translateY(-50%) scale(0.92); }
+  @media (min-width: 640px) {
+    .app-arrow-side.left { left: -52px; }
+    .app-arrow-side.right { right: -52px; }
+  }
   .phone-glow {
     position: absolute;
     inset: -12%;
@@ -1367,12 +1381,8 @@
       </p>
 
       <div class="reveal mt-12 sm:mt-16 flex flex-col items-center">
-        <!-- iPhone fijo, centrado, con flechas y tarjetas en la misma fila -->
+        <!-- iPhone fijo, centrado, con tarjetas al costado -->
         <div class="flex items-center justify-center gap-3 sm:gap-5 lg:gap-6">
-          <button type="button" class="app-arrow shrink-0" id="appPrev" aria-label="Pantalla anterior">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-
           <span class="app-float text-accent shrink-0" id="appFloatLeft">
             <span class="app-float-dot"></span><span class="app-float-text">Tu resumen al abrir la app</span>
           </span>
@@ -1381,8 +1391,11 @@
         <div class="relative shrink-0" id="appPhoneWrap">
           <div class="phone-glow"></div>
 
-          <!-- Pantalla proyectada (holograma) -->
+          <!-- Pantalla proyectada (holograma), con flechas a media altura -->
           <div class="phone-tilt relative z-10">
+            <button type="button" class="app-arrow app-arrow-side left" id="appPrev" aria-label="Pantalla anterior">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
             <div class="floaty">
               <div class="proj-frame">
                 <div class="phone-screen" id="appScreen">
@@ -1399,6 +1412,9 @@
                 </div>
               </div>
             </div>
+            <button type="button" class="app-arrow app-arrow-side right" id="appNext" aria-label="Pantalla siguiente">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
           </div>
 
           <!-- Haz de luz -->
@@ -1426,10 +1442,6 @@
           <span class="app-float text-accent shrink-0" id="appFloatRight">
             <span class="app-float-dot"></span><span class="app-float-text">Saldo proyectado a 30 días</span>
           </span>
-
-          <button type="button" class="app-arrow shrink-0" id="appNext" aria-label="Pantalla siguiente">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
         </div>
 
         <!-- Puntos -->
