@@ -7,6 +7,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"
         integrity="sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw"
         crossorigin="anonymous" onerror="window.__xlsxFailed=true"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"
+        onerror="window.__sbFailed=true"></script>
 <style>
   /* ================= TOKENS DE DISEÑO ================= */
   :root{
@@ -542,7 +544,7 @@
     <div class="auth-card">
       <div class="brand"><div class="mark">A</div><div class="nm" style="font-size:13px;">ARGOS INSIGHTS</div></div>
       <h2>Inicia sesión</h2>
-      <p class="sub"><span class="demo-tag">Acceso de demostración</span><br><br>Esta versión no tiene cuentas reales: las credenciales no se validan, no se almacenan y no se envían a ningún servicio.</p>
+      <p class="sub">Ingresa con la cuenta de tu empresa. Si aún no tienes acceso, puedes crear una cuenta o probar la demo con datos ficticios.</p>
       <form id="login-form" novalidate>
         <div class="fld" id="f-li-email"><label for="li-email">Correo electrónico</label><input type="email" id="li-email" autocomplete="username" placeholder="nombre@empresa.cl"><div class="ferr">Ingresa un correo válido.</div></div>
         <div class="fld" id="f-li-pass"><label for="li-pass">Contraseña</label><input type="password" id="li-pass" autocomplete="current-password"><div class="ferr">Ingresa tu contraseña.</div></div>
@@ -550,11 +552,12 @@
           <label><input type="checkbox" id="li-remember"> Recordarme</label>
           <button type="button" class="link-plain" data-go="recuperar">¿Olvidaste tu contraseña?</button>
         </div>
+        <div class="msg err" id="li-err" style="display:none;margin:-4px 0 12px;"></div>
         <button type="submit" class="btn btn-primary btn-block" id="li-btn">Ingresar</button>
       </form>
       <div class="auth-alt">¿Aún no tienes una cuenta? <button class="link-plain" data-go="registro" style="color:var(--brand-hi);">Regístrate</button></div>
       <div class="auth-alt" style="margin-top:8px;"><button class="btn btn-ghost btn-block" id="li-demo">Entrar a la demo con datos ficticios</button></div>
-      <div class="auth-note">"Recordarme" es solo visual en esta demostración: por privacidad, nada persiste al cerrar la pestaña. La arquitectura está preparada para conectar un proveedor de autenticación real (ver documentación).</div>
+      <div class="auth-note">Tu contraseña se envía cifrada a nuestro proveedor de autenticación (Supabase) y no queda visible para nosotros. "Recordarme" es solo visual por ahora: la sesión no persiste al cerrar la pestaña.</div>
     </div>
   </div>
 </div>
@@ -566,7 +569,7 @@
     <div class="auth-card" style="max-width:470px;">
       <div class="brand"><div class="mark">A</div><div class="nm" style="font-size:13px;">ARGOS INSIGHTS</div></div>
       <h2>Crea tu cuenta</h2>
-      <p class="sub"><span class="demo-tag">Registro de demostración</span><br><br>Los datos de este formulario solo se usan para personalizar tu sesión de prueba. No se crea una cuenta real ni se envían a ningún servicio.</p>
+      <p class="sub">Tu cuenta queda pendiente de aprobación por nuestro equipo antes de poder ingresar — es un paso manual, breve, para asegurarnos de que solo entren clientes reales.</p>
       <form id="reg-form" novalidate>
         <div class="grid g2" style="gap:10px;">
           <div class="fld" id="f-rg-nombre"><label for="rg-nombre">Nombre</label><input type="text" id="rg-nombre" autocomplete="given-name"><div class="ferr">Campo obligatorio.</div></div>
@@ -585,10 +588,11 @@
           <label style="text-transform:none;letter-spacing:0;font-size:11.5px;display:flex;gap:8px;align-items:flex-start;cursor:pointer;"><input type="checkbox" id="rg-terms" style="width:auto;margin-top:2px;"> <span>Acepto los términos de uso y la política de privacidad de esta demostración.</span></label>
           <div class="ferr">Debes aceptar los términos para continuar.</div>
         </div>
+        <div class="msg err" id="rg-err" style="display:none;margin:8px 0 0;"></div>
         <button type="submit" class="btn btn-primary btn-block" id="rg-btn" style="margin-top:6px;">Crear cuenta</button>
       </form>
       <div class="auth-alt">¿Ya tienes cuenta? <button class="link-plain" data-go="login" style="color:var(--brand-hi);">Inicia sesión</button></div>
-      <div class="auth-note">La contraseña no se guarda en ningún lugar (ni memoria persistente, ni almacenamiento local, ni servicios externos).</div>
+      <div class="auth-note">Tu contraseña se envía cifrada a nuestro proveedor de autenticación (Supabase); nadie en Argos Insights puede verla.</div>
     </div>
   </div>
 </div>
@@ -600,12 +604,12 @@
     <div class="auth-card">
       <div class="brand"><div class="mark">A</div><div class="nm" style="font-size:13px;">ARGOS INSIGHTS</div></div>
       <h2>Recupera tu contraseña</h2>
-      <p class="sub"><span class="demo-tag">Demostración visual</span><br><br>Ingresa tu correo y te enviaríamos instrucciones para restablecer tu contraseña.</p>
+      <p class="sub">Ingresa tu correo y te enviaremos instrucciones para restablecer tu contraseña.</p>
       <form id="rec-form" novalidate>
         <div class="fld" id="f-rec-email"><label for="rec-email">Correo electrónico</label><input type="email" id="rec-email" placeholder="nombre@empresa.cl"><div class="ferr">Ingresa un correo válido.</div></div>
         <button type="submit" class="btn btn-primary btn-block" id="rec-btn">Enviar instrucciones</button>
       </form>
-      <div class="okbox" id="rec-ok" style="display:none;margin-top:14px;">Si existiera una cuenta asociada a ese correo, recibirías las instrucciones en unos minutos. <b>En esta demostración no se envía ningún correo.</b></div>
+      <div class="okbox" id="rec-ok" style="display:none;margin-top:14px;">Si existe una cuenta asociada a ese correo, recibirás las instrucciones en unos minutos.</div>
       <div class="auth-alt" style="margin-top:16px;"><button class="link-plain" data-go="login" style="color:var(--brand-hi);">Volver a iniciar sesión</button></div>
     </div>
   </div>
@@ -621,6 +625,19 @@
       <p class="sub" id="cf-sub">Bienvenido. Tu espacio de trabajo está listo.</p>
       <div class="okbox" style="text-align:left;margin-bottom:16px;">Recuerda: esta es una <b>cuenta de demostración</b>. No se creó ningún registro real y nada persistirá al cerrar la pestaña.</div>
       <button class="btn btn-primary btn-block" id="cf-go">Ir a mi panel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= ACCESO: CUENTA PENDIENTE DE APROBACIÓN ================= -->
+<div class="screen" id="screen-pendiente">
+  <div class="auth-wrap">
+    <div class="auth-card" style="text-align:center;">
+      <div class="brand" style="justify-content:center;"><div class="mark">A</div><div class="nm" style="font-size:13px;">ARGOS INSIGHTS</div></div>
+      <div style="width:52px;height:52px;border-radius:16px;background:var(--amber-bg);color:var(--amber);display:flex;align-items:center;justify-content:center;font-size:22px;margin:18px auto 6px;">⏳</div>
+      <h2>Tu cuenta está pendiente de aprobación</h2>
+      <p class="sub">Un administrador de Argos Insights tiene que aprobar tu cuenta antes de que puedas ver tus datos. Normalmente esto toma poco — si llevas más de un día esperando, escríbenos.</p>
+      <div class="auth-alt" style="margin-top:4px;"><button class="btn btn-ghost btn-block" data-go="public">Volver al inicio</button></div>
     </div>
   </div>
 </div>
@@ -2794,36 +2811,68 @@ renderAll();
 <script>
 'use strict';
 /* ================================================================
-   CAPA DE ACCESO (v3) — sitio público, sesión de DEMOSTRACIÓN y router.
-   IMPORTANTE: esto NO es autenticación real. Las credenciales no se
-   validan, no se almacenan (ni en memoria persistente, ni en
-   localStorage, ni en el código) y no se envían a ningún servicio.
-   Para conectar autenticación real, reemplazar AuthProvider por un
-   proveedor que hable con el backend (misma interfaz async).
+   CAPA DE ACCESO (v3) — sitio público, sesión real (Supabase) y router.
+   El modo "demo" (link "Ver demostración" / "Entrar a la demo") sigue
+   siendo 100% local: no toca Supabase, no persiste nada. Solo login,
+   registro, recuperación y logout hablan con el backend real, el mismo
+   proyecto de Supabase que usa la app móvil (ver /mobile/lib/supabase.ts
+   y /web/README.md).
    ================================================================ */
 (function(){
-var session=null;            // {name, empresa, email, demo:true} — solo en memoria
+var session=null;            // {name, empresa, email, demo:bool} — solo en memoria
 var onboardingSeen=false;
 
-/* ---- Proveedor de autenticación (interfaz estable, implementación demo) ---- */
+var SUPABASE_URL='https://xdeoioppyxztritdtuyy.supabase.co';
+var SUPABASE_ANON_KEY='sb_publishable_hR8VS4xmSWlhLr7KDydVJw_jEMjOUss';
+var sb=(window.supabase&&window.supabase.createClient)?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
+
+function traduceAuthError(err){
+  var m=(err&&err.message)||'';
+  if(/Invalid login credentials/i.test(m)) return 'Correo o contraseña incorrectos.';
+  if(/User already registered/i.test(m)) return 'Ya existe una cuenta con ese correo.';
+  if(/Password should be|Password.*least/i.test(m)) return 'La contraseña no cumple los requisitos mínimos de Supabase.';
+  if(/Unable to validate email/i.test(m)) return 'Ese correo no parece válido.';
+  return 'No pudimos completar la solicitud. Intenta de nuevo en unos segundos.';
+}
+
+/* ---- Proveedor de autenticación (interfaz estable, implementación real vía Supabase) ---- */
 var AuthProvider={
-  mode:'demo',
-  login:function(email,_pass){ // _pass se ignora y se descarta de inmediato (demo)
-    return new Promise(function(res){ setTimeout(function(){
-      res({ok:true,user:{name:email.split('@')[0].replace(/[._-]/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase();}),empresa:'',email:email,demo:true}});
-    },700); });
+  mode:sb?'live':'unavailable',
+  login:function(email,pass){
+    if(!sb) return Promise.resolve({ok:false,error:'No pudimos conectar con el servidor de acceso. Revisa tu conexión y vuelve a intentar.'});
+    return sb.auth.signInWithPassword({email:email,password:pass}).then(function(r){
+      if(r.error) return {ok:false,error:traduceAuthError(r.error)};
+      return sb.from('profiles').select('id, role, full_name, company_name, company_type, aprobado').eq('id',r.data.user.id).single().then(function(p){
+        if(p.error||!p.data) return {ok:false,error:'Iniciaste sesión, pero no pudimos cargar tu perfil. Intenta de nuevo.'};
+        var prof=p.data;
+        if(!prof.aprobado&&prof.role!=='admin') return {ok:false,pending:true};
+        return {ok:true,user:{id:prof.id,name:prof.full_name||email.split('@')[0],empresa:prof.company_name||'',email:email,role:prof.role,demo:false}};
+      });
+    });
   },
-  register:function(data){ // la contraseña no sale del formulario
-    return new Promise(function(res){ setTimeout(function(){
-      res({ok:true,user:{name:data.nombre+' '+data.apellido,empresa:data.empresa,email:data.email,demo:true}});
-    },900); });
+  register:function(data){
+    if(!sb) return Promise.resolve({ok:false,error:'No pudimos conectar con el servidor de acceso. Revisa tu conexión y vuelve a intentar.'});
+    return sb.auth.signUp({
+      email:data.email,
+      password:data.pass,
+      options:{data:{full_name:(data.nombre+' '+data.apellido).trim(),company_name:data.empresa,company_type:null}}
+    }).then(function(r){
+      if(r.error) return {ok:false,error:traduceAuthError(r.error)};
+      return {ok:true,pending:true,user:{name:(data.nombre+' '+data.apellido).trim(),empresa:data.empresa,email:data.email,demo:false}};
+    });
   },
-  recover:function(_email){ return new Promise(function(res){ setTimeout(function(){res({ok:true});},700); }); },
-  logout:function(){ return Promise.resolve({ok:true}); }
+  recover:function(email){
+    if(!sb) return Promise.resolve({ok:false});
+    return sb.auth.resetPasswordForEmail(email).then(function(r){ return {ok:!r.error}; });
+  },
+  logout:function(){
+    if(!sb) return Promise.resolve({ok:true});
+    return sb.auth.signOut().then(function(){ return {ok:true}; })['catch'](function(){ return {ok:true}; });
+  }
 };
 
 /* ---- Router por hash: atrás/adelante no destruyen la app (solo se oculta) ---- */
-var SCREENS=['public','login','registro','recuperar','confirm','app'];
+var SCREENS=['public','login','registro','recuperar','confirm','pendiente','app'];
 function currentScreen(){ var h=(location.hash||'').replace(/^#\/?/,''); return SCREENS.indexOf(h)>=0?h:'public'; }
 function go(name){ location.hash='#/'+(name==='public'?'':name); }
 function route(){
@@ -2851,6 +2900,11 @@ function enter(user){
   document.getElementById('acct-name').textContent=user.name||'Usuario';
   document.getElementById('acct-name2').textContent=user.name||'Usuario';
   document.getElementById('acct-emp').textContent=user.empresa||user.email||'';
+  var modeEl=document.getElementById('acct-mode');
+  if(modeEl){
+    modeEl.textContent=user.demo?'Acceso de demostración':'Cuenta de cliente';
+    modeEl.style.cssText=user.demo?'':'background:rgba(132,182,14,.12);color:var(--brand-hi);border:1px solid var(--brand-dim);';
+  }
   go('app');
 }
 
@@ -2871,25 +2925,30 @@ document.getElementById('link-demo').addEventListener('click',function(){
   enter({name:'Visitante',empresa:'Demostración con datos ficticios',email:'',demo:true});
 });
 
-/* ---- inicio de sesión (demostración) ---- */
+/* ---- inicio de sesión ---- */
+function showAuthErr(id,msg){ var el=document.getElementById(id); if(!el) return; el.textContent=msg; el.style.display=msg?'block':'none'; }
 document.getElementById('login-form').addEventListener('submit',function(ev){
   ev.preventDefault();
+  showAuthErr('li-err','');
   var ok = mark('li-email',!EMAIL_RE.test(val('li-email')));
   ok = mark('li-pass',!val('li-pass')) && ok;
   if(!ok) return;
   var btn=document.getElementById('li-btn'); busy(btn,'Ingresando…');
   AuthProvider.login(val('li-email'),document.getElementById('li-pass').value).then(function(r){
     unbusy(btn); document.getElementById('li-pass').value='';
-    if(r.ok){ if(window.ArgosMotion) ArgosMotion.toast('Acceso de demostración iniciado'); enter(r.user); }
+    if(r.ok){ if(window.ArgosMotion) ArgosMotion.toast('Sesión iniciada'); enter(r.user); }
+    else if(r.pending){ go('pendiente'); }
+    else { showAuthErr('li-err', r.error||'No pudimos iniciar sesión.'); }
   });
 });
 document.getElementById('li-demo').addEventListener('click',function(){
   enter({name:'Visitante',empresa:'Demostración con datos ficticios',email:'',demo:true});
 });
 
-/* ---- registro (demostración) ---- */
+/* ---- registro ---- */
 document.getElementById('reg-form').addEventListener('submit',function(ev){
   ev.preventDefault();
+  showAuthErr('rg-err','');
   var p=document.getElementById('rg-pass').value, p2=document.getElementById('rg-pass2').value;
   var ok = mark('rg-nombre',!val('rg-nombre'));
   ok = mark('rg-apellido',!val('rg-apellido')) && ok;
@@ -2901,27 +2960,29 @@ document.getElementById('reg-form').addEventListener('submit',function(ev){
   ok = mark('rg-terms',!document.getElementById('rg-terms').checked) && ok;
   if(!ok) return;
   var btn=document.getElementById('rg-btn'); busy(btn,'Creando cuenta…');
-  var data={nombre:val('rg-nombre'),apellido:val('rg-apellido'),empresa:val('rg-empresa'),cargo:val('rg-cargo'),email:val('rg-email')};
+  var data={nombre:val('rg-nombre'),apellido:val('rg-apellido'),empresa:val('rg-empresa'),cargo:val('rg-cargo'),email:val('rg-email'),pass:p};
   AuthProvider.register(data).then(function(r){
     unbusy(btn);
     document.getElementById('rg-pass').value=''; document.getElementById('rg-pass2').value='';
     if(r.ok){
-      session=r.user; // necesaria para la pantalla de confirmación
+      session=r.user; // necesaria para la pantalla de confirmación / pendiente
       document.getElementById('cf-title').textContent='Cuenta creada';
-      document.getElementById('cf-sub').textContent='Bienvenido, '+r.user.name+'. Tu espacio de trabajo para '+(r.user.empresa||'tu empresa')+' está listo.';
-      if(window.ArgosMotion) ArgosMotion.toast('Registro de demostración creado');
-      go('confirm');
+      document.getElementById('cf-sub').textContent='Bienvenido, '+r.user.name+'. Tu cuenta para '+(r.user.empresa||'tu empresa')+' quedó registrada.';
+      if(window.ArgosMotion) ArgosMotion.toast('Cuenta creada');
+      go(r.pending?'pendiente':'confirm');
+    } else {
+      showAuthErr('rg-err', r.error||'No pudimos crear la cuenta.');
     }
   });
 });
 document.getElementById('cf-go').addEventListener('click',function(){ enter(session); });
 
-/* ---- recuperación (solo visual) ---- */
+/* ---- recuperación ---- */
 document.getElementById('rec-form').addEventListener('submit',function(ev){
   ev.preventDefault();
   if(!mark('rec-email',!EMAIL_RE.test(val('rec-email')))) return;
   var btn=document.getElementById('rec-btn'); busy(btn,'Enviando…');
-  AuthProvider.recover(val('rec-email')).then(function(){ unbusy(btn); document.getElementById('rec-ok').style.display='block'; if(window.ArgosMotion) ArgosMotion.toast('Solicitud registrada (solo visual, no se envía correo)','info'); });
+  AuthProvider.recover(val('rec-email')).then(function(){ unbusy(btn); document.getElementById('rec-ok').style.display='block'; if(window.ArgosMotion) ArgosMotion.toast('Si la cuenta existe, llegarán instrucciones a ese correo','info'); });
 });
 
 /* ---- menú de cuenta ---- */
@@ -2955,6 +3016,11 @@ document.getElementById('onb-back').addEventListener('click',function(ev){ if(ev
 
 /* ---- arranque ---- */
 if(currentScreen()==='app'||currentScreen()==='confirm'){ history.replaceState(null,'','#/'); }
+if(!session&&/(?:^|[?&])demo=1(?:&|$)/.test(location.search)){
+  // Entrada directa a la demo desde un link externo (ej. botón "Ver demo" de la landing).
+  history.replaceState(null,'',location.pathname+location.hash);
+  enter({name:'Visitante',empresa:'Demostración con datos ficticios',email:'',demo:true});
+}
 if(window.ArgosMotion){
   ArgosMotion.initReveal();
   ArgosMotion.attachGlow(document);
