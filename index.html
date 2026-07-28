@@ -550,7 +550,7 @@
   /* ---- Proyección holográfica ---- */
   .proj-frame {
     position: relative;
-    width: min(290px, 76vw);
+    width: min(230px, 56vw);
     border-radius: 26px;
     background: #000;
     border: 1px solid rgba(127,177,2,0.55);
@@ -753,20 +753,27 @@
     to { transform: scaleX(1); }
   }
   .app-arrow {
-    width: 42px;
-    height: 42px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     border: 1px solid rgba(255,255,255,0.15);
     color: #fff;
-    transition: border-color 0.25s ease, background 0.25s ease;
+    background: rgba(0,0,0,0.3);
+    transition: border-color 0.25s ease, background 0.25s ease, transform 0.15s ease;
     cursor: pointer;
   }
   .app-arrow:hover {
     border-color: rgba(127,177,2,0.7);
     background: rgba(127,177,2,0.12);
+  }
+  .app-arrow:active {
+    transform: scale(0.92);
+  }
+  @media (min-width: 640px) {
+    .app-arrow { width: 42px; height: 42px; }
   }
   .phone-glow {
     position: absolute;
@@ -1351,6 +1358,12 @@
       </p>
 
       <div class="reveal mt-12 sm:mt-16 flex flex-col items-center">
+        <!-- iPhone fijo + flechas al costado -->
+        <div class="flex items-center justify-center gap-3 sm:gap-7">
+          <button type="button" class="app-arrow shrink-0" id="appPrev" aria-label="Pantalla anterior">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+
         <!-- iPhone proyectando las pantallas -->
         <div class="relative" id="appPhoneWrap">
           <div class="phone-glow"></div>
@@ -1410,6 +1423,11 @@
           </div>
         </div>
 
+          <button type="button" class="app-arrow shrink-0" id="appNext" aria-label="Pantalla siguiente">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+
         <!-- Texto de cada pantalla -->
         <div class="grid text-center max-w-md mx-auto mt-8 sm:mt-10 px-2" id="appCaptions">
           <div class="app-caption is-active">
@@ -1442,16 +1460,8 @@
           </div>
         </div>
 
-        <!-- Controles -->
-        <div class="flex items-center gap-6 mt-7">
-          <button type="button" class="app-arrow" id="appPrev" aria-label="Pantalla anterior">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-          <div class="flex items-center gap-2.5" id="appDots"></div>
-          <button type="button" class="app-arrow" id="appNext" aria-label="Pantalla siguiente">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-        </div>
+        <!-- Puntos -->
+        <div class="flex items-center gap-2.5 mt-7" id="appDots"></div>
       </div>
     </div>
   </section>
@@ -1709,19 +1719,6 @@
     const screen = document.getElementById('appScreen');
     screen.addEventListener('mouseenter', () => { clearInterval(timer); dotsWrap.classList.add('is-paused'); });
     screen.addEventListener('mouseleave', () => { dotsWrap.classList.remove('is-paused'); restart(); });
-
-    // Tilt 3D de la proyección siguiendo el mouse
-    const phoneWrap = document.getElementById('appPhoneWrap');
-    const phoneFrame = phoneWrap.querySelector('.proj-frame');
-    if (window.matchMedia('(hover: hover)').matches) {
-      phoneWrap.addEventListener('mousemove', (e) => {
-        const r = phoneWrap.getBoundingClientRect();
-        const x = (e.clientX - r.left) / r.width - 0.5;
-        const y = (e.clientY - r.top) / r.height - 0.5;
-        phoneFrame.style.transform = 'rotateY(' + (x * 14).toFixed(2) + 'deg) rotateX(' + (-y * 14).toFixed(2) + 'deg)';
-      });
-      phoneWrap.addEventListener('mouseleave', () => { phoneFrame.style.transform = ''; });
-    }
 
     let touchX = null;
     screen.addEventListener('touchstart', (e) => { touchX = e.touches[0].clientX; }, { passive: true });
