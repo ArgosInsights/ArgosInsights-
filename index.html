@@ -535,6 +535,21 @@
     color: transparent;
   }
 
+  .text-neon {
+    color: #f2fce0;
+    -webkit-text-stroke: 1px rgba(163,230,53,0.85);
+    text-stroke: 1px rgba(163,230,53,0.85);
+    animation: neonGlow 2.6s ease-in-out infinite;
+  }
+  @keyframes neonGlow {
+    0%, 100% {
+      text-shadow: 0 0 6px rgba(127,177,2,0.85), 0 0 16px rgba(127,177,2,0.55), 0 0 32px rgba(127,177,2,0.3);
+    }
+    50% {
+      text-shadow: 0 0 10px rgba(163,230,53,1), 0 0 26px rgba(127,177,2,0.75), 0 0 50px rgba(127,177,2,0.4);
+    }
+  }
+
   .phone-tilt {
     perspective: 1200px;
   }
@@ -600,19 +615,6 @@
   @keyframes scanMove {
     to { transform: translateY(800px); }
   }
-  .proj-beam {
-    width: min(230px, 60vw);
-    height: 120px;
-    margin: -10px auto -108px;
-    clip-path: polygon(0 0, 100% 0, 59% 100%, 41% 100%);
-    background: linear-gradient(to top,
-      rgba(190,255,120,0.55) 0%,
-      rgba(127,177,2,0.18) 55%,
-      rgba(127,177,2,0.03) 100%);
-    filter: blur(5px);
-    animation: beamPulse 2.8s ease-in-out infinite;
-    pointer-events: none;
-  }
   @keyframes beamPulse {
     0%, 100% { opacity: 0.7; }
     50% { opacity: 1; }
@@ -621,6 +623,7 @@
     perspective: 900px;
     position: relative;
     z-index: 2;
+    margin-top: 16px;
   }
   .proj-phone .phone-frame {
     width: 190px;
@@ -1375,11 +1378,11 @@
   </section>
 
   <!-- ============ 6c. LA APP ============ -->
-  <section id="app" class="relative overflow-hidden py-14 sm:py-20 lg:py-28 bg-card/40 border-b border-white/5">
+  <section id="app" class="relative overflow-hidden pt-14 sm:pt-20 lg:pt-28 pb-8 sm:pb-10 lg:pb-12 bg-card/40 border-b border-white/5">
     <div class="dot-field opacity-40"></div>
     <div class="relative max-w-6xl mx-auto px-5 sm:px-8">
       <p class="reveal eyebrow eyebrow-live text-accent justify-center w-full mb-4">LA APP</p>
-      <h2 class="reveal text-3xl sm:text-4xl font-bold text-white text-center tracking-tight">
+      <h2 class="reveal text-neon text-3xl sm:text-4xl font-bold text-center tracking-tight">
         Toda tu operación, <span class="text-gradient-accent">en tu bolsillo</span>
       </h2>
       <div class="reveal flex justify-center"><span class="underline-accent mt-5"></span></div>
@@ -1428,9 +1431,6 @@
               </span>
             </div>
           </div>
-
-          <!-- Haz de luz -->
-          <div class="proj-beam"></div>
 
           <!-- iPhone emisor -->
           <div class="proj-phone">
