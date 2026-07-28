@@ -431,139 +431,10 @@
 <!-- Fondo negro con brillos verdes ambientales — fijo, detrás de TODAS las pantallas (público, acceso y app), igual que en la landing -->
 <div class="ambient" aria-hidden="true"><div class="grid-tex"></div><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
 
-<!-- ================= SITIO PÚBLICO ================= -->
-<div class="screen on" id="screen-public">
-  <div class="pub-content">
-  <nav class="pnav">
-    <div class="pnav-in">
-      <div class="brand">
-        <picture><source srcset="/assets/logo-horizontal-nav.webp" type="image/webp"><img class="brand-logo-img" src="/assets/logo-horizontal-nav.png" alt="Argos Insights"></picture>
-      </div>
-      <div class="pnav-links">
-        <a href="#/">Inicio</a>
-        <a href="#como-funciona" data-scroll>Cómo funciona</a>
-        <a href="#seguridad" data-scroll>Seguridad</a>
-        <a href="#faq" data-scroll>Preguntas frecuentes</a>
-      </div>
-      <div class="pnav-cta">
-        <button class="btn btn-ghost" data-go="login">Soy cliente</button>
-        <button class="btn btn-primary" data-go="registro">Registrarme</button>
-      </div>
-      <button class="pnav-burger" id="pnav-burger" aria-label="Menú">☰</button>
-    </div>
-    <div class="pnav-mobile" id="pnav-mobile">
-      <a href="#/">Inicio</a>
-      <a href="#como-funciona" data-scroll>Cómo funciona</a>
-      <a href="#seguridad" data-scroll>Seguridad</a>
-      <a href="#faq" data-scroll>Preguntas frecuentes</a>
-      <button class="btn btn-ghost" data-go="login">Soy cliente</button>
-      <button class="btn btn-primary" data-go="registro">Registrarme</button>
-    </div>
-  </nav>
-
-  <section class="hero">
-    <div>
-      <div class="eyebrow reveal reveal-1">Inteligencia de cobranza para equipos financieros B2B</div>
-      <h1 class="reveal reveal-2">Anticipa tus cobros y enfoca tu gestión <em>donde realmente importa</em>.</h1>
-      <span class="underline-accent reveal reveal-2"></span>
-      <p class="sub reveal reveal-3">Argos analiza el comportamiento histórico de pago de tus clientes para estimar cuándo cobrarás, identificar facturas en riesgo y ayudarte a priorizar tu gestión de cobranza.</p>
-      <div class="hero-cta reveal reveal-4">
-        <button class="btn btn-primary btn-lg glow" data-go="registro">Comenzar</button>
-        <button class="btn btn-ghost btn-lg glow" data-go="login">Soy cliente</button>
-        <button class="link-plain" id="link-demo">Ver demostración</button>
-      </div>
-    </div>
-    <div class="shot glow glow-blue reveal reveal-pop reveal-3" id="hero-shot" aria-hidden="true">
-      <div class="sh-bar"><span class="sh-dot"></span><span class="sh-dot"></span><span class="sh-dot"></span><span class="sh-chip">Archivo: cartera.xlsx</span><span class="sh-chip">Corte: 15-07-2026</span><span class="sh-chip">Calidad: 98/100</span></div>
-      <div class="sh-sint">Tienes <b>$76,6 M</b> pendientes en 10 facturas. Se espera cobrar aproximadamente <b>$40,6 M</b> durante los próximos 30 días. 4 facturas requieren atención.</div>
-      <div class="sh-kpis">
-        <div class="sh-kpi"><div class="t">CARTERA PENDIENTE</div><div class="v" id="sh-v1" data-count-to="76.6" data-count-prefix="$" data-count-suffix=" M" data-count-decimals="1">$76,6 M</div></div>
-        <div class="sh-kpi" style="border-color:var(--brand-dim);"><div class="t">COBRO ESTIMADO · 30D</div><div class="v" id="sh-v2" style="color:var(--brand-hi);" data-count-to="40.6" data-count-prefix="$" data-count-suffix=" M" data-count-decimals="1">$40,6 M</div></div>
-        <div class="sh-kpi"><div class="t">REQUIEREN ACCIÓN</div><div class="v" id="sh-v3" style="color:var(--red);" data-count-to="4" data-count-decimals="0">4</div></div>
-      </div>
-      <svg viewBox="0 0 380 90" width="100%">
-        <line x1="8" y1="70" x2="372" y2="70" stroke="#262626"/>
-        <rect class="bar-anim" data-anim="bar" x="40" y="34" width="42" height="36" rx="3" fill="rgba(111,176,0,.7)"/>
-        <rect class="bar-anim" data-anim="bar" x="130" y="18" width="42" height="52" rx="3" fill="rgba(111,176,0,.7)"/>
-        <rect class="bar-anim" data-anim="bar" x="220" y="52" width="42" height="18" rx="3" fill="rgba(111,176,0,.7)"/>
-        <rect class="bar-anim" data-anim="bar" x="310" y="64" width="42" height="6" rx="3" fill="rgba(111,176,0,.7)"/>
-        <path data-anim="dashline" d="M61 12 L151 30 L241 58 L331 66" fill="none" stroke="#9a9a9a" stroke-width="1.4" stroke-dasharray="4,3"/>
-        <circle cx="331" cy="66" r="3.4" fill="none" stroke="#a3e635" stroke-width="1.4"><animate attributeName="r" values="3.4;7;3.4" dur="2.2s" begin="1.4s" repeatCount="indefinite"/><animate attributeName="opacity" values=".9;0;.9" dur="2.2s" begin="1.4s" repeatCount="indefinite"/></circle>
-        <text data-anim="label" x="61" y="84" fill="#707070" font-size="8" text-anchor="middle">0–7d</text>
-        <text data-anim="label" x="151" y="84" fill="#707070" font-size="8" text-anchor="middle">7–30d</text>
-        <text data-anim="label" x="241" y="84" fill="#707070" font-size="8" text-anchor="middle">30–60d</text>
-        <text data-anim="label" x="331" y="84" fill="#707070" font-size="8" text-anchor="middle">60–90d</text>
-      </svg>
-      <div class="sh-note">Vista simplificada del producto · datos ficticios de demostración</div>
-    </div>
-  </section>
-
-  <section class="psec" id="como-funciona">
-    <div class="eyebrow reveal reveal-1">De registros dispersos a información ordenada</div>
-    <h2 class="reveal reveal-2">Cómo funciona</h2>
-    <span class="underline-accent reveal reveal-2"></span>
-    <p class="sub reveal reveal-3">Tres pasos, sin configuraciones complejas. Tu planilla actual es suficiente para empezar.</p>
-    <div class="steps reveal-group">
-      <div class="step reveal glow"><div class="n">1</div><h3>Carga tu información</h3><p>Carga tu historial de facturas y pagos. Argos organiza y valida los registros automáticamente.</p></div>
-      <div class="step reveal glow"><div class="n">2</div><h3>Obtén una estimación</h3><p>Calculamos cuánto probablemente cobrarás y en qué horizonte, utilizando el comportamiento histórico de tus clientes.</p></div>
-      <div class="step reveal glow"><div class="n">3</div><h3>Prioriza tu gestión</h3><p>Identifica las facturas que requieren atención y comprende por qué Argos recomienda actuar.</p></div>
-    </div>
-  </section>
-
-  <section class="psec" style="padding-top:0;">
-    <div class="eyebrow reveal reveal-1">De información ordenada a decisiones de cobranza</div>
-    <h2 class="reveal reveal-2">Qué obtienes</h2>
-    <span class="underline-accent reveal reveal-2"></span>
-    <p class="sub reveal reveal-3">Estimaciones basadas en comportamiento histórico — no promesas de pago. Cada resultado indica qué evidencia lo respalda.</p>
-    <div class="bens reveal-group">
-      <div class="ben reveal glow"><h3>Cobros esperados</h3><p>Proyección a 30, 60 y 90 días con escenarios conservador, base y optimista, comparada con tu calendario contractual.</p></div>
-      <div class="ben reveal glow"><h3>Facturas priorizadas</h3><p>Una lista de trabajo ordenada según impacto y urgencia, para gestionar primero lo que más afecta tu caja.</p></div>
-      <div class="ben reveal glow"><h3>Recomendaciones explicables</h3><p>Cada acción sugerida muestra su razón y los factores que la sustentan. Nada es una caja negra.</p></div>
-      <div class="ben reveal glow"><h3>Calidad y trazabilidad</h3><p>Sabes qué registros se usaron, cuáles presentan problemas y cómo cada factura se conecta con tu archivo original.</p></div>
-    </div>
-  </section>
-
-  <section class="psec" id="seguridad">
-    <div class="sec-sec">
-      <div>
-        <div class="eyebrow reveal reveal-1">Confianza, trazabilidad y control</div>
-        <h2 class="reveal reveal-2">Tus datos, bajo tu control</h2>
-        <span class="underline-accent reveal reveal-2"></span>
-        <p class="sub reveal reveal-3" style="margin-bottom:0;">Tus datos financieros requieren un tratamiento responsable. Argos muestra qué información utiliza, cómo se interpreta y qué nivel de confianza respalda cada estimación.</p>
-      </div>
-      <div class="sec-list reveal-group">
-        <div class="sec-item reveal"><span class="ic"></span><span><b>Procesamiento local.</b> En la versión actual, tu archivo se analiza directamente en tu navegador: no se sube a ningún servidor.</span></div>
-        <div class="sec-item reveal"><span class="ic"></span><span><b>Sin terceros.</b> Tu información no se comparte ni se utiliza para otros fines.</span></div>
-        <div class="sec-item reveal"><span class="ic"></span><span><b>Control sobre los datos.</b> Al cerrar la pestaña no queda nada almacenado. Tú decides qué cargar y cuándo.</span></div>
-        <div class="sec-item reveal"><span class="ic"></span><span><b>Trazabilidad completa.</b> Cada cifra puede rastrearse hasta las filas exactas de tu archivo que la originaron.</span></div>
-        <div class="sec-item reveal"><span class="ic"></span><span><b>Supuestos transparentes.</b> El método, sus reglas y sus limitaciones están documentados dentro de la aplicación.</span></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="psec faq" id="faq">
-    <h2 class="reveal reveal-1">Preguntas frecuentes</h2>
-    <span class="underline-accent reveal reveal-1"></span>
-    <p class="sub reveal reveal-2">Lo esencial antes de empezar.</p>
-    <div class="reveal-group">
-    <details class="reveal"><summary>¿Qué necesito para comenzar?</summary><p>Un archivo Excel o CSV con tu historial de facturación: cliente, folio, fecha de emisión y, si existen, fechas de pago, vencimientos y montos. Argos detecta las columnas automáticamente y puedes corregir el mapeo a mano.</p></details>
-    <details class="reveal"><summary>¿Argos predice exactamente cuándo me pagarán?</summary><p>No, y desconfía de quien lo prometa. Argos entrega estimaciones basadas en el comportamiento histórico de pago de tus clientes, siempre acompañadas de un rango y un nivel de confianza. Cuando la evidencia no alcanza, lo dice claramente en lugar de inventar una cifra.</p></details>
-    <details class="reveal"><summary>¿Mis datos se suben a algún servidor?</summary><p>En la versión actual, no: todo el procesamiento ocurre en tu navegador y nada queda almacenado al cerrar la pestaña. Si esto cambia en versiones futuras, se informará explícitamente antes.</p></details>
-    <details class="reveal"><summary>¿Qué pasa si un cliente tiene poca historia de pagos?</summary><p>Su estimación se apoya parcialmente en el comportamiento general de tu cartera, y Argos muestra siempre en qué proporción. Con muy poca evidencia, el resultado se marca como de confianza insuficiente.</p></details>
-    <details class="reveal"><summary>¿Puedo probar sin registrarme?</summary><p>Sí: la opción "Ver demostración" abre la aplicación completa con datos ficticios, sin ingresar ningún dato personal.</p></details>
-    </div>
-  </section>
-
-  <footer class="pfoot">
-    <b style="color:var(--muted);">Argos Insights</b> · Inteligencia de cobranza. Estimaciones basadas en comportamiento histórico; no constituyen promesa de pago ni asesoría financiera. Versión de demostración: el acceso y registro de esta versión no crean cuentas reales.
-  </footer>
-  </div><!-- /pub-content -->
-</div>
-
 <!-- ================= ACCESO: INICIO DE SESIÓN ================= -->
 <div class="screen" id="screen-login">
   <div class="auth-wrap">
-    <button class="btn btn-ghost auth-back" data-go="public">← Volver al inicio</button>
+    <a class="btn btn-ghost auth-back" href="/">← Volver al inicio</a>
     <div class="auth-card">
       <div class="brand"><picture><source srcset="/assets/logo-horizontal-nav.webp" type="image/webp"><img src="/assets/logo-horizontal-nav.png" alt="Argos Insights" style="height:22px;width:auto;display:block;"></picture></div>
       <h2>Inicia sesión</h2>
@@ -588,7 +459,7 @@
 <!-- ================= ACCESO: REGISTRO ================= -->
 <div class="screen" id="screen-registro">
   <div class="auth-wrap">
-    <button class="btn btn-ghost auth-back" data-go="public">← Volver al inicio</button>
+    <a class="btn btn-ghost auth-back" href="/">← Volver al inicio</a>
     <div class="auth-card" style="max-width:470px;">
       <div class="brand"><picture><source srcset="/assets/logo-horizontal-nav.webp" type="image/webp"><img src="/assets/logo-horizontal-nav.png" alt="Argos Insights" style="height:22px;width:auto;display:block;"></picture></div>
       <h2>Crea tu cuenta</h2>
@@ -660,7 +531,7 @@
       <div style="width:52px;height:52px;border-radius:16px;background:var(--amber-bg);color:var(--amber);display:flex;align-items:center;justify-content:center;font-size:22px;margin:18px auto 6px;">⏳</div>
       <h2>Tu cuenta está pendiente de aprobación</h2>
       <p class="sub">Un administrador de Argos Insights tiene que aprobar tu cuenta antes de que puedas ver tus datos. Normalmente esto toma poco — si llevas más de un día esperando, escríbenos.</p>
-      <div class="auth-alt" style="margin-top:4px;"><button class="btn btn-ghost btn-block" data-go="public">Volver al inicio</button></div>
+      <div class="auth-alt" style="margin-top:4px;"><a class="btn btn-ghost btn-block" href="/">Volver al inicio</a></div>
     </div>
   </div>
 </div>
@@ -2894,8 +2765,8 @@ var AuthProvider={
 };
 
 /* ---- Router por hash: atrás/adelante no destruyen la app (solo se oculta) ---- */
-var SCREENS=['public','login','registro','recuperar','confirm','pendiente','app'];
-function currentScreen(){ var h=(location.hash||'').replace(/^#\/?/,''); return SCREENS.indexOf(h)>=0?h:'public'; }
+var SCREENS=['login','registro','recuperar','confirm','pendiente','app'];
+function currentScreen(){ var h=(location.hash||'').replace(/^#\/?/,''); return SCREENS.indexOf(h)>=0?h:'login'; }
 function go(name){ location.hash='#/'+(name==='public'?'':name); }
 function route(){
   var s=currentScreen();
@@ -2930,21 +2801,9 @@ function enter(user){
   go('app');
 }
 
-/* ---- navegación pública ---- */
+/* ---- navegación entre pantallas de acceso (login/registro/recuperar/pendiente) ---- */
 Array.prototype.forEach.call(document.querySelectorAll('[data-go]'),function(b){
   b.addEventListener('click',function(){ go(b.getAttribute('data-go')); });
-});
-document.getElementById('pnav-burger').addEventListener('click',function(){
-  document.getElementById('pnav-mobile').classList.toggle('open');
-});
-Array.prototype.forEach.call(document.querySelectorAll('[data-scroll]'),function(a){
-  a.addEventListener('click',function(ev){ ev.preventDefault();
-    document.getElementById('pnav-mobile').classList.remove('open');
-    var el=document.querySelector(a.getAttribute('href')); if(el) el.scrollIntoView({behavior:'smooth'});
-  });
-});
-document.getElementById('link-demo').addEventListener('click',function(){
-  enter({name:'Visitante',empresa:'Demostración con datos ficticios',email:'',demo:true});
 });
 
 /* ---- inicio de sesión ---- */
@@ -3022,7 +2881,7 @@ document.getElementById('acct-logout').addEventListener('click',function(){
     session=null; onboardingSeen=false;
     // los datos cargados permanecen en memoria (demo): volver a entrar no los pierde
     if(window.ArgosMotion) ArgosMotion.toast('Sesión cerrada');
-    go('public');
+    go('login');
   });
 });
 
