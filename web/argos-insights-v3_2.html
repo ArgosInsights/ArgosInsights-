@@ -9,19 +9,26 @@
         crossorigin="anonymous" onerror="window.__xlsxFailed=true"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"
         onerror="window.__sbFailed=true"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   /* ================= TOKENS DE DISEÑO ================= */
+  /* Paleta y tipografía tomadas de /design-tokens.json (fuente única de verdad,
+     compartida con /mobile y con la landing en /index.html). --raise, --line-soft,
+     --red-line, --amber-line, --blue y --violet no existen en design-tokens.json
+     (no hay equivalente ahí): se dejaron derivados de la paleta oficial. */
   :root{
     /* superficies */
-    --bg:#0D1013; --panel:#14181D; --card:#161B21; --raise:#1B222A;
-    --line:#232A33; --line-soft:#1C2229;
+    --bg:#0a0a0a; --panel:#141414; --card:#161616; --raise:#1f1f1f;
+    --line:#262626; --line-soft:#1c1c1c;
     /* texto */
-    --ink:#EEF1F4; --muted:#93A0AB; --faint:#65717C;
+    --ink:#ffffff; --muted:#9a9a9a; --faint:#707070;
     /* marca (verde Argos, con propósito: acción principal, estados favorables, identidad) */
-    --brand:#84B60E; --brand-hi:#A8D62B; --brand-dim:#3E5607; --brand-tint:rgba(132,182,14,.10);
+    --brand:#7fb102; --brand-hi:#a3e635; --brand-dim:#3d6600; --brand-tint:rgba(127,177,2,.10);
     /* semánticos */
-    --red:#E0575C; --red-bg:#291316; --red-line:#4A2226;
-    --amber:#D9A94E; --amber-bg:#261E0F; --amber-line:#453818;
+    --red:#f87171; --red-bg:#2a1414; --red-line:#3a1f1f;
+    --amber:#facc15; --amber-bg:#2a2410; --amber-line:#4a3d12;
     --blue:#7DAFDE; --blue-bg:#101E2B; --blue-line:#1E3A54;
     --violet:#C08FE8; --violet-bg:#221530;
     /* ---- tokens de movimiento ---- */
@@ -34,7 +41,7 @@
     html{scroll-behavior:auto;}
     *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;transition-delay:0s!important;scroll-behavior:auto!important;}
   }
-  body{margin:0;background:var(--bg);color:var(--ink);font-family:Poppins,Inter,system-ui,-apple-system,sans-serif;font-size:12.5px;line-height:1.5;-webkit-font-smoothing:antialiased;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:Poppins,Arial,sans-serif;font-size:12.5px;line-height:1.5;-webkit-font-smoothing:antialiased;}
   .wrap{max-width:1220px;margin:0 auto;padding:20px 24px 80px;}
   a{color:var(--blue);}
 
@@ -420,7 +427,9 @@
   <div class="pub-content">
   <nav class="pnav">
     <div class="pnav-in">
-      <div class="brand"><div class="mark">A</div><div><div class="nm" style="font-size:14.5px;">ARGOS INSIGHTS</div></div></div>
+      <div class="brand">
+        <picture><source srcset="/assets/logo-horizontal-nav.webp" type="image/webp"><img src="/assets/logo-horizontal-nav.png" alt="Argos Insights" style="height:30px;width:auto;display:block;"></picture>
+      </div>
       <div class="pnav-links">
         <a href="#/">Inicio</a>
         <a href="#como-funciona" data-scroll>Cómo funciona</a>
@@ -542,7 +551,7 @@
   <div class="auth-wrap">
     <button class="btn btn-ghost auth-back" data-go="public">← Volver al inicio</button>
     <div class="auth-card">
-      <div class="brand"><div class="mark">A</div><div class="nm" style="font-size:13px;">ARGOS INSIGHTS</div></div>
+      <div class="brand"><picture><source srcset="/assets/logo-horizontal-nav.webp" type="image/webp"><img src="/assets/logo-horizontal-nav.png" alt="Argos Insights" style="height:22px;width:auto;display:block;"></picture></div>
       <h2>Inicia sesión</h2>
       <p class="sub">Ingresa con la cuenta de tu empresa. Si aún no tienes acceso, puedes crear una cuenta o probar la demo con datos ficticios.</p>
       <form id="login-form" novalidate>
@@ -567,7 +576,7 @@
   <div class="auth-wrap">
     <button class="btn btn-ghost auth-back" data-go="public">← Volver al inicio</button>
     <div class="auth-card" style="max-width:470px;">
-      <div class="brand"><div class="mark">A</div><div class="nm" style="font-size:13px;">ARGOS INSIGHTS</div></div>
+      <div class="brand"><picture><source srcset="/assets/logo-horizontal-nav.webp" type="image/webp"><img src="/assets/logo-horizontal-nav.png" alt="Argos Insights" style="height:22px;width:auto;display:block;"></picture></div>
       <h2>Crea tu cuenta</h2>
       <p class="sub">Tu cuenta queda pendiente de aprobación por nuestro equipo antes de poder ingresar — es un paso manual, breve, para asegurarnos de que solo entren clientes reales.</p>
       <form id="reg-form" novalidate>
@@ -602,7 +611,7 @@
   <div class="auth-wrap">
     <button class="btn btn-ghost auth-back" data-go="login">← Volver</button>
     <div class="auth-card">
-      <div class="brand"><div class="mark">A</div><div class="nm" style="font-size:13px;">ARGOS INSIGHTS</div></div>
+      <div class="brand"><picture><source srcset="/assets/logo-horizontal-nav.webp" type="image/webp"><img src="/assets/logo-horizontal-nav.png" alt="Argos Insights" style="height:22px;width:auto;display:block;"></picture></div>
       <h2>Recupera tu contraseña</h2>
       <p class="sub">Ingresa tu correo y te enviaremos instrucciones para restablecer tu contraseña.</p>
       <form id="rec-form" novalidate>
@@ -619,7 +628,7 @@
 <div class="screen" id="screen-confirm">
   <div class="auth-wrap">
     <div class="auth-card" style="text-align:center;">
-      <div class="brand" style="justify-content:center;"><div class="mark">A</div><div class="nm" style="font-size:13px;">ARGOS INSIGHTS</div></div>
+      <div class="brand" style="justify-content:center;"><picture><source srcset="/assets/logo-horizontal-nav.webp" type="image/webp"><img src="/assets/logo-horizontal-nav.png" alt="Argos Insights" style="height:22px;width:auto;display:block;"></picture></div>
       <div style="width:52px;height:52px;border-radius:16px;background:var(--brand-tint);color:var(--brand-hi);display:flex;align-items:center;justify-content:center;font-size:24px;margin:18px auto 6px;">✓</div>
       <h2 id="cf-title">Cuenta creada</h2>
       <p class="sub" id="cf-sub">Bienvenido. Tu espacio de trabajo está listo.</p>
@@ -633,7 +642,7 @@
 <div class="screen" id="screen-pendiente">
   <div class="auth-wrap">
     <div class="auth-card" style="text-align:center;">
-      <div class="brand" style="justify-content:center;"><div class="mark">A</div><div class="nm" style="font-size:13px;">ARGOS INSIGHTS</div></div>
+      <div class="brand" style="justify-content:center;"><picture><source srcset="/assets/logo-horizontal-nav.webp" type="image/webp"><img src="/assets/logo-horizontal-nav.png" alt="Argos Insights" style="height:22px;width:auto;display:block;"></picture></div>
       <div style="width:52px;height:52px;border-radius:16px;background:var(--amber-bg);color:var(--amber);display:flex;align-items:center;justify-content:center;font-size:22px;margin:18px auto 6px;">⏳</div>
       <h2>Tu cuenta está pendiente de aprobación</h2>
       <p class="sub">Un administrador de Argos Insights tiene que aprobar tu cuenta antes de que puedas ver tus datos. Normalmente esto toma poco — si llevas más de un día esperando, escríbenos.</p>
@@ -648,8 +657,8 @@
 
   <header class="top">
     <div class="brand">
-      <div class="mark">A</div>
-      <div><div class="nm">ARGOS INSIGHTS</div><div class="tg">INTELIGENCIA DE COBRANZA</div></div>
+      <picture><source srcset="/assets/logo-horizontal-nav.webp" type="image/webp"><img src="/assets/logo-horizontal-nav.png" alt="Argos Insights" style="height:30px;width:auto;display:block;"></picture>
+      <div class="tg">INTELIGENCIA DE COBRANZA</div>
     </div>
     <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
       <div class="privacy-note"><span class="ic"></span>Procesamiento local — tu archivo no se sube ni queda almacenado</div>
