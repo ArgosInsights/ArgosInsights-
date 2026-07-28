@@ -11,21 +11,24 @@
         onerror="window.__sbFailed=true"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
   /* ================= TOKENS DE DISEÑO ================= */
-  /* Paleta y tipografía tomadas de /design-tokens.json (fuente única de verdad,
-     compartida con /mobile y con la landing en /index.html). --raise, --line-soft,
-     --red-line, --amber-line, --blue y --violet no existen en design-tokens.json
-     (no hay equivalente ahí): se dejaron derivados de la paleta oficial. */
+  /* Paleta, tipografía y efectos calcados de /index.html (la landing) y su
+     tailwind.config: navy #0a0a0a, card #161616, accent #6fb000 / accent-dark
+     #4a7a00, danger #f87171. Inter para texto, Poppins para títulos — igual
+     que la landing. --raise, --line-soft, --red-line, --amber-line, --blue y
+     --violet no tienen equivalente ahí: quedaron derivados de la paleta. */
   :root{
     /* superficies */
     --bg:#0a0a0a; --panel:#141414; --card:#161616; --raise:#1f1f1f;
     --line:#262626; --line-soft:#1c1c1c;
     /* texto */
     --ink:#ffffff; --muted:#9a9a9a; --faint:#707070;
-    /* marca (verde Argos, con propósito: acción principal, estados favorables, identidad) */
-    --brand:#7fb102; --brand-hi:#a3e635; --brand-dim:#3d6600; --brand-tint:rgba(127,177,2,.10);
+    /* marca (verde Argos — mismo verde que usa la landing: accent #6fb000 / accent-dark #4a7a00) */
+    --brand:#6fb000; --brand-hi:#a3e635; --brand-dim:#4a7a00; --brand-tint:rgba(111,176,0,.10);
+    /* gradiente de marca, idéntico al bg-gradient-accent / text-gradient-accent de la landing */
+    --brand-gradient:linear-gradient(160deg,#b9e666 0%,#7fb102 35%,#4a7a00 70%,#2f5200 100%);
     /* semánticos */
     --red:#f87171; --red-bg:#2a1414; --red-line:#3a1f1f;
     --amber:#facc15; --amber-bg:#2a2410; --amber-line:#4a3d12;
@@ -41,7 +44,11 @@
     html{scroll-behavior:auto;}
     *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;transition-delay:0s!important;scroll-behavior:auto!important;}
   }
-  body{margin:0;background:var(--bg);color:var(--ink);font-family:Poppins,Arial,sans-serif;font-size:12.5px;line-height:1.5;-webkit-font-smoothing:antialiased;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,Arial,sans-serif;font-size:12.5px;line-height:1.5;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3,.c-head h2,.psec h2,section.hero h1,.onb h3,.auth-card h2{font-family:Poppins,Inter,Arial,sans-serif;}
+  .underline-accent{display:block;width:44px;height:4px;border-radius:999px;background:var(--brand-hi);margin-top:10px;}
+  .brand-logo-img{height:56px;width:auto;display:block;}
+  @media(min-width:640px){ .brand-logo-img{height:72px;} }
   .wrap{max-width:1220px;margin:0 auto;padding:20px 24px 80px;}
   a{color:var(--blue);}
 
@@ -62,16 +69,16 @@
 
   /* ================= CARGA Y CONFIGURACIÓN ================= */
   .loadbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin-bottom:14px;}
-  .btn{border:none;font-family:inherit;font-size:12px;font-weight:600;border-radius:9px;padding:9px 15px;cursor:pointer;
+  .btn{border:none;font-family:inherit;font-size:12px;font-weight:600;border-radius:999px;padding:9px 17px;cursor:pointer;
     transition:filter var(--dur-btn) var(--ease-out), transform var(--dur-btn) var(--ease-out), box-shadow var(--dur-btn) var(--ease-out), border-color var(--dur-btn) var(--ease-out), background var(--dur-btn) var(--ease-out);
     transform:translateY(0);}
-  .btn:hover{filter:brightness(1.08);transform:translateY(-1px);}
+  .btn:hover{filter:brightness(1.1);transform:translateY(-1px);}
   .btn:active{transform:translateY(0) scale(.98);transition-duration:80ms;}
   .btn:focus-visible{outline:2px solid var(--brand-hi);outline-offset:2px;}
-  .btn-primary{background:var(--brand);color:#0D1013;display:inline-block;box-shadow:0 1px 0 rgba(255,255,255,.08) inset,0 0 0 rgba(132,182,14,0);}
-  .btn-primary:hover{box-shadow:0 1px 0 rgba(255,255,255,.1) inset,0 6px 18px -6px rgba(132,182,14,.55);}
-  .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--line);}
-  .btn-ghost:hover{color:var(--ink);border-color:var(--brand-dim);transform:translateY(-1px);}
+  .btn-primary{background:var(--brand-gradient);color:var(--bg);display:inline-block;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 -2px 4px rgba(0,0,0,.3);}
+  .btn-primary:hover{filter:brightness(1.1);box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 -2px 4px rgba(0,0,0,.3),0 6px 18px -6px rgba(111,176,0,.55);}
+  .btn-ghost{background:transparent;color:var(--muted);border:1px solid rgba(255,255,255,.15);}
+  .btn-ghost:hover{color:var(--ink);border-color:rgba(255,255,255,.4);}
   .btn-ghost:active{transform:translateY(0) scale(.98);}
   /* estado de confirmación (breve, sin celebraciones) */
   .btn.is-ok{background:var(--brand-hi)!important;color:#0D1013!important;}
@@ -237,7 +244,7 @@
   .pnav-in{max-width:1120px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:22px;}
   .pnav-links{display:flex;gap:4px;margin-left:10px;}
   .pnav-links a{color:var(--muted);text-decoration:none;font-size:12.5px;font-weight:500;padding:7px 11px;border-radius:8px;transition:color var(--dur-hover) var(--ease-out),background var(--dur-hover) var(--ease-out);}
-  .pnav-links a:hover{color:var(--ink);background:var(--panel);}
+  .pnav-links a:hover{color:#fff;background:transparent;text-shadow:0 0 6px rgba(163,230,53,1),0 0 14px rgba(127,177,2,.85),0 0 26px rgba(127,177,2,.65);}
   .pnav-cta{margin-left:auto;display:flex;gap:9px;align-items:center;}
   .pnav-burger{display:none;margin-left:auto;background:var(--panel);border:1px solid var(--line);color:var(--ink);border-radius:8px;width:36px;height:36px;font-size:15px;cursor:pointer;}
   .pnav-mobile{display:none;flex-direction:column;gap:4px;padding:10px 24px 16px;border-top:1px solid var(--line-soft);}
@@ -398,9 +405,9 @@
     background-size:46px 46px;mask-image:radial-gradient(ellipse 70% 60% at 50% 0%,#000 40%,transparent 85%);}
   .pub-content{position:relative;z-index:1;}
   .ambient .blob{position:absolute;border-radius:50%;filter:blur(60px);opacity:.16;animation:drift var(--dur-amb) ease-in-out infinite;}
-  .ambient .blob.b1{width:420px;height:420px;top:-120px;left:6%;background:radial-gradient(circle,var(--brand),transparent 70%);animation-duration:30s;}
-  .ambient .blob.b2{width:360px;height:360px;top:520px;right:4%;background:radial-gradient(circle,#3E6E7A,transparent 70%);animation-duration:34s;animation-delay:-8s;}
-  .ambient .blob.b3{width:300px;height:300px;top:1180px;left:22%;background:radial-gradient(circle,var(--brand-dim),transparent 70%);animation-duration:26s;animation-delay:-4s;}
+  .ambient .blob.b1{width:700px;height:700px;top:-260px;left:-6%;background:radial-gradient(circle,rgba(111,176,0,.22),transparent 70%);animation-duration:30s;}
+  .ambient .blob.b2{width:520px;height:520px;top:8%;right:-6%;background:radial-gradient(circle,rgba(127,177,2,.15),transparent 70%);animation-duration:34s;animation-delay:-8s;}
+  .ambient .blob.b3{width:620px;height:620px;top:80%;left:15%;background:radial-gradient(circle,rgba(74,122,0,.20),transparent 70%);animation-duration:26s;animation-delay:-4s;}
   @keyframes drift{0%,100%{transform:translate(0,0);}50%{transform:translate(3%,-4%);}}
   @media(prefers-reduced-motion:reduce){ .ambient .blob{animation:none;} }
   @media(max-width:760px){ .ambient .blob{filter:blur(40px);opacity:.1;} }
@@ -428,7 +435,7 @@
   <nav class="pnav">
     <div class="pnav-in">
       <div class="brand">
-        <picture><source srcset="/assets/logo-horizontal-nav.webp" type="image/webp"><img src="/assets/logo-horizontal-nav.png" alt="Argos Insights" style="height:30px;width:auto;display:block;"></picture>
+        <picture><source srcset="/assets/logo-horizontal-nav.webp" type="image/webp"><img class="brand-logo-img" src="/assets/logo-horizontal-nav.png" alt="Argos Insights"></picture>
       </div>
       <div class="pnav-links">
         <a href="#/">Inicio</a>
@@ -456,6 +463,7 @@
     <div>
       <div class="eyebrow reveal reveal-1">Inteligencia de cobranza para equipos financieros B2B</div>
       <h1 class="reveal reveal-2">Anticipa tus cobros y enfoca tu gestión <em>donde realmente importa</em>.</h1>
+      <span class="underline-accent reveal reveal-2"></span>
       <p class="sub reveal reveal-3">Argos analiza el comportamiento histórico de pago de tus clientes para estimar cuándo cobrarás, identificar facturas en riesgo y ayudarte a priorizar tu gestión de cobranza.</p>
       <div class="hero-cta reveal reveal-4">
         <button class="btn btn-primary btn-lg glow" data-go="registro">Comenzar</button>
@@ -491,6 +499,7 @@
   <section class="psec" id="como-funciona">
     <div class="eyebrow reveal reveal-1">De registros dispersos a información ordenada</div>
     <h2 class="reveal reveal-2">Cómo funciona</h2>
+    <span class="underline-accent reveal reveal-2"></span>
     <p class="sub reveal reveal-3">Tres pasos, sin configuraciones complejas. Tu planilla actual es suficiente para empezar.</p>
     <div class="steps reveal-group">
       <div class="step reveal glow"><div class="n">1</div><h3>Carga tu información</h3><p>Carga tu historial de facturas y pagos. Argos organiza y valida los registros automáticamente.</p></div>
@@ -502,6 +511,7 @@
   <section class="psec" style="padding-top:0;">
     <div class="eyebrow reveal reveal-1">De información ordenada a decisiones de cobranza</div>
     <h2 class="reveal reveal-2">Qué obtienes</h2>
+    <span class="underline-accent reveal reveal-2"></span>
     <p class="sub reveal reveal-3">Estimaciones basadas en comportamiento histórico — no promesas de pago. Cada resultado indica qué evidencia lo respalda.</p>
     <div class="bens reveal-group">
       <div class="ben reveal glow"><h3>Cobros esperados</h3><p>Proyección a 30, 60 y 90 días con escenarios conservador, base y optimista, comparada con tu calendario contractual.</p></div>
@@ -516,6 +526,7 @@
       <div>
         <div class="eyebrow reveal reveal-1">Confianza, trazabilidad y control</div>
         <h2 class="reveal reveal-2">Tus datos, bajo tu control</h2>
+        <span class="underline-accent reveal reveal-2"></span>
         <p class="sub reveal reveal-3" style="margin-bottom:0;">Tus datos financieros requieren un tratamiento responsable. Argos muestra qué información utiliza, cómo se interpreta y qué nivel de confianza respalda cada estimación.</p>
       </div>
       <div class="sec-list reveal-group">
@@ -530,6 +541,7 @@
 
   <section class="psec faq" id="faq">
     <h2 class="reveal reveal-1">Preguntas frecuentes</h2>
+    <span class="underline-accent reveal reveal-1"></span>
     <p class="sub reveal reveal-2">Lo esencial antes de empezar.</p>
     <div class="reveal-group">
     <details class="reveal"><summary>¿Qué necesito para comenzar?</summary><p>Un archivo Excel o CSV con tu historial de facturación: cliente, folio, fecha de emisión y, si existen, fechas de pago, vencimientos y montos. Argos detecta las columnas automáticamente y puedes corregir el mapeo a mano.</p></details>
@@ -657,8 +669,7 @@
 
   <header class="top">
     <div class="brand">
-      <picture><source srcset="/assets/logo-horizontal-nav.webp" type="image/webp"><img src="/assets/logo-horizontal-nav.png" alt="Argos Insights" style="height:30px;width:auto;display:block;"></picture>
-      <div class="tg">INTELIGENCIA DE COBRANZA</div>
+      <picture><source srcset="/assets/logo-horizontal-nav.webp" type="image/webp"><img class="brand-logo-img" src="/assets/logo-horizontal-nav.png" alt="Argos Insights"></picture>
     </div>
     <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
       <div class="privacy-note"><span class="ic"></span>Procesamiento local — tu archivo no se sube ni queda almacenado</div>
