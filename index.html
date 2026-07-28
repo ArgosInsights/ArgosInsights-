@@ -531,6 +531,9 @@
     color: transparent;
   }
 
+  .phone-tilt {
+    perspective: 1200px;
+  }
   .phone-frame {
     position: relative;
     width: min(290px, 76vw);
@@ -539,6 +542,37 @@
     background: linear-gradient(155deg, #3b3b3b 0%, #161616 40%, #0d0d0d 100%);
     border: 1px solid rgba(255,255,255,0.14);
     box-shadow: 0 30px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.18);
+    transition: transform 0.3s ease-out;
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+  .app-float {
+    position: absolute;
+    z-index: 20;
+    display: none;
+    align-items: center;
+    gap: 7px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+    padding: 9px 15px;
+    border-radius: 999px;
+    background: rgba(20,20,20,0.82);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.5);
+    animation: floaty 5s ease-in-out infinite;
+  }
+  @media (min-width: 768px) {
+    .app-float { display: inline-flex; }
+  }
+  .app-float .app-float-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: currentColor;
+    animation: pulseDotSimple 1.8s ease-in-out infinite;
   }
   .phone-screen {
     position: relative;
@@ -588,16 +622,34 @@
     transform: translateY(0);
   }
   .app-dot {
+    position: relative;
     width: 8px;
     height: 8px;
     border-radius: 999px;
     background: rgba(255,255,255,0.18);
-    transition: background 0.3s ease, transform 0.3s ease;
+    transition: background 0.3s ease, width 0.35s ease;
+    overflow: hidden;
     cursor: pointer;
   }
   .app-dot.is-active {
+    width: 30px;
+    background: rgba(127,177,2,0.25);
+  }
+  .app-dot.is-active::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
     background: #7fb102;
-    transform: scale(1.35);
+    transform: scaleX(0);
+    transform-origin: left;
+    animation: dotFill 4.2s linear forwards;
+  }
+  #appDots.is-paused .app-dot.is-active::after {
+    animation-play-state: paused;
+  }
+  @keyframes dotFill {
+    to { transform: scaleX(1); }
   }
   .app-arrow {
     width: 42px;
@@ -1199,23 +1251,41 @@
 
       <div class="reveal mt-12 sm:mt-16 flex flex-col items-center">
         <!-- iPhone -->
-        <div class="relative">
+        <div class="relative" id="appPhoneWrap">
           <div class="phone-glow"></div>
-          <div class="phone-frame floaty">
-            <span class="phone-btn" style="left:-2px; top:110px; width:3px; height:26px;"></span>
-            <span class="phone-btn" style="left:-2px; top:150px; width:3px; height:44px;"></span>
-            <span class="phone-btn" style="left:-2px; top:204px; width:3px; height:44px;"></span>
-            <span class="phone-btn" style="right:-2px; top:160px; width:3px; height:64px;"></span>
-            <div class="phone-screen" id="appScreen">
-              <span class="phone-island"></span>
-              <div class="app-track" id="appTrack">
-                <img src="/assets/app/app-inicio.png" alt="Pantalla de Inicio de la app Argos Insights" width="1170" height="2532">
-                <img src="/assets/app/app-cobros.png" alt="Pantalla de Cobros con facturas y filtros por estado" width="1170" height="2532">
-                <img src="/assets/app/app-prediccion.png" alt="Detalle de factura con predicción de cobro por IA" width="1170" height="2532">
-                <img src="/assets/app/app-caja.png" alt="Pantalla de Caja con proyección mes a mes" width="1170" height="2532">
-                <img src="/assets/app/app-ciclo.png" alt="Pantalla de Ciclo documental: OC, HES, EDP, factura y pago" width="1170" height="2532">
-                <img src="/assets/app/app-excel.png" alt="Pantalla de Excel para subir tu planilla" width="1170" height="2532">
-                <img src="/assets/app/app-perfil.png" alt="Pantalla de Perfil con datos de tu empresa" width="1170" height="2532">
+
+          <span class="app-float text-accent" style="top:12%; left:-215px; animation-delay:0.2s">
+            <span class="app-float-dot"></span>Saldo proyectado&nbsp;<b class="text-white">$17,7M</b>
+          </span>
+          <span class="app-float" style="top:58%; left:-190px; animation-delay:1.4s; color:#9ade2e">
+            ✓&nbsp;F-1043 · Pagada
+          </span>
+          <span class="app-float" style="top:26%; right:-195px; animation-delay:0.8s; color:#f5d90a">
+            <span class="app-float-dot"></span>Predicción IA · 31-07
+          </span>
+          <span class="app-float text-accent" style="top:70%; right:-175px; animation-delay:2s">
+            Riesgo bajo · 15
+          </span>
+
+          <div class="phone-tilt">
+            <div class="floaty">
+              <div class="phone-frame">
+                <span class="phone-btn" style="left:-2px; top:110px; width:3px; height:26px;"></span>
+                <span class="phone-btn" style="left:-2px; top:150px; width:3px; height:44px;"></span>
+                <span class="phone-btn" style="left:-2px; top:204px; width:3px; height:44px;"></span>
+                <span class="phone-btn" style="right:-2px; top:160px; width:3px; height:64px;"></span>
+                <div class="phone-screen" id="appScreen">
+                  <span class="phone-island"></span>
+                  <div class="app-track" id="appTrack">
+                    <img src="/assets/app/app-inicio.png" alt="Pantalla de Inicio de la app Argos Insights" width="1170" height="2532">
+                    <img src="/assets/app/app-cobros.png" alt="Pantalla de Cobros con facturas y filtros por estado" width="1170" height="2532">
+                    <img src="/assets/app/app-prediccion.png" alt="Detalle de factura con predicción de cobro por IA" width="1170" height="2532">
+                    <img src="/assets/app/app-caja.png" alt="Pantalla de Caja con proyección mes a mes" width="1170" height="2532">
+                    <img src="/assets/app/app-ciclo.png" alt="Pantalla de Ciclo documental: OC, HES, EDP, factura y pago" width="1170" height="2532">
+                    <img src="/assets/app/app-excel.png" alt="Pantalla de Excel para subir tu planilla" width="1170" height="2532">
+                    <img src="/assets/app/app-perfil.png" alt="Pantalla de Perfil con datos de tu empresa" width="1170" height="2532">
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1495,15 +1565,22 @@
     }
     const dots = dotsWrap.children;
 
+    function setDots() {
+      for (let j = 0; j < total; j++) dots[j].classList.remove('is-active');
+      void dots[index].offsetWidth; /* reinicia la animación de llenado */
+      dots[index].classList.add('is-active');
+    }
+
     function goTo(i) {
       index = (i + total) % total;
       track.style.transform = 'translateX(-' + index * 100 + '%)';
       captions.forEach((c, j) => c.classList.toggle('is-active', j === index));
-      for (let j = 0; j < total; j++) dots[j].classList.toggle('is-active', j === index);
+      setDots();
     }
 
     function restart() {
       clearInterval(timer);
+      setDots();
       timer = setInterval(() => goTo(index + 1), 4200);
     }
 
@@ -1511,8 +1588,21 @@
     document.getElementById('appNext').addEventListener('click', () => { goTo(index + 1); restart(); });
 
     const screen = document.getElementById('appScreen');
-    screen.addEventListener('mouseenter', () => clearInterval(timer));
-    screen.addEventListener('mouseleave', restart);
+    screen.addEventListener('mouseenter', () => { clearInterval(timer); dotsWrap.classList.add('is-paused'); });
+    screen.addEventListener('mouseleave', () => { dotsWrap.classList.remove('is-paused'); restart(); });
+
+    // Tilt 3D del teléfono siguiendo el mouse
+    const phoneWrap = document.getElementById('appPhoneWrap');
+    const phoneFrame = phoneWrap.querySelector('.phone-frame');
+    if (window.matchMedia('(hover: hover)').matches) {
+      phoneWrap.addEventListener('mousemove', (e) => {
+        const r = phoneWrap.getBoundingClientRect();
+        const x = (e.clientX - r.left) / r.width - 0.5;
+        const y = (e.clientY - r.top) / r.height - 0.5;
+        phoneFrame.style.transform = 'rotateY(' + (x * 14).toFixed(2) + 'deg) rotateX(' + (-y * 14).toFixed(2) + 'deg)';
+      });
+      phoneWrap.addEventListener('mouseleave', () => { phoneFrame.style.transform = ''; });
+    }
 
     let touchX = null;
     screen.addEventListener('touchstart', (e) => { touchX = e.touches[0].clientX; }, { passive: true });
