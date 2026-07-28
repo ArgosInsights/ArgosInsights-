@@ -673,7 +673,16 @@
     height: 7px;
     border-radius: 999px;
     background: currentColor;
+    flex-shrink: 0;
     animation: pulseDotSimple 1.8s ease-in-out infinite;
+  }
+  .app-float-text {
+    display: inline-block;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+  .app-float-text.is-swapping {
+    opacity: 0;
+    transform: translateY(3px);
   }
   .phone-screen {
     position: relative;
@@ -1368,17 +1377,11 @@
         <div class="relative" id="appPhoneWrap">
           <div class="phone-glow"></div>
 
-          <span class="app-float text-accent" style="top:8%; left:-215px; animation-delay:0.2s">
-            <span class="app-float-dot"></span>Saldo proyectado&nbsp;<b class="text-white">$17,7M</b>
+          <span class="app-float text-accent" id="appFloatLeft" style="top:38%; left:-215px;">
+            <span class="app-float-dot"></span><span class="app-float-text">Tu resumen al abrir la app</span>
           </span>
-          <span class="app-float" style="top:46%; left:-190px; animation-delay:1.4s; color:#9ade2e">
-            ✓&nbsp;F-1043 · Pagada
-          </span>
-          <span class="app-float" style="top:20%; right:-195px; animation-delay:0.8s; color:#f5d90a">
-            <span class="app-float-dot"></span>Predicción IA · 31-07
-          </span>
-          <span class="app-float text-accent" style="top:56%; right:-175px; animation-delay:2s">
-            Riesgo bajo · 15
+          <span class="app-float text-accent" id="appFloatRight" style="top:58%; right:-215px;">
+            <span class="app-float-dot"></span><span class="app-float-text">Saldo proyectado a 30 días</span>
           </span>
 
           <!-- Pantalla proyectada (holograma) -->
@@ -1428,40 +1431,8 @@
           </button>
         </div>
 
-        <!-- Texto de cada pantalla -->
-        <div class="grid text-center max-w-md mx-auto mt-8 sm:mt-10 px-2" id="appCaptions">
-          <div class="app-caption is-active">
-            <h3 class="text-white font-display font-semibold text-lg">Inicio</h3>
-            <p class="text-sm text-slate-400 mt-1.5 leading-relaxed">Tu resumen al abrir la app: saldo proyectado, por cobrar, vencido y evolución de caja.</p>
-          </div>
-          <div class="app-caption">
-            <h3 class="text-white font-display font-semibold text-lg">Cobros</h3>
-            <p class="text-sm text-slate-400 mt-1.5 leading-relaxed">Todas tus facturas en un solo lugar, con filtros por estado: pendiente, vencida o pagada.</p>
-          </div>
-          <div class="app-caption">
-            <h3 class="text-white font-display font-semibold text-lg">Predicción con IA</h3>
-            <p class="text-sm text-slate-400 mt-1.5 leading-relaxed">Cada factura con su fecha estimada de pago y nivel de riesgo, según el comportamiento real de tus clientes.</p>
-          </div>
-          <div class="app-caption">
-            <h3 class="text-white font-display font-semibold text-lg">Caja</h3>
-            <p class="text-sm text-slate-400 mt-1.5 leading-relaxed">Proyección mes a mes: saldo inicial, cobros esperados, egresos y saldo final.</p>
-          </div>
-          <div class="app-caption">
-            <h3 class="text-white font-display font-semibold text-lg">Ciclo documental</h3>
-            <p class="text-sm text-slate-400 mt-1.5 leading-relaxed">Seguimiento de cada orden de compra: OC, HES, EDP, factura y pago, paso a paso.</p>
-          </div>
-          <div class="app-caption">
-            <h3 class="text-white font-display font-semibold text-lg">Excel</h3>
-            <p class="text-sm text-slate-400 mt-1.5 leading-relaxed">Subes tu planilla de Orden Financiero y todos tus datos se actualizan solos.</p>
-          </div>
-          <div class="app-caption">
-            <h3 class="text-white font-display font-semibold text-lg">Perfil</h3>
-            <p class="text-sm text-slate-400 mt-1.5 leading-relaxed">Tu cuenta y tu empresa: datos, rol y modo noche.</p>
-          </div>
-        </div>
-
         <!-- Puntos -->
-        <div class="flex items-center gap-2.5 mt-7" id="appDots"></div>
+        <div class="flex items-center gap-2.5 mt-10" id="appDots"></div>
       </div>
     </div>
   </section>
@@ -1678,11 +1649,33 @@
   (function () {
     const track = document.getElementById('appTrack');
     if (!track) return;
-    const captions = document.querySelectorAll('#appCaptions .app-caption');
     const dotsWrap = document.getElementById('appDots');
     const total = track.children.length;
     let index = 0;
     let timer = null;
+
+    const floatData = [
+      ['Tu resumen al abrir la app', 'Saldo proyectado a 30 días'],
+      ['Todas tus facturas', 'Filtra por estado de pago'],
+      ['Predicción de pago con IA', 'Fecha estimada y nivel de riesgo'],
+      ['Proyección de caja mes a mes', 'Ingresos, egresos y saldo final'],
+      ['OC → HES → EDP → Factura → Pago', 'Estado de cada orden de compra'],
+      ['Sube tu planilla Excel', 'Tus datos se actualizan solos'],
+      ['Datos de tu cuenta', 'Empresa, rol y modo noche'],
+    ];
+    const floatLeftText = document.querySelector('#appFloatLeft .app-float-text');
+    const floatRightText = document.querySelector('#appFloatRight .app-float-text');
+
+    function updateFloats(i) {
+      const data = floatData[i] || floatData[0];
+      [[floatLeftText, data[0]], [floatRightText, data[1]]].forEach(([el, text]) => {
+        el.classList.add('is-swapping');
+        setTimeout(() => {
+          el.textContent = text;
+          el.classList.remove('is-swapping');
+        }, 220);
+      });
+    }
 
     for (let i = 0; i < total; i++) {
       const dot = document.createElement('button');
@@ -1703,7 +1696,7 @@
     function goTo(i) {
       index = (i + total) % total;
       track.style.transform = 'translateX(-' + index * 100 + '%)';
-      captions.forEach((c, j) => c.classList.toggle('is-active', j === index));
+      updateFloats(index);
       setDots();
     }
 
