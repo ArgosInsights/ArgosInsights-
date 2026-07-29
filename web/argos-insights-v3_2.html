@@ -94,6 +94,13 @@
   #file-upload-label,#excel-upload-btn{color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.45);}
   /* estado de confirmación (breve, sin celebraciones) */
   .btn.is-ok{background:var(--brand-hi)!important;color:#0a0a0a!important;}
+  /* mismo halo pulsante del ícono de chat de la landing, aplicado al borde de "Volver al inicio" */
+  .btn-glow{border-color:rgba(127,177,2,.5)!important;animation:chatFabGlow 2.6s ease-in-out infinite;}
+  .btn-glow:hover{border-color:rgba(127,177,2,.8)!important;}
+  @keyframes chatFabGlow{
+    0%,100%{box-shadow:0 0 16px 2px rgba(127,177,2,.55),0 0 34px 8px rgba(127,177,2,.25);}
+    50%{box-shadow:0 0 22px 6px rgba(127,177,2,.8),0 0 46px 14px rgba(127,177,2,.4);}
+  }
   @keyframes btnCheck{0%{transform:scale(.7);opacity:0;}60%{transform:scale(1.12);opacity:1;}100%{transform:scale(1);opacity:1;}}
   .btn .ok-tick{display:inline-block;animation:btnCheck 320ms var(--ease-spring);}
   input[type=file]{display:none;}
@@ -447,7 +454,7 @@
 <!-- ================= ACCESO: INICIO DE SESIÓN ================= -->
 <div class="screen" id="screen-login">
   <div class="auth-wrap">
-    <a class="btn btn-ghost auth-back" href="/">← Volver al inicio</a>
+    <a class="btn btn-ghost auth-back btn-glow" href="/">← Volver al inicio</a>
     <div class="auth-card">
       <div class="brand" style="margin-bottom:6px;"><span class="logo-streaks"><picture><source srcset="/assets/logo-horizontal-nav.webp" type="image/webp"><img src="/assets/logo-horizontal-nav.png" alt="Argos Insights" style="height:40px;width:auto;display:block;"></picture>
         <span class="streak" style="top:22%; left:4%; width:16px; animation-delay:0s; animation-duration:2.6s"></span>
@@ -475,7 +482,7 @@
 <!-- ================= ACCESO: REGISTRO ================= -->
 <div class="screen" id="screen-registro">
   <div class="auth-wrap">
-    <a class="btn btn-ghost auth-back" href="/">← Volver al inicio</a>
+    <a class="btn btn-ghost auth-back btn-glow" href="/">← Volver al inicio</a>
     <div class="auth-card" style="max-width:470px;">
       <div class="brand" style="margin-bottom:6px;"><span class="logo-streaks"><picture><source srcset="/assets/logo-horizontal-nav.webp" type="image/webp"><img src="/assets/logo-horizontal-nav.png" alt="Argos Insights" style="height:40px;width:auto;display:block;"></picture>
         <span class="streak" style="top:22%; left:4%; width:16px; animation-delay:0.3s; animation-duration:2.5s"></span>
@@ -558,7 +565,7 @@
       <div style="width:52px;height:52px;border-radius:16px;background:var(--amber-bg);color:var(--amber);display:flex;align-items:center;justify-content:center;font-size:22px;margin:18px auto 6px;">⏳</div>
       <h2>Tu cuenta está pendiente de aprobación</h2>
       <p class="sub">Un administrador de Argos Insights tiene que aprobar tu cuenta antes de que puedas ver tus datos. Normalmente esto toma poco — si llevas más de un día esperando, escríbenos.</p>
-      <div class="auth-alt" style="margin-top:4px;"><a class="btn btn-ghost btn-block" href="/">Volver al inicio</a></div>
+      <div class="auth-alt" style="margin-top:4px;"><a class="btn btn-ghost btn-block btn-glow" href="/">Volver al inicio</a></div>
     </div>
   </div>
 </div>
