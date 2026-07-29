@@ -41,6 +41,7 @@ export default function LoginScreen() {
   const [aceptaPoliticas, setAceptaPoliticas] = useState(false);
 
   const URL_POLITICA = 'https://argosinsights.org/privacidad.html';
+  const URL_TERMINOS = 'https://argosinsights.org/terminos.html';
 
   async function handleSubmit() {
     setError(null);
@@ -74,7 +75,7 @@ export default function LoginScreen() {
       return;
     }
     if (modo === 'crear' && !aceptaPoliticas) {
-      setError('Tenés que aceptar la política de privacidad para crear tu cuenta.');
+      setError('Tenés que aceptar la política de privacidad y los términos de servicio para crear tu cuenta.');
       return;
     }
 
@@ -228,6 +229,10 @@ export default function LoginScreen() {
                   Acepto la{' '}
                   <Text style={styles.checkboxLink} onPress={() => Linking.openURL(URL_POLITICA)}>
                     política de privacidad
+                  </Text>
+                  {' '}y los{' '}
+                  <Text style={styles.checkboxLink} onPress={() => Linking.openURL(URL_TERMINOS)}>
+                    términos de servicio
                   </Text>
                 </Text>
               </TouchableOpacity>
