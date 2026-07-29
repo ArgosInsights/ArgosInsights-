@@ -2341,6 +2341,12 @@ function renderFacturas(R){
     var cobro = p.p30.ok
       ? (p.qm!=null? '<b>'+M.fmtDate(M.addDays(state.cutoff,p.qm))+'</b>':'<span class="m2">—</span>')+'<div class="prob-mini" style="margin-top:2px;"><span class="bar"><i style="width:'+Math.round(p.p30.p*100)+'%"></i></span>'+pct(p.p30.p)+' en 30d</div>'
       : '<span class="m2">Sin estimación</span>';
+    var official=state.officialPreds&&state.officialPreds[inv.folio];
+    if(official){
+      var oDate=M.parseDateFlexible(official.predicted_payment_date);
+      var oRiskVar=official.risk_level==='alto'?'--red':official.risk_level==='medio'?'--amber':'--brand-hi';
+      cobro+='<div class="m2" style="margin-top:3px;font-size:10px;" title="Predicción del motor de producción (predict-payments), independiente de este cálculo">Oficial: '+(oDate?esc(M.fmtDate(oDate.ts)):'—')+' · <span style="color:var('+oRiskVar+')">riesgo '+esc(official.risk_level||'—')+'</span></div>';
+    }
     return '<tr class="rowsel" data-folio="'+esc(inv.folio)+'|'+esc(inv.pagador)+'">'+
       '<td class="num"><b>'+p.prio.score+'</b></td>'+
       '<td><span class="pill '+(ACTION_CLS[p.prio.action]||'b-sin')+'">'+esc(p.prio.action)+'</span></td>'+
@@ -2757,6 +2763,13 @@ window.ArgosData={
     setCutoffFromMatrix();
     var sel=document.getElementById('ctrl-sheet'); if(sel) sel.style.display='none';
     buildMappingPanel(); renderAll();
+  },
+  // Predicciones del motor de producción (predict-payments), indexadas por folio (numero_factura).
+  // Es un motor independiente del cálculo propio de Renzo (Kaplan-Meier) — ambos se muestran juntos
+  // en la tabla de Cobros, sin mezclarse (decisión explícita: "dos motores").
+  setPredictions:function(byFolio){
+    state.officialPreds=byFolio||{};
+    if(window.__R) renderFacturas(window.__R);
   }
 };
 })();
@@ -2876,6 +2889,18 @@ function loadRealInvoices(userId){
       return [inv.cliente_nombre||'',inv.numero_factura||'',inv.fecha_emision||'',inv.fecha_real_pago||'',inv.monto!=null?inv.monto:'','','','',venc,'CLP','',''];
     });
     window.ArgosData.loadFromRows(headers,rows,'Tus facturas');
+    // Trae también las predicciones del motor de producción (predict-payments) y las
+    // indexa por folio (numero_factura), para mostrarlas junto al cálculo propio de Renzo
+    // en la tabla de Cobros — sin mezclar ambos motores, solo mostrarlos lado a lado.
+    sb.from('payment_predictions_latest').select('*').eq('client_id',userId).then(function(pr){
+      var byInvoiceId={}; ((pr&&pr.data)||[]).forEach(function(p){ byInvoiceId[p.invoice_id]=p; });
+      var byFolio={};
+      data.forEach(function(inv){
+        var pred=byInvoiceId[inv.id];
+        if(pred&&inv.numero_factura) byFolio[inv.numero_factura]=pred;
+      });
+      window.ArgosData.setPredictions(byFolio);
+    })['catch'](function(){});
     return true;
   })['catch'](function(){
     if(window.ArgosMotion) ArgosMotion.toast('No pudimos cargar tus facturas. Puedes subir un archivo manualmente.','err');
