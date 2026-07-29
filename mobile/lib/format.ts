@@ -124,6 +124,7 @@ export type ExcelUpload = {
   id: string;
   file_name: string;
   uploaded_at: string;
+  visible: boolean;
 };
 
 export function formatFechaHora(iso: string) {

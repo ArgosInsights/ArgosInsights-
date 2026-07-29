@@ -42,6 +42,7 @@ export default function CobrosScreen({ userId }: { userId: string }) {
         .from('invoices')
         .select('*')
         .eq('client_id', userId)
+        .eq('visible', true)
         .order('fecha_emision', { ascending: false }),
       supabase.from('payment_predictions_latest').select('*').eq('client_id', userId),
     ]);

@@ -18,6 +18,7 @@ export default function CajaScreen({ userId }: { userId: string }) {
       .from('cash_flow_months')
       .select('*')
       .eq('client_id', userId)
+      .eq('visible', true)
       .order('mes', { ascending: true });
     setMeses((data as CashFlowMonth[]) ?? []);
   }

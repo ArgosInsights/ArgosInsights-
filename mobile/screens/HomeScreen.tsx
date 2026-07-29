@@ -72,13 +72,15 @@ export default function HomeScreen({
         .from('invoices')
         .select('*')
         .eq('client_id', userId)
+        .eq('visible', true)
         .order('fecha_emision', { ascending: false }),
       supabase
         .from('cash_flow_months')
         .select('*')
         .eq('client_id', userId)
+        .eq('visible', true)
         .order('mes', { ascending: true }),
-      supabase.from('document_cycle').select('*').eq('client_id', userId),
+      supabase.from('document_cycle').select('*').eq('client_id', userId).eq('visible', true),
       supabase.from('payment_predictions_latest').select('*').eq('client_id', userId),
     ]);
 

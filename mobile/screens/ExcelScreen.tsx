@@ -98,9 +98,26 @@ export default function ExcelScreen({ userId }: { userId: string }) {
 
   async function cargar() {
     const [{ data: inv }, { data: cash }, { data: doc }, { data: subs }] = await Promise.all([
-      supabase.from('invoices').select('*').eq('client_id', userId).order('fecha_emision', { ascending: false }),
-      supabase.from('cash_flow_months').select('*').eq('client_id', userId).order('mes', { ascending: true }),
-      supabase.from('document_cycle').select('*').eq('client_id', userId).order('fecha_oc', { ascending: false }),
+      supabase
+        .from('invoices')
+        .select('*')
+        .eq('client_id', userId)
+        .eq('visible', true)
+        .order('fecha_emision', { ascending: false }),
+      supabase
+        .from('cash_flow_months')
+        .select('*')
+        .eq('client_id', userId)
+        .eq('visible', true)
+        .order('mes', { ascending: true }),
+      supabase
+        .from('document_cycle')
+        .select('*')
+        .eq('client_id', userId)
+        .eq('visible', true)
+        .order('fecha_oc', { ascending: false }),
+      // El historial trae TODAS las planillas (visibles y ocultas) para poder mostrarlas
+      // y dejar reactivarlas.
       supabase.from('excel_uploads').select('*').eq('client_id', userId).order('uploaded_at', { ascending: false }),
     ]);
     setInvoices((inv as Invoice[]) ?? []);
@@ -164,28 +181,29 @@ export default function ExcelScreen({ userId }: { userId: string }) {
       if (eUpload) throw eUpload;
       const uploadId = nuevoUpload.id;
 
-      // Reemplaza los datos anteriores por los nuevos del Excel (borra y vuelve a insertar,
-      // así una re-carga siempre refleja el archivo actual). Como client_id es tu propio
-      // usuario, esto solo puede tocar tus datos.
-      await Promise.all([
-        supabase.from('invoices').delete().eq('client_id', userId),
-        supabase.from('cash_flow_months').delete().eq('client_id', userId),
-        supabase.from('document_cycle').delete().eq('client_id', userId),
-      ]);
+      // Combina con lo que ya había en vez de reemplazarlo: una factura/mes/OC se
+      // considera "la misma" si coincide cliente + folio/mes/N° OC (constraints unique
+      // agregadas en la migración excel_upload_merge_and_visibility). Si ya existía se
+      // actualiza con los datos de este archivo y pasa a pertenecer a este upload; si es
+      // nueva, se agrega. Así varias planillas pueden convivir.
+      const conClienteYUpload = <T extends object>(arr: T[]) =>
+        arr.map((f) => ({ ...f, client_id: userId, upload_id: uploadId, visible: true }));
 
       const [{ error: e1 }, { error: e2 }, { error: e3 }] = await Promise.all([
         nuevasFacturas.length
-          ? supabase.from('invoices').insert(nuevasFacturas.map((f) => ({ ...f, client_id: userId, upload_id: uploadId })))
+          ? supabase
+              .from('invoices')
+              .upsert(conClienteYUpload(nuevasFacturas), { onConflict: 'client_id,numero_factura' })
           : Promise.resolve({ error: null }),
         cashFlow.length
           ? supabase
               .from('cash_flow_months')
-              .insert(cashFlow.map((f) => ({ ...f, client_id: userId, upload_id: uploadId })))
+              .upsert(conClienteYUpload(cashFlow), { onConflict: 'client_id,mes' })
           : Promise.resolve({ error: null }),
         documentCycle.length
           ? supabase
               .from('document_cycle')
-              .insert(documentCycle.map((f) => ({ ...f, client_id: userId, upload_id: uploadId })))
+              .upsert(conClienteYUpload(documentCycle), { onConflict: 'client_id,numero_oc' })
           : Promise.resolve({ error: null }),
       ]);
 
@@ -194,7 +212,7 @@ export default function ExcelScreen({ userId }: { userId: string }) {
 
       setEstadoSubida('ok');
       setMensajeSubida(
-        `Listo. Se actualizaron ${nuevasFacturas.length} facturas, ${cashFlow.length} meses de flujo de caja y ${documentCycle.length} ciclos documentales.`
+        `Listo. Se sumaron/actualizaron ${nuevasFacturas.length} facturas, ${cashFlow.length} meses de flujo de caja y ${documentCycle.length} ciclos documentales.`
       );
       await cargar();
     } catch (err: any) {
@@ -237,6 +255,23 @@ export default function ExcelScreen({ userId }: { userId: string }) {
       await cargar();
     } catch (err: any) {
       Alert.alert('No se pudo eliminar', err?.message ?? 'Intentá de nuevo.');
+    }
+  }
+
+  // Ocultar una planilla no borra nada: solo la saca (o la vuelve a meter) del cálculo
+  // en Cobros/Caja/Ciclo, tocando el flag "visible" en la planilla y en sus filas.
+  async function toggleVisibilidad(upload: ExcelUpload) {
+    const nuevo = !upload.visible;
+    try {
+      await Promise.all([
+        supabase.from('excel_uploads').update({ visible: nuevo }).eq('id', upload.id),
+        supabase.from('invoices').update({ visible: nuevo }).eq('upload_id', upload.id),
+        supabase.from('cash_flow_months').update({ visible: nuevo }).eq('upload_id', upload.id),
+        supabase.from('document_cycle').update({ visible: nuevo }).eq('upload_id', upload.id),
+      ]);
+      await cargar();
+    } catch (err: any) {
+      Alert.alert('No se pudo actualizar', err?.message ?? 'Intentá de nuevo.');
     }
   }
 
@@ -302,13 +337,21 @@ export default function ExcelScreen({ userId }: { userId: string }) {
           <View style={styles.historialCard}>
             <Text style={styles.historialTitulo}>Planillas subidas</Text>
             {historial.map((h) => (
-              <View key={h.id} style={styles.historialFila}>
+              <View key={h.id} style={[styles.historialFila, h.visible === false && { opacity: 0.55 }]}>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.historialNombre} numberOfLines={1}>
                     {h.file_name}
+                    {h.visible === false ? ' (oculta)' : ''}
                   </Text>
                   <Text style={styles.historialFecha}>{formatFechaHora(h.uploaded_at)}</Text>
                 </View>
+                <TouchableOpacity
+                  onPress={() => toggleVisibilidad(h)}
+                  style={styles.historialOjo}
+                  accessibilityLabel={h.visible === false ? `Mostrar ${h.file_name}` : `Ocultar ${h.file_name}`}
+                >
+                  <Feather name={h.visible === false ? 'eye-off' : 'eye'} size={16} color={colors.muted} />
+                </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => eliminarUpload(h)}
                   style={styles.historialX}
@@ -450,13 +493,21 @@ function getStyles(colors: ColorPalette) {
     },
     historialNombre: { color: colors.white, fontSize: 12 },
     historialFecha: { color: colors.muted2, fontSize: 10.5, marginTop: 2 },
-    historialX: {
+    historialOjo: {
       width: 28,
       height: 28,
       borderRadius: 8,
       alignItems: 'center',
       justifyContent: 'center',
       marginLeft: 10,
+    },
+    historialX: {
+      width: 28,
+      height: 28,
+      borderRadius: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginLeft: 4,
     },
     button: {
       backgroundColor: colors.green,

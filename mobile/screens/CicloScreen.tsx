@@ -32,6 +32,7 @@ export default function CicloScreen({ userId }: { userId: string }) {
       .from('document_cycle')
       .select('*')
       .eq('client_id', userId)
+      .eq('visible', true)
       .order('fecha_oc', { ascending: false });
     setCiclos((data as DocumentCycle[]) ?? []);
   }
