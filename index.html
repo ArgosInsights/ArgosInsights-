@@ -416,6 +416,15 @@
     50% { box-shadow: 0 0 22px 6px rgba(127,177,2,0.8), 0 0 46px 14px rgba(127,177,2,0.4); }
   }
 
+  /* mismo halo pulsante del ícono de chat, aplicado al borde del botón "Soy cliente" */
+  .btn-glow {
+    border-color: rgba(127,177,2,0.5) !important;
+    animation: chatFabGlow 2.6s ease-in-out infinite;
+  }
+  .btn-glow:hover {
+    border-color: rgba(127,177,2,0.8) !important;
+  }
+
   .vs-badge {
     width: 46px;
     height: 46px;
@@ -838,7 +847,7 @@
       <a href="#app" class="nav-glow lg:hidden text-sm font-semibold">App</a>
       <div class="hidden sm:flex items-center gap-3">
         <a href="/web/argos-insights-v3_2.html#/login"
-           class="inline-flex items-center gap-2 text-sm font-semibold text-white border border-white/15 px-5 py-2.5 rounded-full transition-colors hover:border-white/40">
+           class="btn-glow inline-flex items-center gap-2 text-sm font-semibold text-white border border-white/15 px-5 py-2.5 rounded-full transition-colors hover:border-white/40">
           Soy cliente
         </a>
         <a href="/web/argos-insights-v3_2.html?demo=1"
