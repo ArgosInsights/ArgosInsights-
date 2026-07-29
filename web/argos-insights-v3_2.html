@@ -2698,6 +2698,20 @@ if(window.__xlsxFailed||typeof XLSX==='undefined') document.getElementById('xlsx
 document.getElementById('inp-cutoff').value=tsToInput(state.cutoff);
 if(window.ArgosMotion) ArgosMotion.initEscClose([{isOpen:function(){return document.getElementById('drawer').classList.contains('open');},close:closeDrawer}]);
 renderAll();
+
+/* ---- puente hacia la capa de acceso: cargar filas ya armadas (ej. desde Supabase), sin pasar por un archivo ---- */
+window.ArgosData={
+  loadFromRows:function(headers,rows,fileName){
+    state.sheets={'Datos':[headers].concat(rows)};
+    state.sheetName='Datos';
+    state.matrix=state.sheets[state.sheetName];
+    state.overrides={}; state.headerRow=null; state.fileName=fileName;
+    state.gf={pagador:'',accion:'',conf:'',sort:'score',buscar:''};
+    setCutoffFromMatrix();
+    var sel=document.getElementById('ctrl-sheet'); if(sel) sel.style.display='none';
+    buildMappingPanel(); renderAll();
+  }
+};
 })();
 </script>
 <script>
@@ -2705,10 +2719,13 @@ renderAll();
 /* ================================================================
    CAPA DE ACCESO (v3) — sitio público, sesión real (Supabase) y router.
    El modo "demo" (link "Ver demostración" / "Entrar a la demo") sigue
-   siendo 100% local: no toca Supabase, no persiste nada. Solo login,
-   registro, recuperación y logout hablan con el backend real, el mismo
-   proyecto de Supabase que usa la app móvil (ver /mobile/lib/supabase.ts
-   y /web/README.md).
+   siendo 100% local: no toca Supabase, no persiste nada. Un cliente real
+   además lee sus propias facturas de la tabla "invoices" (el mismo
+   proyecto de Supabase que usa la app móvil — mismos datos, misma
+   fuente de verdad; ver /mobile/lib/supabase.ts y /web/README.md) y las
+   alimenta al motor de cálculo existente vía window.ArgosData.loadFromRows,
+   en vez de requerir que suba un Excel. La opción de subir un archivo
+   propio se mantiene disponible como alternativa manual.
    ================================================================ */
 (function(){
 var session=null;            // {name, empresa, email, demo:bool} — solo en memoria
@@ -2772,7 +2789,7 @@ function route(){
   if(s==='app'&&!session){ go('login'); return; }
   if(s==='confirm'&&!session){ go('registro'); return; }
   SCREENS.forEach(function(n){ var el=document.getElementById('screen-'+n); if(el) el.classList.toggle('on',n===s); });
-  if(s==='app'&&!onboardingSeen){ onboardingSeen=true; openOnb(); }
+  if(s==='app'&&!onboardingSeen&&!(session&&session.hasData)){ onboardingSeen=true; openOnb(); }
   window.scrollTo(0,0);
 }
 window.addEventListener('hashchange',route);
@@ -2784,6 +2801,40 @@ function mark(id,bad){ fld(id).classList.toggle('bad',!!bad); return !bad; }
 var EMAIL_RE=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 function busy(btn,txt){ btn.disabled=true; btn.dataset.orig=btn.textContent; btn.innerHTML='<span class="spinner"></span>'+txt; }
 function unbusy(btn){ btn.disabled=false; btn.textContent=btn.dataset.orig; }
+
+// Trae las facturas reales del cliente desde Supabase y las entrega al motor de cálculo
+// existente (window.ArgosData.loadFromRows), con el mismo formato de columnas que ya
+// entiende la carga de Excel. Si no hay filas (cliente nuevo, sin datos aún), no rompe
+// nada: se avisa y se deja lo que ya estaba cargado (para no mostrar una app vacía).
+function loadRealInvoices(userId){
+  if(!sb||!window.ArgosData) return Promise.resolve(false);
+  return sb.from('invoices').select('*').eq('client_id',userId).then(function(r){
+    if(r.error){
+      if(window.ArgosMotion) ArgosMotion.toast('No pudimos cargar tus facturas. Puedes subir un archivo manualmente.','err');
+      return false;
+    }
+    var data=r.data||[];
+    if(!data.length){
+      if(window.ArgosMotion) ArgosMotion.toast('Aún no tienes facturas cargadas — puedes subir un Excel para empezar','info');
+      return false;
+    }
+    var headers=['Pagador','Factura','Fecha Emisión Factura','Fecha de Pago','Monto','Monto Pago','Saldo Pendiente','Estado','Vencimiento','Moneda','Responsable','Glosa'];
+    var rows=data.map(function(inv){
+      var venc='';
+      if(inv.fecha_emision){
+        var d=new Date(inv.fecha_emision+'T00:00:00');
+        d.setDate(d.getDate()+(inv.plazo_dias!=null?inv.plazo_dias:30));
+        venc=d.toISOString().slice(0,10);
+      }
+      return [inv.cliente_nombre||'',inv.numero_factura||'',inv.fecha_emision||'',inv.fecha_real_pago||'',inv.monto!=null?inv.monto:'','','','',venc,'CLP','',''];
+    });
+    window.ArgosData.loadFromRows(headers,rows,'Tus facturas');
+    return true;
+  })['catch'](function(){
+    if(window.ArgosMotion) ArgosMotion.toast('No pudimos cargar tus facturas. Puedes subir un archivo manualmente.','err');
+    return false;
+  });
+}
 
 function enter(user){
   session=user;
@@ -2797,7 +2848,11 @@ function enter(user){
     modeEl.textContent=user.demo?'Acceso de demostración':'Cuenta de cliente';
     modeEl.style.cssText=user.demo?'':'background:rgba(111,176,0,.12);color:var(--brand-hi);border:1px solid var(--brand-dim);';
   }
-  go('app');
+  if(!user.demo&&user.id){
+    loadRealInvoices(user.id).then(function(hasData){ session.hasData=hasData; go('app'); });
+  } else {
+    go('app');
+  }
 }
 
 /* ---- navegación entre pantallas de acceso (login/registro/recuperar/pendiente) ---- */
