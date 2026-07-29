@@ -2941,7 +2941,7 @@ function unbusy(btn){ btn.disabled=false; btn.textContent=btn.dataset.orig; }
 // nada: se avisa y se deja lo que ya estaba cargado (para no mostrar una app vacía).
 function loadRealInvoices(userId){
   if(!sb||!window.ArgosData) return Promise.resolve(false);
-  return sb.from('invoices').select('*').eq('client_id',userId).then(function(r){
+  return sb.from('invoices').select('*').eq('client_id',userId).eq('visible',true).then(function(r){
     if(r.error){
       if(window.ArgosMotion) ArgosMotion.toast('No pudimos cargar tus facturas. Puedes subir un archivo manualmente.','err');
       return false;
@@ -3072,6 +3072,8 @@ function renderPerfil(user){
 }
 
 /* ---- historial de planillas subidas (excel_uploads) ---- */
+var EYE_OPEN='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>';
+var EYE_OFF='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.86 21.86 0 0 1 5.06-6.06M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a21.86 21.86 0 0 1-3.22 4.44M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
 function renderExcelHist(rows,isDemo){
   var tbody=document.getElementById('excel-hist-body'), empty=document.getElementById('excel-hist-empty');
   if(!tbody) return;
@@ -3080,14 +3082,23 @@ function renderExcelHist(rows,isDemo){
   tbody.innerHTML=rows.map(function(h){
     var f=new Date(h.uploaded_at);
     var fTxt=isFinite(f.getTime())? ('0'+f.getDate()).slice(-2)+'-'+('0'+(f.getMonth()+1)).slice(-2)+'-'+f.getFullYear() : '—';
-    var delBtn=isDemo
-      ? '<button class="btn btn-ghost btn-locked" style="padding:4px 10px;font-size:11px;" title="Disponible con tu cuenta de cliente — en la demo es solo de ejemplo.">Eliminar</button>'
-      : '<button class="btn btn-ghost excel-del" data-id="'+esc(h.id)+'" style="padding:4px 10px;font-size:11px;">Eliminar</button>';
-    return '<tr><td>'+esc(h.file_name)+'</td><td>'+fTxt+'</td><td>'+delBtn+'</td></tr>';
+    var visible=h.visible!==false;
+    var acciones;
+    if(isDemo){
+      acciones='<button class="btn btn-ghost btn-locked" style="padding:4px 8px;" title="Disponible con tu cuenta de cliente — en la demo es solo de ejemplo.">'+EYE_OPEN+'</button>'+
+        '<button class="btn btn-ghost btn-locked" style="padding:4px 10px;font-size:11px;margin-left:6px;" title="Disponible con tu cuenta de cliente — en la demo es solo de ejemplo.">Eliminar</button>';
+    } else {
+      acciones='<button class="btn btn-ghost excel-vis" data-id="'+esc(h.id)+'" data-visible="'+visible+'" style="padding:4px 8px;'+(visible?'':'color:var(--faint);')+'" title="'+(visible?'Ocultar planilla (no contará en Cobros/Caja/Ciclo)':'Mostrar planilla')+'">'+(visible?EYE_OPEN:EYE_OFF)+'</button>'+
+        '<button class="btn btn-ghost excel-del" data-id="'+esc(h.id)+'" style="padding:4px 10px;font-size:11px;margin-left:6px;">Eliminar</button>';
+    }
+    return '<tr'+(visible?'':' style="opacity:.55;"')+'><td>'+esc(h.file_name)+(visible?'':' <span class="m2" style="font-size:10px;">(oculta)</span>')+'</td><td>'+fTxt+'</td><td style="white-space:nowrap;">'+acciones+'</td></tr>';
   }).join('');
   if(!isDemo){
     Array.prototype.forEach.call(tbody.querySelectorAll('.excel-del'),function(b){
       b.addEventListener('click',function(){ eliminarUploadWeb(b.getAttribute('data-id')); });
+    });
+    Array.prototype.forEach.call(tbody.querySelectorAll('.excel-vis'),function(b){
+      b.addEventListener('click',function(){ toggleUploadVisibleWeb(b.getAttribute('data-id'),b.getAttribute('data-visible')==='true'); });
     });
   }
 }
@@ -3106,6 +3117,22 @@ function eliminarUploadWeb(uploadId){
     if(window.ArgosMotion) ArgosMotion.toast('No pudimos eliminar la planilla','err');
   });
 }
+/* ---- ocultar/mostrar una planilla: no borra nada, solo la saca (o la vuelve a meter) del
+   cálculo en Cobros/Caja/Ciclo, tocando el flag "visible" en la planilla y en sus filas ---- */
+function toggleUploadVisibleWeb(uploadId,eraVisible){
+  var nuevo=!eraVisible;
+  Promise.all([
+    sb.from('excel_uploads').update({visible:nuevo}).eq('id',uploadId),
+    sb.from('invoices').update({visible:nuevo}).eq('upload_id',uploadId),
+    sb.from('cash_flow_months').update({visible:nuevo}).eq('upload_id',uploadId),
+    sb.from('document_cycle').update({visible:nuevo}).eq('upload_id',uploadId)
+  ]).then(function(){
+    if(window.ArgosMotion) ArgosMotion.toast(nuevo?'Planilla visible de nuevo':'Planilla ocultada','info');
+    if(session&&session.id){ loadClientExtras(session); loadRealInvoices(session.id); }
+  })['catch'](function(){
+    if(window.ArgosMotion) ArgosMotion.toast('No pudimos actualizar la planilla','err');
+  });
+}
 
 /* ---- trae ciclo + historial de planillas + arma la pestaña Perfil ---- */
 function loadClientExtras(user){
@@ -3113,7 +3140,7 @@ function loadClientExtras(user){
   renderGreeting(user);
   if(!sb||!user||!user.id) return Promise.resolve();
   return Promise.all([
-    sb.from('document_cycle').select('*').eq('client_id',user.id).order('fecha_oc',{ascending:false}),
+    sb.from('document_cycle').select('*').eq('client_id',user.id).eq('visible',true).order('fecha_oc',{ascending:false}),
     sb.from('excel_uploads').select('*').eq('client_id',user.id).order('uploaded_at',{ascending:false})
   ]).then(function(results){
     renderCiclo((results[0]&&results[0].data)||[]);
@@ -3161,8 +3188,13 @@ function parseArgosExcelWeb(wb){
   return {invoices:invoices,cashFlow:cashFlow,documentCycle:documentCycle};
 }
 function conClienteYUpload(arr,clientId,uploadId){
-  return arr.map(function(f){ var o={}; for(var k in f) o[k]=f[k]; o.client_id=clientId; o.upload_id=uploadId; return o; });
+  return arr.map(function(f){ var o={}; for(var k in f) o[k]=f[k]; o.client_id=clientId; o.upload_id=uploadId; o.visible=true; return o; });
 }
+/* ---- sube una planilla y la combina (upsert) con lo que ya había, en vez de reemplazarlo ----
+   Una factura/mes/OC se considera "la misma" si coincide cliente + folio/mes/N°OC (constraints
+   agregadas en la migración excel_upload_merge_and_visibility). Si coincide, se actualiza con
+   los datos del archivo nuevo (y pasa a pertenecer a este upload); si es nueva, se agrega. Así
+   varias planillas conviven — la última que trae cada factura es la que manda. */
 function subirPlanillaOficialWeb(file){
   var statusEl=document.getElementById('excel-status');
   function setStatus(txt,color){ statusEl.style.display='block'; statusEl.style.color=color||''; statusEl.textContent=txt; }
@@ -3181,22 +3213,15 @@ function subirPlanillaOficialWeb(file){
         if(up.error) throw up.error;
         uploadId=up.data.id;
         return Promise.all([
-          sb.from('invoices').delete().eq('client_id',session.id),
-          sb.from('cash_flow_months').delete().eq('client_id',session.id),
-          sb.from('document_cycle').delete().eq('client_id',session.id)
-        ]);
-      })
-      .then(function(){
-        return Promise.all([
-          parsed.invoices.length? sb.from('invoices').insert(conClienteYUpload(parsed.invoices,session.id,uploadId)) : Promise.resolve({error:null}),
-          parsed.cashFlow.length? sb.from('cash_flow_months').insert(conClienteYUpload(parsed.cashFlow,session.id,uploadId)) : Promise.resolve({error:null}),
-          parsed.documentCycle.length? sb.from('document_cycle').insert(conClienteYUpload(parsed.documentCycle,session.id,uploadId)) : Promise.resolve({error:null})
+          parsed.invoices.length? sb.from('invoices').upsert(conClienteYUpload(parsed.invoices,session.id,uploadId),{onConflict:'client_id,numero_factura'}) : Promise.resolve({error:null}),
+          parsed.cashFlow.length? sb.from('cash_flow_months').upsert(conClienteYUpload(parsed.cashFlow,session.id,uploadId),{onConflict:'client_id,mes'}) : Promise.resolve({error:null}),
+          parsed.documentCycle.length? sb.from('document_cycle').upsert(conClienteYUpload(parsed.documentCycle,session.id,uploadId),{onConflict:'client_id,numero_oc'}) : Promise.resolve({error:null})
         ]);
       })
       .then(function(results){
         var withErr=results.filter(function(r){return r&&r.error;})[0];
         if(withErr) throw withErr.error;
-        setStatus('Listo. Se actualizaron '+parsed.invoices.length+' facturas, '+parsed.cashFlow.length+' meses de flujo de caja y '+parsed.documentCycle.length+' ciclos documentales.','var(--brand-hi)');
+        setStatus('Listo. Se sumaron/actualizaron '+parsed.invoices.length+' facturas, '+parsed.cashFlow.length+' meses de flujo de caja y '+parsed.documentCycle.length+' ciclos documentales.','var(--brand-hi)');
         if(window.ArgosMotion) ArgosMotion.toast('Planilla cargada y datos actualizados');
         return Promise.all([loadRealInvoices(session.id),loadClientExtras(session)]);
       })
