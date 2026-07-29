@@ -600,18 +600,22 @@
   <div class="card" id="map-panel" style="display:none;">
     <div class="c-head"><h2>Mapeo de columnas</h2><span class="hint" id="map-hint"></span></div>
     <p class="c-desc">El sistema detecta hoja, encabezados y columnas solo — normalmente no hay que tocar nada acá. Si tu planilla usa otros nombres, corrige el campo puntual. <b>La fecha de pago no es obligatoria</b> para archivos de cartera abierta (usa "cartera vigente" arriba, en Ajustes avanzados).</p>
-    <div class="grid g4" id="map-grid-esencial"></div>
-    <div class="grid g4" id="map-grid-otros" style="margin-top:12px;"></div>
-    <button class="btn btn-ghost" id="btn-map-more" style="margin-top:12px;display:none;font-size:11px;"></button>
-    <div class="grid g4" id="map-grid-more" style="margin-top:12px;display:none;"></div>
-    <div style="display:flex;gap:12px;align-items:center;margin-top:14px;flex-wrap:wrap;">
+    <div class="ctrl"><label>Campos esenciales</label></div>
+    <div class="grid g4" id="map-grid-esencial" style="margin-top:6px;"></div>
+
+    <div class="ctrl" id="map-otros-label" style="margin-top:16px;display:none;"><label>Necesitan revisión</label></div>
+    <div class="grid g4" id="map-grid-otros" style="margin-top:6px;"></div>
+
+    <button class="link-plain" id="btn-map-more" style="margin-top:14px;display:none;"></button>
+    <div class="grid g4" id="map-grid-more" style="margin-top:10px;display:none;"></div>
+
+    <div style="display:flex;gap:12px;align-items:center;margin-top:16px;flex-wrap:wrap;">
       <div class="ctrl"><label>Fila de encabezados</label><input type="number" id="inp-headerrow" min="1" style="width:100px;"></div>
       <button class="btn btn-primary" id="btn-apply-map">Aplicar mapeo</button>
       <span class="msg" id="map-msg"></span>
     </div>
-    <details class="edu" style="margin-top:12px;"><summary>Ver vista previa del archivo</summary>
-      <div class="scrollx" style="margin-top:10px;"><table id="preview-table"></table></div>
-    </details>
+    <div class="ctrl" style="margin-top:16px;"><label>Vista previa</label></div>
+    <div class="scrollx" style="margin-top:6px;"><table id="preview-table"></table></div>
   </div>
 
   <nav class="nav">
@@ -2625,6 +2629,7 @@ function buildMappingPanel(){
 
   document.getElementById('map-grid-esencial').innerHTML=esenciales.map(fieldCard).join('');
   document.getElementById('map-grid-otros').innerHTML=sinDetectar.map(fieldCard).join('');
+  document.getElementById('map-otros-label').style.display=sinDetectar.length?'block':'none';
 
   var moreBtn=document.getElementById('btn-map-more'), moreGrid=document.getElementById('map-grid-more');
   if(detectados.length){
