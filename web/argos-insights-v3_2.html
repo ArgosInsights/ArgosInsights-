@@ -3053,8 +3053,15 @@ function loadClientExtras(user){
     renderExcelHist((results[1]&&results[1].data)||[]);
   })['catch'](function(){});
 }
+var CICLO_DEMO=[
+  {cliente_nombre:'MINERA CUMBRE (FICTICIA)',numero_oc:'OC-2001',fecha_oc:'2026-07-08',fecha_hes:null,fecha_edp:null,fecha_factura:null,fecha_pago:null},
+  {cliente_nombre:'TELECOM AUSTRAL (FICTICIA)',numero_oc:'OC-2002',fecha_oc:'2026-06-20',fecha_hes:'2026-06-25',fecha_edp:null,fecha_factura:null,fecha_pago:null},
+  {cliente_nombre:'CONSTRUCTORA RÍO CLARO (FICTICIA)',numero_oc:'OC-2003',fecha_oc:'2026-05-10',fecha_hes:'2026-05-14',fecha_edp:'2026-05-20',fecha_factura:null,fecha_pago:null},
+  {cliente_nombre:'MINERA CUMBRE (FICTICIA)',numero_oc:'OC-2004',fecha_oc:'2026-04-02',fecha_hes:'2026-04-06',fecha_edp:'2026-04-12',fecha_factura:'2026-04-15',fecha_pago:null},
+  {cliente_nombre:'TELECOM AUSTRAL (FICTICIA)',numero_oc:'OC-2005',fecha_oc:'2026-02-01',fecha_hes:'2026-02-05',fecha_edp:'2026-02-10',fecha_factura:'2026-02-14',fecha_pago:'2026-03-20'}
+];
 function clearClientExtras(){
-  renderCiclo([]);
+  renderCiclo(CICLO_DEMO);
   renderExcelHist([{file_name:'Argos Insights — Orden Financiero (ejemplo).xlsx',uploaded_at:'2026-07-10T00:00:00Z'}],true);
   renderPerfil(null); renderGreeting(null);
 }
