@@ -742,20 +742,6 @@
 
   <!-- ============ METODOLOGÍA (avanzado) ============ -->
   <div class="view" id="view-metodo">
-    <div class="card">
-      <div class="c-head"><h2>Método, en una página</h2><span class="hint">aquí sí usamos los nombres técnicos</span></div>
-      <p class="c-desc" style="font-size:12px;color:var(--muted);line-height:1.75;max-width:none;">
-        <b style="color:var(--ink)">Unidad de análisis:</b> factura única (las filas repetidas por EDP/HES se consolidan; los abonos se agrupan y el evento es el <b>pago completo</b>).
-        <b style="color:var(--ink)">Modelo base:</b> Kaplan–Meier — las facturas abiertas participan como censura, no se ignoran. Intervalos de confianza 95% Greenwood log-log (en la interfaz principal: "rango estimado").
-        <b style="color:var(--ink)">Facturas abiertas:</b> probabilidad condicionada P(pago en h | impaga al día T) = 1 − S(T+h)/S(T), con leave-one-out.
-        <b style="color:var(--ink)">Clientes con poca historia:</b> mezcla regularizada S = w·cliente + (1−w)·cartera, w = eventos/(eventos+10). No es inferencia bayesiana y la proporción se informa siempre.
-        <b style="color:var(--ink)">Proyección de caja:</b> probabilidades incrementales por periodo (nunca negativas, suman ≤ 1) × saldo pendiente. Escenarios evaluando las bandas IC (aproximación documentada, no un intervalo condicional riguroso).
-        <b style="color:var(--ink)">Nada se extrapola fuera del soporte histórico:</b> sin casos comparables ⇒ "sin estimación" y el saldo se informa aparte.
-      </p>
-      <details class="edu"><summary>¿Por qué la probabilidad de una factura nueva no sirve para una que ya está impaga?</summary>
-        Si de 100 facturas 60 estaban pagadas al día 20 y 90 al día 50, una nueva tiene 90% de estar pagada al día 50; pero una que sigue impaga al día 20 tiene (0,90−0,60)/(1−0,60) = <b>75%</b> de pagarse en los 30 días siguientes. La vista Cobros usa siempre la fórmula condicionada.
-      </details>
-    </div>
     <div class="card" style="border-color:var(--brand-dim);">
       <div class="c-head"><h2>Simulación: factura nueva</h2><span class="hint" id="m-sim-hint"></span></div>
       <div class="grid g2" style="margin-top:8px;"><div id="m-sim-probs"></div><div id="m-sim-detail"></div></div>
