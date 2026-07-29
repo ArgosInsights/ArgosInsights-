@@ -600,20 +600,26 @@
   <div class="card" id="map-panel" style="display:none;">
     <div class="c-head"><h2>Mapeo de columnas</h2><span class="hint" id="map-hint"></span></div>
     <p class="c-desc">El sistema detecta hoja, encabezados y columnas solo — normalmente no hay que tocar nada acá. Si tu planilla usa otros nombres, corrige el campo puntual. <b>La fecha de pago no es obligatoria</b> para archivos de cartera abierta (usa "cartera vigente" arriba, en Ajustes avanzados).</p>
-    <div class="ctrl"><label>Campos esenciales</label></div>
-    <div class="grid g4" id="map-grid-esencial" style="margin-top:6px;"></div>
+    <div id="map-summary" style="max-width:520px;"></div>
+    <button class="link-plain" id="btn-map-edit" style="margin-top:10px;">Editar mapeo manualmente</button>
 
-    <div class="ctrl" id="map-otros-label" style="margin-top:16px;display:none;"><label>Necesitan revisión</label></div>
-    <div class="grid g4" id="map-grid-otros" style="margin-top:6px;"></div>
+    <div id="map-edit-zone" style="display:none;margin-top:16px;">
+      <div class="ctrl"><label>Campos esenciales</label></div>
+      <div class="grid g4" id="map-grid-esencial" style="margin-top:6px;"></div>
 
-    <button class="link-plain" id="btn-map-more" style="margin-top:14px;display:none;"></button>
-    <div class="grid g4" id="map-grid-more" style="margin-top:10px;display:none;"></div>
+      <div class="ctrl" id="map-otros-label" style="margin-top:16px;display:none;"><label>Necesitan revisión</label></div>
+      <div class="grid g4" id="map-grid-otros" style="margin-top:6px;"></div>
 
-    <div style="display:flex;gap:12px;align-items:center;margin-top:16px;flex-wrap:wrap;">
-      <div class="ctrl"><label>Fila de encabezados</label><input type="number" id="inp-headerrow" min="1" style="width:100px;"></div>
-      <button class="btn btn-primary" id="btn-apply-map">Aplicar mapeo</button>
-      <span class="msg" id="map-msg"></span>
+      <button class="link-plain" id="btn-map-more" style="margin-top:14px;display:none;"></button>
+      <div class="grid g4" id="map-grid-more" style="margin-top:10px;display:none;"></div>
+
+      <div style="display:flex;gap:12px;align-items:center;margin-top:16px;flex-wrap:wrap;">
+        <div class="ctrl"><label>Fila de encabezados</label><input type="number" id="inp-headerrow" min="1" style="width:100px;"></div>
+        <button class="btn btn-primary" id="btn-apply-map">Aplicar mapeo</button>
+        <span class="msg" id="map-msg"></span>
+      </div>
     </div>
+
     <div class="ctrl" style="margin-top:16px;"><label>Vista previa</label></div>
     <div class="scrollx" style="margin-top:6px;"><table id="preview-table"></table></div>
   </div>
@@ -2609,11 +2615,22 @@ function renderScatter(paid,label){
 /* ============================ MAPEO / INGESTA ============================ */
 var MAP_FIELDS=[['pagador','Pagador *'],['folio','Folio *'],['fecha_emision','Fecha emisión *'],['fecha_pago','Fecha de pago'],['vencimiento','Vencimiento'],['estado','Estado'],['monto','Monto'],['saldo','Saldo pendiente'],['monto_pago','Monto de pago/abono'],['moneda','Moneda'],['responsable','Responsable'],['empresa','Empresa'],['oc','OC'],['hes','HES'],['glosa','Glosa/EDP']];
 var MAP_ESSENTIAL=['pagador','folio','fecha_emision'];
-var mapMoreOpen=false;
+var mapMoreOpen=false, mapEditMode=false;
 function buildMappingPanel(){
   var parsed=M.parseAndMapInput(state.matrix,{headerRow:state.headerRow,overrides:state.overrides});
   var headers=parsed.headers;
   function detectado(field){ var c=parsed.mapping[field]; return !(c===undefined||c===null); }
+  function valorLegible(field){
+    var cur=parsed.mapping[field];
+    if(cur===undefined||cur===null) return '<span style="color:var(--red);">no detectado</span>';
+    if(cur==='__ROWNUM__') return 'N° de fila';
+    if(cur==='__CONST__') return 'Pagador único';
+    var h=headers[cur];
+    return esc(h&&h.trim()?h:'(col '+(cur+1)+')');
+  }
+  document.getElementById('map-summary').innerHTML=MAP_FIELDS.map(function(fd){
+    return '<div class="kv"><span class="k">'+esc(fd[1])+'</span><span class="v">'+valorLegible(fd[0])+'</span></div>';
+  }).join('');
   function fieldCard(fd){
     var field=fd[0],cur=parsed.mapping[field];
     var opts='<option value="">— no usar —</option>';
@@ -2654,6 +2671,11 @@ function buildMappingPanel(){
   if(missing.length){msg.textContent='Faltan: '+missing.join(', ');msg.className='msg err';}
   else msg.textContent='';
 }
+document.getElementById('btn-map-edit').addEventListener('click',function(){
+  mapEditMode=!mapEditMode;
+  document.getElementById('map-edit-zone').style.display=mapEditMode?'block':'none';
+  this.textContent=mapEditMode?'Ocultar edición manual':'Editar mapeo manualmente';
+});
 document.getElementById('btn-map-more').addEventListener('click',function(){
   mapMoreOpen=!mapMoreOpen;
   var moreGrid=document.getElementById('map-grid-more');
