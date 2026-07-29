@@ -612,6 +612,9 @@
       <button data-tab="facturas">Cobros</button>
       <button data-tab="clientes">Clientes</button>
       <button data-tab="datos">Datos</button>
+      <button data-tab="ciclo">Ciclo</button>
+      <button data-tab="excel">Excel</button>
+      <button data-tab="perfil">Perfil</button>
     </div>
     <div class="nav-adv">
       <span class="nav-label">Análisis avanzado</span>
@@ -622,6 +625,7 @@
 
   <!-- ============ RESUMEN ============ -->
   <div class="view on" id="view-resumen">
+    <h2 id="greet-name" style="display:none;margin:0 0 14px;font-family:Poppins,Inter,Arial,sans-serif;font-size:19px;"></h2>
     <div class="sintesis" id="r-sintesis"></div>
     <div class="grid g5" id="r-kpis"></div>
     <div class="card" style="margin-top:14px;">
@@ -700,6 +704,49 @@
       <p class="c-desc">Busca un folio para ver exactamente qué filas de tu archivo componen esa factura y con qué referencias (EDP, OC, HES).</p>
       <input type="text" id="tz-buscar" placeholder="Escribe un folio, ej: FD-5003" style="width:250px;">
       <div id="tz-result" style="margin-top:10px;"></div>
+    </div>
+  </div>
+
+  <!-- ============ CICLO DOCUMENTAL ============ -->
+  <div class="view" id="view-ciclo">
+    <div class="card">
+      <div class="c-head"><h2>Ciclo documental</h2><span class="hint">seguimiento de cada orden de compra: OC, HES, EDP, factura y pago</span></div>
+      <p class="c-desc">Igual que en la app: cada fila muestra en qué etapa está una orden de compra y hace cuánto.</p>
+      <div class="scrollx"><table>
+        <thead><tr><th>Cliente</th><th>N° OC</th><th>OC</th><th>HES</th><th>EDP</th><th>Factura</th><th>Pago</th><th>Etapa actual</th></tr></thead>
+        <tbody id="ciclo-body"></tbody>
+      </table></div>
+      <div class="lectura" id="ciclo-empty" style="display:none;">No hay ciclos documentales cargados todavía.</div>
+    </div>
+  </div>
+
+  <!-- ============ EXCEL (sube y reemplaza tus datos reales) ============ -->
+  <div class="view" id="view-excel">
+    <div class="card">
+      <div class="c-head"><h2>Sube tu planilla de Orden Financiero</h2><span class="hint">reemplaza tus facturas, flujo de caja y ciclo documental reales</span></div>
+      <p class="c-desc">Usa la plantilla oficial "Argos Insights — Orden Financiero" (hojas "Cuentas por Cobrar", "Flujo de Caja" y "Ciclo Documental"). Al subirla, se actualizan tus datos reales — los mismos que ve la app — y queda un registro en tu historial.</p>
+      <label class="btn btn-primary" for="excel-file" id="excel-upload-btn">Subir planilla Excel (.xlsx)</label>
+      <input type="file" id="excel-file" accept=".xlsx,.xls" style="display:none;">
+      <div class="lectura" id="excel-status" style="margin-top:10px;display:none;"></div>
+    </div>
+    <div class="card">
+      <div class="c-head"><h2>Planillas subidas</h2></div>
+      <div class="scrollx"><table>
+        <thead><tr><th>Archivo</th><th>Fecha</th><th></th></tr></thead>
+        <tbody id="excel-hist-body"></tbody>
+      </table></div>
+      <div class="lectura" id="excel-hist-empty" style="display:none;">Todavía no has subido ninguna planilla.</div>
+    </div>
+  </div>
+
+  <!-- ============ PERFIL ============ -->
+  <div class="view" id="view-perfil">
+    <div class="card" style="max-width:480px;">
+      <div class="c-head"><h2>Tu perfil</h2></div>
+      <div class="scrollx"><table>
+        <tbody id="perfil-body"></tbody>
+      </table></div>
+      <button class="btn btn-ghost" id="perfil-logout" style="margin-top:14px;color:var(--red);border-color:var(--red-line);">Cerrar sesión</button>
     </div>
   </div>
 
@@ -2755,7 +2802,7 @@ var AuthProvider={
         if(p.error||!p.data) return {ok:false,error:'Iniciaste sesión, pero no pudimos cargar tu perfil. Intenta de nuevo.'};
         var prof=p.data;
         if(!prof.aprobado&&prof.role!=='admin') return {ok:false,pending:true};
-        return {ok:true,user:{id:prof.id,name:prof.full_name||email.split('@')[0],empresa:prof.company_name||'',email:email,role:prof.role,demo:false}};
+        return {ok:true,user:{id:prof.id,name:prof.full_name||email.split('@')[0],empresa:prof.company_name||'',companyType:prof.company_type||'',email:email,role:prof.role,demo:false}};
       });
     });
   },
@@ -2836,6 +2883,195 @@ function loadRealInvoices(userId){
   });
 }
 
+/* ---- helpers compartidos de esta capa (independientes del motor de cálculo) ---- */
+function esc(v){ return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+function fmtFechaCorta(iso){
+  if(!iso) return '—';
+  var p=iso.split('-'); return p.length===3? (p[2]+'-'+p[1]+'-'+p[0]) : iso;
+}
+
+/* ---- saludo personalizado en Inicio (solo clientes reales, no demo) ---- */
+function renderGreeting(user){
+  var el=document.getElementById('greet-name'); if(!el) return;
+  if(user&&user.name&&!user.demo){
+    el.textContent='Hola, '+user.name.split(' ')[0];
+    el.style.display='block';
+  } else {
+    el.style.display='none';
+  }
+}
+
+/* ---- Ciclo documental (solo lectura, espejo de CicloScreen de la app) ---- */
+function etapaDeCiclo(c){
+  if(c.fecha_pago) return 'Pagado';
+  if(c.fecha_factura) return 'Facturado';
+  if(c.fecha_edp) return 'EDP emitido';
+  if(c.fecha_hes) return 'HES emitida';
+  if(c.fecha_oc) return 'OC emitida';
+  return 'Sin iniciar';
+}
+function renderCiclo(rows){
+  var tbody=document.getElementById('ciclo-body'), empty=document.getElementById('ciclo-empty');
+  if(!tbody) return;
+  if(!rows.length){ tbody.innerHTML=''; if(empty) empty.style.display='block'; return; }
+  if(empty) empty.style.display='none';
+  tbody.innerHTML=rows.map(function(c){
+    return '<tr><td>'+esc(c.cliente_nombre)+'</td><td>'+esc(c.numero_oc||'—')+'</td><td>'+fmtFechaCorta(c.fecha_oc)+'</td><td>'+fmtFechaCorta(c.fecha_hes)+'</td><td>'+fmtFechaCorta(c.fecha_edp)+'</td><td>'+fmtFechaCorta(c.fecha_factura)+'</td><td>'+fmtFechaCorta(c.fecha_pago)+'</td><td style="color:var(--brand-hi);font-weight:600;">'+esc(etapaDeCiclo(c))+'</td></tr>';
+  }).join('');
+}
+
+/* ---- Perfil (espejo de PerfilScreen de la app) ---- */
+function renderPerfil(user){
+  var tbody=document.getElementById('perfil-body'); if(!tbody) return;
+  if(!user||user.demo){
+    tbody.innerHTML='<tr><td style="color:var(--muted);padding:10px 4px;">No disponible en modo demostración.</td></tr>';
+    return;
+  }
+  var filas=[['Nombre',user.name||'—'],['Correo',user.email||'—'],['Empresa',user.empresa||'—'],['Tipo de empresa',user.companyType||'—'],['Rol',user.role==='admin'?'Administrador':'Cliente']];
+  tbody.innerHTML=filas.map(function(f){
+    return '<tr><td style="color:var(--muted);width:160px;padding:8px 4px;border-bottom:1px solid var(--line);">'+esc(f[0])+'</td><td style="color:var(--ink);font-weight:600;padding:8px 4px;border-bottom:1px solid var(--line);">'+esc(f[1])+'</td></tr>';
+  }).join('');
+}
+
+/* ---- historial de planillas subidas (excel_uploads) ---- */
+function renderExcelHist(rows){
+  var tbody=document.getElementById('excel-hist-body'), empty=document.getElementById('excel-hist-empty');
+  if(!tbody) return;
+  if(!rows.length){ tbody.innerHTML=''; if(empty) empty.style.display='block'; return; }
+  if(empty) empty.style.display='none';
+  tbody.innerHTML=rows.map(function(h){
+    var f=new Date(h.uploaded_at);
+    var fTxt=isFinite(f.getTime())? ('0'+f.getDate()).slice(-2)+'-'+('0'+(f.getMonth()+1)).slice(-2)+'-'+f.getFullYear() : '—';
+    return '<tr><td>'+esc(h.file_name)+'</td><td>'+fTxt+'</td><td><button class="btn btn-ghost excel-del" data-id="'+esc(h.id)+'" style="padding:4px 10px;font-size:11px;">Eliminar</button></td></tr>';
+  }).join('');
+  Array.prototype.forEach.call(tbody.querySelectorAll('.excel-del'),function(b){
+    b.addEventListener('click',function(){ eliminarUploadWeb(b.getAttribute('data-id')); });
+  });
+}
+function eliminarUploadWeb(uploadId){
+  var borrarDatos=confirm('¿Quieres que esto también actualice (borre) los datos que trajo esa planilla, o solo sacarla del historial?\n\nAceptar = borrar también los datos.\nCancelar = solo sacarla del historial.');
+  var tasks=borrarDatos?[
+    sb.from('invoices').delete().eq('upload_id',uploadId),
+    sb.from('cash_flow_months').delete().eq('upload_id',uploadId),
+    sb.from('document_cycle').delete().eq('upload_id',uploadId)
+  ]:[];
+  Promise.all(tasks).then(function(){ return sb.from('excel_uploads').delete().eq('id',uploadId); }).then(function(){
+    if(window.ArgosMotion) ArgosMotion.toast('Planilla eliminada','info');
+    if(session&&session.id) loadClientExtras(session);
+    if(borrarDatos&&session&&session.id) loadRealInvoices(session.id);
+  })['catch'](function(){
+    if(window.ArgosMotion) ArgosMotion.toast('No pudimos eliminar la planilla','err');
+  });
+}
+
+/* ---- trae ciclo + historial de planillas + arma la pestaña Perfil ---- */
+function loadClientExtras(user){
+  renderPerfil(user);
+  renderGreeting(user);
+  if(!sb||!user||!user.id) return Promise.resolve();
+  return Promise.all([
+    sb.from('document_cycle').select('*').eq('client_id',user.id).order('fecha_oc',{ascending:false}),
+    sb.from('excel_uploads').select('*').eq('client_id',user.id).order('uploaded_at',{ascending:false})
+  ]).then(function(results){
+    renderCiclo((results[0]&&results[0].data)||[]);
+    renderExcelHist((results[1]&&results[1].data)||[]);
+  })['catch'](function(){});
+}
+function clearClientExtras(){
+  renderCiclo([]); renderExcelHist([]); renderPerfil(null); renderGreeting(null);
+}
+
+/* ---- carga de la plantilla oficial "Argos Insights — Orden Financiero" (persiste a Supabase) ----
+   Espejo exacto de mobile/lib/excelParser.ts: mismas 3 hojas, mismos encabezados, misma fila
+   de inicio (range:2 = fila 3 del Excel). Si la plantilla cambia allá, hay que actualizar acá también. */
+function fechaISOWeb(v){
+  if(!v) return null;
+  if(v instanceof Date){ var y=v.getFullYear(),m=('0'+(v.getMonth()+1)).slice(-2),d=('0'+v.getDate()).slice(-2); return y+'-'+m+'-'+d; }
+  return null;
+}
+function numeroWeb(v){ return typeof v==='number'? v : (Number(v)||0); }
+function textoWeb(v){ if(v===undefined||v===null||v==='') return null; return String(v).trim(); }
+function parseArgosExcelWeb(wb){
+  var hojaCobrar=wb.Sheets['Cuentas por Cobrar'], hojaCaja=wb.Sheets['Flujo de Caja'], hojaCiclo=wb.Sheets['Ciclo Documental'];
+  if(!hojaCobrar||!hojaCaja||!hojaCiclo) throw new Error('El archivo no tiene las 3 hojas esperadas ("Cuentas por Cobrar", "Flujo de Caja", "Ciclo Documental"). ¿Es la plantilla de Argos Insights?');
+  var filasCobrar=XLSX.utils.sheet_to_json(hojaCobrar,{range:2});
+  var filasCaja=XLSX.utils.sheet_to_json(hojaCaja,{range:2});
+  var filasCiclo=XLSX.utils.sheet_to_json(hojaCiclo,{range:2});
+  var invoices=filasCobrar.filter(function(f){return textoWeb(f['Cliente']);}).map(function(f){
+    return {cliente_nombre:textoWeb(f['Cliente']),numero_factura:textoWeb(f['N° Factura']),monto:numeroWeb(f['Monto ($)']),fecha_emision:fechaISOWeb(f['Fecha Emisión'])||new Date().toISOString().slice(0,10),plazo_dias:numeroWeb(f['Plazo (días)'])||30,fecha_real_pago:fechaISOWeb(f['Fecha Real de Pago'])};
+  });
+  var cashFlow=filasCaja.filter(function(f){return fechaISOWeb(f['Mes']);}).map(function(f){
+    return {mes:fechaISOWeb(f['Mes']),saldo_inicial:numeroWeb(f['Saldo Inicial']),cobros_esperados:numeroWeb(f['Cobros Esperados*']),otros_ingresos:numeroWeb(f['Otros Ingresos']),egresos_fijos:numeroWeb(f['Egresos Fijos']),egresos_variables:numeroWeb(f['Egresos Variables'])};
+  });
+  var documentCycle=filasCiclo.filter(function(f){return textoWeb(f['Cliente']);}).map(function(f){
+    return {cliente_nombre:textoWeb(f['Cliente']),numero_oc:textoWeb(f['N° OC']),fecha_oc:fechaISOWeb(f['Fecha OC']),fecha_hes:fechaISOWeb(f['Fecha HES']),fecha_edp:fechaISOWeb(f['Fecha EDP']),fecha_factura:fechaISOWeb(f['Fecha Factura']),fecha_pago:fechaISOWeb(f['Fecha Pago'])};
+  });
+  return {invoices:invoices,cashFlow:cashFlow,documentCycle:documentCycle};
+}
+function conClienteYUpload(arr,clientId,uploadId){
+  return arr.map(function(f){ var o={}; for(var k in f) o[k]=f[k]; o.client_id=clientId; o.upload_id=uploadId; return o; });
+}
+function subirPlanillaOficialWeb(file){
+  var statusEl=document.getElementById('excel-status');
+  function setStatus(txt,color){ statusEl.style.display='block'; statusEl.style.color=color||''; statusEl.textContent=txt; }
+  setStatus('Leyendo archivo…','');
+  var reader=new FileReader();
+  reader.onload=function(){
+    var parsed;
+    try{
+      var wb=XLSX.read(new Uint8Array(reader.result),{type:'array',cellDates:true});
+      parsed=parseArgosExcelWeb(wb);
+    }catch(e){ setStatus('✗ '+e.message,'var(--red)'); return; }
+    setStatus('Guardando en tu cuenta…','');
+    var uploadId=null;
+    sb.from('excel_uploads').insert({client_id:session.id,file_name:file.name}).select().single()
+      .then(function(up){
+        if(up.error) throw up.error;
+        uploadId=up.data.id;
+        return Promise.all([
+          sb.from('invoices').delete().eq('client_id',session.id),
+          sb.from('cash_flow_months').delete().eq('client_id',session.id),
+          sb.from('document_cycle').delete().eq('client_id',session.id)
+        ]);
+      })
+      .then(function(){
+        return Promise.all([
+          parsed.invoices.length? sb.from('invoices').insert(conClienteYUpload(parsed.invoices,session.id,uploadId)) : Promise.resolve({error:null}),
+          parsed.cashFlow.length? sb.from('cash_flow_months').insert(conClienteYUpload(parsed.cashFlow,session.id,uploadId)) : Promise.resolve({error:null}),
+          parsed.documentCycle.length? sb.from('document_cycle').insert(conClienteYUpload(parsed.documentCycle,session.id,uploadId)) : Promise.resolve({error:null})
+        ]);
+      })
+      .then(function(results){
+        var withErr=results.filter(function(r){return r&&r.error;})[0];
+        if(withErr) throw withErr.error;
+        setStatus('Listo. Se actualizaron '+parsed.invoices.length+' facturas, '+parsed.cashFlow.length+' meses de flujo de caja y '+parsed.documentCycle.length+' ciclos documentales.','var(--brand-hi)');
+        if(window.ArgosMotion) ArgosMotion.toast('Planilla cargada y datos actualizados');
+        return Promise.all([loadRealInvoices(session.id),loadClientExtras(session)]);
+      })
+      ['catch'](function(err){
+        setStatus('✗ '+(err&&err.message?err.message:'No se pudo procesar el archivo.'),'var(--red)');
+      });
+  };
+  reader.readAsArrayBuffer(file);
+}
+document.getElementById('excel-file').addEventListener('change',function(ev){
+  var f=ev.target.files[0]; if(!f) return;
+  var statusEl=document.getElementById('excel-status');
+  var nombreMin=f.name.toLowerCase();
+  if(!nombreMin.endsWith('.xlsx')&&!nombreMin.endsWith('.xls')){
+    statusEl.style.display='block'; statusEl.style.color='var(--red)';
+    statusEl.textContent='"'+f.name+'" no parece un Excel. Elige el archivo correcto.';
+    return;
+  }
+  if(typeof XLSX==='undefined'){
+    statusEl.style.display='block'; statusEl.style.color='var(--red)';
+    statusEl.textContent='✗ Lector de Excel no disponible.';
+    return;
+  }
+  subirPlanillaOficialWeb(f);
+});
+document.getElementById('perfil-logout').addEventListener('click',function(){ doLogout(); });
+
 function enter(user){
   session=user;
   var ini=(user.name||'?').trim().charAt(0).toUpperCase()||'?';
@@ -2849,8 +3085,9 @@ function enter(user){
     modeEl.style.cssText=user.demo?'':'background:rgba(111,176,0,.12);color:var(--brand-hi);border:1px solid var(--brand-dim);';
   }
   if(!user.demo&&user.id){
-    loadRealInvoices(user.id).then(function(hasData){ session.hasData=hasData; go('app'); });
+    Promise.all([loadRealInvoices(user.id),loadClientExtras(user)]).then(function(r){ session.hasData=r[0]; go('app'); });
   } else {
+    clearClientExtras();
     go('app');
   }
 }
@@ -2929,15 +3166,16 @@ document.getElementById('acct-help').addEventListener('click',function(){
   var b=document.querySelector('nav.nav button[data-tab="metodo"]'); if(b) b.click();
 });
 document.getElementById('acct-onb').addEventListener('click',function(){ acctMenu.classList.remove('open'); openOnb(); });
-document.getElementById('acct-logout').addEventListener('click',function(){
+function doLogout(){
   acctMenu.classList.remove('open');
   AuthProvider.logout().then(function(){
-    session=null; onboardingSeen=false;
+    session=null; onboardingSeen=false; clearClientExtras();
     // los datos cargados permanecen en memoria (demo): volver a entrar no los pierde
     if(window.ArgosMotion) ArgosMotion.toast('Sesión cerrada');
     go('login');
   });
-});
+}
+document.getElementById('acct-logout').addEventListener('click',doLogout);
 
 /* ---- onboarding ---- */
 function openOnb(){ document.getElementById('onb-back').classList.add('open'); }
