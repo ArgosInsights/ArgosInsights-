@@ -83,7 +83,7 @@
   .btn-ghost:hover{color:var(--ink);border-color:rgba(255,255,255,.4);}
   .btn-ghost:active{transform:translateY(0) scale(.98);}
   /* botones bloqueados en modo demo — se ven, pero no se pueden apretar (son solo de ejemplo) */
-  .btn-locked{opacity:.45;cursor:not-allowed;filter:grayscale(.3);pointer-events:none;}
+  .btn-locked{background:var(--panel)!important;color:var(--muted)!important;box-shadow:none!important;border:1px solid var(--line);cursor:not-allowed;pointer-events:none;filter:none!important;}
   /* estado de confirmación (breve, sin celebraciones) */
   .btn.is-ok{background:var(--brand-hi)!important;color:#0a0a0a!important;}
   @keyframes btnCheck{0%{transform:scale(.7);opacity:0;}60%{transform:scale(1.12);opacity:1;}100%{transform:scale(1);opacity:1;}}
@@ -579,7 +579,7 @@
     <div class="ctrl" id="ctrl-sheet" style="display:none;"><label>Hoja</label><select id="sel-sheet"></select></div>
     <span class="msg" id="file-msg"></span>
     <div class="ctrl" style="margin-left:auto;"><label>Fecha de corte</label><input type="date" id="inp-cutoff"></div>
-    <button class="btn btn-ghost" id="btn-adv">Ajustes avanzados</button>
+    <div class="ctrl"><label style="visibility:hidden;">Ajustes</label><button class="btn btn-ghost" id="btn-adv">Ajustes avanzados</button></div>
   </div>
 
   <div class="configpanel" id="config-panel" style="display:none;">
@@ -3000,7 +3000,7 @@ function renderPerfil(user){
 }
 
 /* ---- historial de planillas subidas (excel_uploads) ---- */
-function renderExcelHist(rows){
+function renderExcelHist(rows,isDemo){
   var tbody=document.getElementById('excel-hist-body'), empty=document.getElementById('excel-hist-empty');
   if(!tbody) return;
   if(!rows.length){ tbody.innerHTML=''; if(empty) empty.style.display='block'; return; }
@@ -3008,11 +3008,16 @@ function renderExcelHist(rows){
   tbody.innerHTML=rows.map(function(h){
     var f=new Date(h.uploaded_at);
     var fTxt=isFinite(f.getTime())? ('0'+f.getDate()).slice(-2)+'-'+('0'+(f.getMonth()+1)).slice(-2)+'-'+f.getFullYear() : '—';
-    return '<tr><td>'+esc(h.file_name)+'</td><td>'+fTxt+'</td><td><button class="btn btn-ghost excel-del" data-id="'+esc(h.id)+'" style="padding:4px 10px;font-size:11px;">Eliminar</button></td></tr>';
+    var delBtn=isDemo
+      ? '<button class="btn btn-ghost btn-locked" style="padding:4px 10px;font-size:11px;" title="Disponible con tu cuenta de cliente — en la demo es solo de ejemplo.">Eliminar</button>'
+      : '<button class="btn btn-ghost excel-del" data-id="'+esc(h.id)+'" style="padding:4px 10px;font-size:11px;">Eliminar</button>';
+    return '<tr><td>'+esc(h.file_name)+'</td><td>'+fTxt+'</td><td>'+delBtn+'</td></tr>';
   }).join('');
-  Array.prototype.forEach.call(tbody.querySelectorAll('.excel-del'),function(b){
-    b.addEventListener('click',function(){ eliminarUploadWeb(b.getAttribute('data-id')); });
-  });
+  if(!isDemo){
+    Array.prototype.forEach.call(tbody.querySelectorAll('.excel-del'),function(b){
+      b.addEventListener('click',function(){ eliminarUploadWeb(b.getAttribute('data-id')); });
+    });
+  }
 }
 function eliminarUploadWeb(uploadId){
   var borrarDatos=confirm('¿Quieres que esto también actualice (borre) los datos que trajo esa planilla, o solo sacarla del historial?\n\nAceptar = borrar también los datos.\nCancelar = solo sacarla del historial.');
@@ -3044,7 +3049,9 @@ function loadClientExtras(user){
   })['catch'](function(){});
 }
 function clearClientExtras(){
-  renderCiclo([]); renderExcelHist([]); renderPerfil(null); renderGreeting(null);
+  renderCiclo([]);
+  renderExcelHist([{file_name:'Argos Insights — Orden Financiero (ejemplo).xlsx',uploaded_at:'2026-07-10T00:00:00Z'}],true);
+  renderPerfil(null); renderGreeting(null);
 }
 
 /* ---- carga de la plantilla oficial "Argos Insights — Orden Financiero" (persiste a Supabase) ----
