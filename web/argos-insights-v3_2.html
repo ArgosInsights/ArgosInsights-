@@ -2981,13 +2981,16 @@ function etapaDeCiclo(c){
   if(c.fecha_oc) return 'OC emitida';
   return 'Sin iniciar';
 }
+/* mismos colores que CicloScreen de la app: gris = sin iniciar, amarillo = en trámite, verde = facturado/pagado */
+var ETAPA_COLOR={'Sin iniciar':'var(--muted)','OC emitida':'var(--amber)','HES emitida':'var(--amber)','EDP emitido':'var(--amber)','Facturado':'var(--brand-hi)','Pagado':'var(--brand-hi)'};
 function renderCiclo(rows){
   var tbody=document.getElementById('ciclo-body'), empty=document.getElementById('ciclo-empty');
   if(!tbody) return;
   if(!rows.length){ tbody.innerHTML=''; if(empty) empty.style.display='block'; return; }
   if(empty) empty.style.display='none';
   tbody.innerHTML=rows.map(function(c){
-    return '<tr><td>'+esc(c.cliente_nombre)+'</td><td>'+esc(c.numero_oc||'—')+'</td><td>'+fmtFechaCorta(c.fecha_oc)+'</td><td>'+fmtFechaCorta(c.fecha_hes)+'</td><td>'+fmtFechaCorta(c.fecha_edp)+'</td><td>'+fmtFechaCorta(c.fecha_factura)+'</td><td>'+fmtFechaCorta(c.fecha_pago)+'</td><td style="color:var(--brand-hi);font-weight:600;">'+esc(etapaDeCiclo(c))+'</td></tr>';
+    var etapa=etapaDeCiclo(c), color=ETAPA_COLOR[etapa]||'var(--brand-hi)';
+    return '<tr><td>'+esc(c.cliente_nombre)+'</td><td>'+esc(c.numero_oc||'—')+'</td><td>'+fmtFechaCorta(c.fecha_oc)+'</td><td>'+fmtFechaCorta(c.fecha_hes)+'</td><td>'+fmtFechaCorta(c.fecha_edp)+'</td><td>'+fmtFechaCorta(c.fecha_factura)+'</td><td>'+fmtFechaCorta(c.fecha_pago)+'</td><td style="color:'+color+';font-weight:600;">'+esc(etapa)+'</td></tr>';
   }).join('');
 }
 
