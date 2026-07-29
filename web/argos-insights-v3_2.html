@@ -82,6 +82,8 @@
   .btn-ghost{background:transparent;color:var(--muted);border:1px solid rgba(255,255,255,.15);}
   .btn-ghost:hover{color:var(--ink);border-color:rgba(255,255,255,.4);}
   .btn-ghost:active{transform:translateY(0) scale(.98);}
+  /* botones bloqueados en modo demo — se ven, pero no se pueden apretar (son solo de ejemplo) */
+  .btn-locked{opacity:.45;cursor:not-allowed;filter:grayscale(.3);pointer-events:none;}
   /* estado de confirmación (breve, sin celebraciones) */
   .btn.is-ok{background:var(--brand-hi)!important;color:#0a0a0a!important;}
   @keyframes btnCheck{0%{transform:scale(.7);opacity:0;}60%{transform:scale(1.12);opacity:1;}100%{transform:scale(1);opacity:1;}}
@@ -569,7 +571,7 @@
   <div class="warnbox" id="xlsx-warn">El lector de Excel no pudo cargarse (única dependencia externa, con verificación de integridad). La demo integrada funciona igual; para cargar tu planilla reabre con conexión. Nada queda guardado al cerrar la pestaña.</div>
 
   <div class="loadbar">
-    <span><label class="btn btn-primary" for="file">Cargar archivo</label><input type="file" id="file" accept=".xlsx,.xls,.csv"></span>
+    <span><label class="btn btn-primary" for="file" id="file-upload-label">Cargar archivo</label><input type="file" id="file" accept=".xlsx,.xls,.csv"></span>
     <div class="ctrl" id="ctrl-sheet" style="display:none;"><label>Hoja</label><select id="sel-sheet"></select></div>
     <div class="ctrl"><label>Fecha de corte</label><input type="date" id="inp-cutoff"></div>
     <button class="btn btn-ghost" id="btn-map">Columnas</button>
@@ -3071,8 +3073,20 @@ document.getElementById('excel-file').addEventListener('change',function(ev){
   }
   subirPlanillaOficialWeb(f);
 });
+/* ---- en la demo, los botones de subir archivos se ven pero quedan bloqueados (son solo de ejemplo) ---- */
+function setUploadLock(isDemo){
+  ['file-upload-label','excel-upload-btn'].forEach(function(id){
+    var el=document.getElementById(id); if(!el) return;
+    el.classList.toggle('btn-locked',!!isDemo);
+    el.title=isDemo?'Disponible con tu cuenta de cliente — en la demo solo se muestra de ejemplo.':'';
+  });
+  var fileInput=document.getElementById('file'); if(fileInput) fileInput.disabled=!!isDemo;
+  var excelInput=document.getElementById('excel-file'); if(excelInput) excelInput.disabled=!!isDemo;
+}
+
 function enter(user){
   session=user;
+  setUploadLock(!!user.demo);
   var ini=(user.name||'?').trim().charAt(0).toUpperCase()||'?';
   document.getElementById('acct-avatar').textContent=ini;
   document.getElementById('acct-name').textContent=user.name||'Usuario';
