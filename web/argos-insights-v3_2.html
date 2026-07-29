@@ -91,7 +91,8 @@
   input[type=file]{display:none;}
   .ctrl{display:flex;flex-direction:column;gap:4px;}
   .ctrl label{color:var(--faint);font-size:9.5px;text-transform:uppercase;letter-spacing:.6px;font-weight:600;}
-  select,input[type=date],input[type=text],input[type=number]{background:var(--panel);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:7px 10px;font-size:12px;font-family:inherit;outline:none;transition:border-color var(--dur-hover) var(--ease-out),box-shadow var(--dur-hover) var(--ease-out);}
+  select,input[type=date],input[type=text],input[type=number],input[type=email],input[type=password]{background:var(--panel);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:7px 10px;font-size:12px;font-family:inherit;outline:none;transition:border-color var(--dur-hover) var(--ease-out),box-shadow var(--dur-hover) var(--ease-out);}
+  input[type=checkbox]{accent-color:var(--brand);}
   input[type=date]::-webkit-calendar-picker-indicator{filter:invert(1);cursor:pointer;}
   select:focus,input:focus{border-color:var(--brand-dim);}
   select:focus-visible,input:focus-visible{border-color:var(--brand-hi);box-shadow:0 0 0 3px var(--brand-tint);}
