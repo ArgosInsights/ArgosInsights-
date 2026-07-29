@@ -89,6 +89,9 @@
   .btn-ghost:active{transform:translateY(0) scale(.98);}
   /* botones bloqueados en modo demo — se ven, pero no se pueden apretar (son solo de ejemplo) */
   .btn-locked{background:var(--panel)!important;color:var(--muted)!important;box-shadow:none!important;border:1px solid var(--line);cursor:not-allowed;pointer-events:none;filter:none!important;}
+  /* el texto oscuro de .btn-primary se pierde contra la parte oscura del degradé verde;
+     en los botones de subir archivo (cuenta real de cliente, no bloqueados) se ve mejor en blanco */
+  #file-upload-label,#excel-upload-btn{color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.45);}
   /* estado de confirmación (breve, sin celebraciones) */
   .btn.is-ok{background:var(--brand-hi)!important;color:#0a0a0a!important;}
   @keyframes btnCheck{0%{transform:scale(.7);opacity:0;}60%{transform:scale(1.12);opacity:1;}100%{transform:scale(1);opacity:1;}}
