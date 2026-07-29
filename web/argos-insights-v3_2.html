@@ -2976,15 +2976,52 @@ function etapaDeCiclo(c){
 }
 /* mismos colores que CicloScreen de la app: gris = sin iniciar, amarillo = en trámite, verde = facturado/pagado */
 var ETAPA_COLOR={'Sin iniciar':'var(--muted)','OC emitida':'var(--amber)','HES emitida':'var(--amber)','EDP emitido':'var(--amber)','Facturado':'var(--brand-hi)','Pagado':'var(--brand-hi)'};
+var CICLO_ROWS=[];
 function renderCiclo(rows){
   var tbody=document.getElementById('ciclo-body'), empty=document.getElementById('ciclo-empty');
   if(!tbody) return;
+  CICLO_ROWS=rows;
   if(!rows.length){ tbody.innerHTML=''; if(empty) empty.style.display='block'; return; }
   if(empty) empty.style.display='none';
-  tbody.innerHTML=rows.map(function(c){
+  tbody.innerHTML=rows.map(function(c,i){
     var etapa=etapaDeCiclo(c), color=ETAPA_COLOR[etapa]||'var(--brand-hi)';
-    return '<tr><td>'+esc(c.cliente_nombre)+'</td><td>'+esc(c.numero_oc||'—')+'</td><td>'+fmtFechaCorta(c.fecha_oc)+'</td><td>'+fmtFechaCorta(c.fecha_hes)+'</td><td>'+fmtFechaCorta(c.fecha_edp)+'</td><td>'+fmtFechaCorta(c.fecha_factura)+'</td><td>'+fmtFechaCorta(c.fecha_pago)+'</td><td style="color:'+color+';font-weight:600;">'+esc(etapa)+'</td></tr>';
+    return '<tr class="rowsel" data-idx="'+i+'" tabindex="0"><td>'+esc(c.cliente_nombre)+'</td><td>'+esc(c.numero_oc||'—')+'</td><td>'+fmtFechaCorta(c.fecha_oc)+'</td><td>'+fmtFechaCorta(c.fecha_hes)+'</td><td>'+fmtFechaCorta(c.fecha_edp)+'</td><td>'+fmtFechaCorta(c.fecha_factura)+'</td><td>'+fmtFechaCorta(c.fecha_pago)+'</td><td style="color:'+color+';font-weight:600;">'+esc(etapa)+'</td></tr>';
   }).join('');
+  Array.prototype.forEach.call(tbody.querySelectorAll('tr[data-idx]'),function(tr){
+    tr.addEventListener('click',function(){ openCicloDrawer(CICLO_ROWS[+tr.getAttribute('data-idx')]); });
+    tr.addEventListener('keydown',function(ev){ if(ev.key==='Enter') openCicloDrawer(CICLO_ROWS[+tr.getAttribute('data-idx')]); });
+  });
+}
+/* días transcurridos desde que se completó el último paso — espejo de diasEnEtapaActual en mobile/lib/format.ts */
+function diasEnEtapaCiclo(c){
+  var etapa=etapaDeCiclo(c);
+  if(etapa==='Pagado'||etapa==='Sin iniciar') return null;
+  var fechaRef = etapa==='Facturado'?c.fecha_factura : etapa==='EDP emitido'?c.fecha_edp : etapa==='HES emitida'?c.fecha_hes : c.fecha_oc;
+  if(!fechaRef) return null;
+  var ms=Date.now()-new Date(fechaRef+'T00:00:00').getTime();
+  return Math.floor(ms/(1000*60*60*24));
+}
+/* detalle del ciclo en el mismo drawer que usa Cobros — espejo de CicloDetailModal.tsx de la app */
+function openCicloDrawer(c){
+  if(!c) return;
+  var etapa=etapaDeCiclo(c), color=ETAPA_COLOR[etapa]||'var(--brand-hi)', dias=diasEnEtapaCiclo(c);
+  function fila(label,fecha){
+    var hecho=!!fecha;
+    return '<div class="kv"><span class="k"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:'+(hecho?'var(--brand-hi)':'var(--line)')+';margin-right:8px;"></span>'+esc(label)+'</span><span class="v" style="'+(hecho?'color:var(--brand-hi);':'')+'">'+(hecho?fmtFechaCorta(fecha):'Pendiente')+'</span></div>';
+  }
+  var html='<h3>'+esc(c.cliente_nombre)+'</h3><div class="m2" style="font-size:11px;">'+esc(c.numero_oc||'Sin número de OC')+'</div>'+
+    '<div style="margin:10px 0 16px;"><span class="pill b-sin" style="color:'+color+';">'+esc(etapa)+'</span></div>'+
+    (dias!=null?'<div class="sect calc"><h4>Lleva en esta etapa</h4><div style="font-size:26px;font-weight:700;color:var(--amber);">'+dias+' día'+(dias===1?'':'s')+'</div></div>':'')+
+    '<div class="sect hecho"><h4>Detalle del ciclo</h4>'+
+      fila('Orden de compra (OC)',c.fecha_oc)+
+      fila('Hoja de entrada (HES)',c.fecha_hes)+
+      fila('Estado de pago (EDP)',c.fecha_edp)+
+      fila('Factura',c.fecha_factura)+
+      fila('Pago',c.fecha_pago)+
+    '</div>';
+  document.getElementById('drawer-body').innerHTML=html;
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
 }
 
 /* ---- Perfil (ahora vive en la caja desplegable de cuenta, no en una pestaña aparte) ---- */
