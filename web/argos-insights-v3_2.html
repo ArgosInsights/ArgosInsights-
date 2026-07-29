@@ -581,7 +581,7 @@
         <button class="acct-btn" id="acct-btn" aria-haspopup="true"><span class="acct-avatar" id="acct-avatar">·</span><span id="acct-name">—</span><span style="color:var(--faint);font-size:9px;">▾</span></button>
         <div class="acct-menu" id="acct-menu">
           <div class="acct-info"><b id="acct-name2">—</b><div class="m2" id="acct-emp" style="font-size:11px;">—</div><div class="m2" id="acct-tipo" style="font-size:11px;margin-top:2px;display:none;">—</div><div class="m2" id="acct-rol" style="font-size:11px;margin-top:2px;display:none;">—</div><div style="margin-top:6px;"><span class="demo-tag" id="acct-mode">Acceso de demostración</span></div></div>
-          <button id="acct-help">Ayuda y metodología</button>
+          <button id="acct-help">Ayuda y análisis de pagos</button>
           <button id="acct-onb">Ver guía de inicio</button>
           <button id="acct-logout" class="danger">Cerrar sesión</button>
         </div>
@@ -665,8 +665,8 @@
       <span class="nav-label">Análisis avanzado</span>
       <button data-tab="clientes">Clientes</button>
       <button data-tab="datos">Datos</button>
-      <button data-tab="metodo">Metodología</button>
-      <button data-tab="valida">Validación</button>
+      <button data-tab="metodo">Análisis de pagos</button>
+      <button data-tab="valida">Precisión del modelo</button>
     </div>
   </nav>
 
@@ -2288,7 +2288,7 @@ function renderResumen(R){
   if(R.proj.noEstimable>0){ alerts.push(['amber','<b>'+money(R.proj.noEstimable)+' sin estimación suficiente</b> (antigüedad fuera del historial comparable). Requiere gestión directa, no espera estadística.']); }
   if(R.driftG.ok && R.driftG.flags.length){ R.driftG.flags.forEach(function(f){ alerts.push(['amber','<b>Cambio de comportamiento:</b> '+esc(f)+'. Es una alerta para revisar, no una prueba causal.']); }); }
   if(R.bt.ok){ var bad=R.bt.results.filter(function(r){return r.ok && /peor/.test(r.interpretation);});
-    if(bad.length) alerts.push(['amber','<b>Precisión histórica:</b> a '+bad.map(function(r){return r.h+'d';}).join(', ')+' el modelo aún no supera reglas simples (ver Validación). Usa esas cifras con cautela.']); }
+    if(bad.length) alerts.push(['amber','<b>Precisión histórica:</b> a '+bad.map(function(r){return r.h+'d';}).join(', ')+' el modelo aún no supera reglas simples (ver Precisión del modelo). Usa esas cifras con cautela.']); }
   if(R.ds.score<60) alerts.push(['red','<b>Calidad de datos '+R.ds.score+'/100:</b> hay problemas que pueden distorsionar la estimación. Revisa la pestaña Datos.']);
   if(!alerts.length) alerts.push(['blue','Sin alertas críticas: la cartera se comporta dentro de sus patrones históricos.']);
   document.getElementById('r-alerts').innerHTML=alerts.map(function(a){return '<div class="alert '+a[0]+'"><span class="a-dot"></span><span>'+a[1]+'</span></div>';}).join('');
