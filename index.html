@@ -268,12 +268,20 @@
     height: 100%;
     opacity: 0;
     transform: scale(0.8);
-    animation: splashLogoIn 0.7s ease-out 0.15s forwards;
+    animation: splashLogoIn 0.7s ease-out 0.15s forwards,
+               splashPulse 2.6s ease-in-out 0.85s infinite;
     position: relative;
     z-index: 2;
   }
   @keyframes splashLogoIn {
     to { opacity: 1; transform: scale(1); }
+  }
+  @keyframes splashPulse {
+    0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(163,230,53,0)); }
+    50% { transform: scale(1.045); filter: drop-shadow(0 0 20px rgba(163,230,53,0.5)); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .splash-logo { animation: splashLogoIn 0.01s linear forwards; }
   }
   .card-hover {
     transition: transform 0.3s ease-out, border-color 0.3s ease-out;
