@@ -92,6 +92,7 @@
   .ctrl{display:flex;flex-direction:column;gap:4px;}
   .ctrl label{color:var(--faint);font-size:9.5px;text-transform:uppercase;letter-spacing:.6px;font-weight:600;}
   select,input[type=date],input[type=text],input[type=number]{background:var(--panel);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:7px 10px;font-size:12px;font-family:inherit;outline:none;transition:border-color var(--dur-hover) var(--ease-out),box-shadow var(--dur-hover) var(--ease-out);}
+  input[type=date]::-webkit-calendar-picker-indicator{filter:invert(1);cursor:pointer;}
   select:focus,input:focus{border-color:var(--brand-dim);}
   select:focus-visible,input:focus-visible{border-color:var(--brand-hi);box-shadow:0 0 0 3px var(--brand-tint);}
   a:focus-visible,button:focus-visible,summary:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--brand-hi);outline-offset:2px;border-radius:4px;}
@@ -576,9 +577,9 @@
       <span class="m2" style="font-size:10.5px;">Acepta .xlsx y .csv · hasta 30 MB</span>
     </div>
     <div class="ctrl" id="ctrl-sheet" style="display:none;"><label>Hoja</label><select id="sel-sheet"></select></div>
-    <div class="ctrl"><label>Fecha de corte</label><input type="date" id="inp-cutoff"></div>
     <span class="msg" id="file-msg"></span>
-    <button class="btn btn-ghost" id="btn-adv" style="margin-left:auto;">Ajustes avanzados</button>
+    <div class="ctrl" style="margin-left:auto;"><label>Fecha de corte</label><input type="date" id="inp-cutoff"></div>
+    <button class="btn btn-ghost" id="btn-adv">Ajustes avanzados</button>
   </div>
 
   <div class="configpanel" id="config-panel" style="display:none;">
