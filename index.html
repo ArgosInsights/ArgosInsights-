@@ -284,7 +284,9 @@
     .splash-logo { animation: splashLogoIn 0.01s linear forwards; }
   }
   .card-hover {
-    transition: transform 0.3s ease-out, border-color 0.3s ease-out;
+    border-color: rgba(127,177,2,.22) !important;
+    box-shadow: 0 0 14px 1px rgba(127,177,2,.10);
+    transition: transform 0.3s ease-out, border-color 0.3s ease-out, box-shadow 0.3s ease-out;
   }
 
   .mock-win {
@@ -467,9 +469,13 @@
   }
   .tool-chip {
     flex-shrink: 0;
+    border-color: rgba(127,177,2,.22) !important;
+    box-shadow: 0 0 10px 1px rgba(127,177,2,.08);
   }
   .card-hover:hover {
     transform: translateY(-4px);
+    border-color: rgba(127,177,2,.45) !important;
+    box-shadow: 0 0 20px 3px rgba(127,177,2,.22);
   }
 
   .glow-pulse {
