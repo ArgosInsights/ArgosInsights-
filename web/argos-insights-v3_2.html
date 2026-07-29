@@ -442,7 +442,7 @@
     <div class="auth-card">
       <div class="brand"><picture><source srcset="/assets/logo-horizontal-nav.webp" type="image/webp"><img src="/assets/logo-horizontal-nav.png" alt="Argos Insights" style="height:22px;width:auto;display:block;"></picture></div>
       <h2>Inicia sesión</h2>
-      <p class="sub">Ingresa con la cuenta de tu empresa. Si aún no tienes acceso, puedes crear una cuenta o probar la demo con datos ficticios.</p>
+      <p class="sub">Ingresa con la cuenta de tu empresa. Si aún no tienes acceso, puedes crear una cuenta.</p>
       <form id="login-form" novalidate>
         <div class="fld" id="f-li-email"><label for="li-email">Correo electrónico</label><input type="email" id="li-email" autocomplete="username" placeholder="nombre@empresa.cl"><div class="ferr">Ingresa un correo válido.</div></div>
         <div class="fld" id="f-li-pass"><label for="li-pass">Contraseña</label><input type="password" id="li-pass" autocomplete="current-password"><div class="ferr">Ingresa tu contraseña.</div></div>
@@ -454,8 +454,6 @@
         <button type="submit" class="btn btn-primary btn-block" id="li-btn">Ingresar</button>
       </form>
       <div class="auth-alt">¿Aún no tienes una cuenta? <button class="link-plain" data-go="registro" style="color:var(--brand-hi);">Regístrate</button></div>
-      <div class="auth-alt" style="margin-top:8px;"><button class="btn btn-ghost btn-block" id="li-demo">Entrar a la demo con datos ficticios</button></div>
-      <div class="auth-note">Tu contraseña se envía cifrada a nuestro proveedor de autenticación (Supabase) y no queda visible para nosotros. "Recordarme" es solo visual por ahora: la sesión no persiste al cerrar la pestaña.</div>
     </div>
   </div>
 </div>
@@ -469,28 +467,22 @@
       <h2>Crea tu cuenta</h2>
       <p class="sub">Tu cuenta queda pendiente de aprobación por nuestro equipo antes de poder ingresar — es un paso manual, breve, para asegurarnos de que solo entren clientes reales.</p>
       <form id="reg-form" novalidate>
-        <div class="grid g2" style="gap:10px;">
-          <div class="fld" id="f-rg-nombre"><label for="rg-nombre">Nombre</label><input type="text" id="rg-nombre" autocomplete="given-name"><div class="ferr">Campo obligatorio.</div></div>
-          <div class="fld" id="f-rg-apellido"><label for="rg-apellido">Apellido</label><input type="text" id="rg-apellido" autocomplete="family-name"><div class="ferr">Campo obligatorio.</div></div>
-        </div>
-        <div class="grid g2" style="gap:10px;">
-          <div class="fld" id="f-rg-empresa"><label for="rg-empresa">Empresa</label><input type="text" id="rg-empresa" autocomplete="organization"><div class="ferr">Campo obligatorio.</div></div>
-          <div class="fld" id="f-rg-cargo"><label for="rg-cargo">Cargo o área</label><input type="text" id="rg-cargo" placeholder="Finanzas, cobranza…"><div class="ferr">Campo obligatorio.</div></div>
-        </div>
-        <div class="fld" id="f-rg-email"><label for="rg-email">Correo corporativo</label><input type="email" id="rg-email" autocomplete="email" placeholder="nombre@empresa.cl"><div class="ferr">Ingresa un correo válido.</div></div>
+        <div class="fld" id="f-rg-nombre"><label for="rg-nombre">Nombre completo</label><input type="text" id="rg-nombre" autocomplete="name"><div class="ferr">Campo obligatorio.</div></div>
+        <div class="fld" id="f-rg-empresa"><label for="rg-empresa">Nombre de la empresa</label><input type="text" id="rg-empresa" autocomplete="organization"><div class="ferr">Campo obligatorio.</div></div>
+        <div class="fld" id="f-rg-tipo"><label for="rg-tipo">Tipo de empresa</label><input type="text" id="rg-tipo" placeholder="ej: Construcción, Retail, Minería"><div class="ferr">Campo obligatorio.</div></div>
+        <div class="fld" id="f-rg-email"><label for="rg-email">Correo electrónico</label><input type="email" id="rg-email" autocomplete="email" placeholder="nombre@empresa.cl"><div class="ferr">Ingresa un correo válido.</div></div>
         <div class="grid g2" style="gap:10px;">
           <div class="fld" id="f-rg-pass"><label for="rg-pass">Contraseña</label><input type="password" id="rg-pass" autocomplete="new-password"><div class="ferr">Mínimo 8 caracteres, con al menos una letra y un número.</div></div>
           <div class="fld" id="f-rg-pass2"><label for="rg-pass2">Confirmar contraseña</label><input type="password" id="rg-pass2" autocomplete="new-password"><div class="ferr">Las contraseñas no coinciden.</div></div>
         </div>
         <div class="fld" id="f-rg-terms" style="margin-top:2px;">
-          <label style="text-transform:none;letter-spacing:0;font-size:11.5px;display:flex;gap:8px;align-items:flex-start;cursor:pointer;"><input type="checkbox" id="rg-terms" style="width:auto;margin-top:2px;"> <span>Acepto los términos de uso y la política de privacidad de esta demostración.</span></label>
-          <div class="ferr">Debes aceptar los términos para continuar.</div>
+          <label style="text-transform:none;letter-spacing:0;font-size:11.5px;display:flex;gap:8px;align-items:flex-start;cursor:pointer;"><input type="checkbox" id="rg-terms" style="width:auto;margin-top:2px;"> <span>Acepto la <a href="/privacidad.html" target="_blank" style="color:var(--brand-hi);">política de privacidad</a>.</span></label>
+          <div class="ferr">Tienes que aceptar la política de privacidad para crear tu cuenta.</div>
         </div>
         <div class="msg err" id="rg-err" style="display:none;margin:8px 0 0;"></div>
         <button type="submit" class="btn btn-primary btn-block" id="rg-btn" style="margin-top:6px;">Crear cuenta</button>
       </form>
       <div class="auth-alt">¿Ya tienes cuenta? <button class="link-plain" data-go="login" style="color:var(--brand-hi);">Inicia sesión</button></div>
-      <div class="auth-note">Tu contraseña se envía cifrada a nuestro proveedor de autenticación (Supabase); nadie en Argos Insights puede verla.</div>
     </div>
   </div>
 </div>
@@ -2870,10 +2862,10 @@ var AuthProvider={
     return sb.auth.signUp({
       email:data.email,
       password:data.pass,
-      options:{data:{full_name:(data.nombre+' '+data.apellido).trim(),company_name:data.empresa,company_type:null}}
+      options:{data:{full_name:data.nombre,company_name:data.empresa,company_type:data.tipoEmpresa}}
     }).then(function(r){
       if(r.error) return {ok:false,error:traduceAuthError(r.error)};
-      return {ok:true,pending:true,user:{name:(data.nombre+' '+data.apellido).trim(),empresa:data.empresa,email:data.email,demo:false}};
+      return {ok:true,pending:true,user:{name:data.nombre,empresa:data.empresa,email:data.email,demo:false}};
     });
   },
   recover:function(email){
@@ -3211,26 +3203,21 @@ document.getElementById('login-form').addEventListener('submit',function(ev){
     else { showAuthErr('li-err', r.error||'No pudimos iniciar sesión.'); }
   });
 });
-document.getElementById('li-demo').addEventListener('click',function(){
-  enter({name:'Visitante',empresa:'Demostración con datos ficticios',email:'',demo:true});
-});
-
 /* ---- registro ---- */
 document.getElementById('reg-form').addEventListener('submit',function(ev){
   ev.preventDefault();
   showAuthErr('rg-err','');
   var p=document.getElementById('rg-pass').value, p2=document.getElementById('rg-pass2').value;
   var ok = mark('rg-nombre',!val('rg-nombre'));
-  ok = mark('rg-apellido',!val('rg-apellido')) && ok;
   ok = mark('rg-empresa',!val('rg-empresa')) && ok;
-  ok = mark('rg-cargo',!val('rg-cargo')) && ok;
+  ok = mark('rg-tipo',!val('rg-tipo')) && ok;
   ok = mark('rg-email',!EMAIL_RE.test(val('rg-email'))) && ok;
   ok = mark('rg-pass',!(p.length>=8&&/[a-zA-Z]/.test(p)&&/\d/.test(p))) && ok;
   ok = mark('rg-pass2',p!==p2||!p2) && ok;
   ok = mark('rg-terms',!document.getElementById('rg-terms').checked) && ok;
   if(!ok) return;
   var btn=document.getElementById('rg-btn'); busy(btn,'Creando cuenta…');
-  var data={nombre:val('rg-nombre'),apellido:val('rg-apellido'),empresa:val('rg-empresa'),cargo:val('rg-cargo'),email:val('rg-email'),pass:p};
+  var data={nombre:val('rg-nombre'),empresa:val('rg-empresa'),tipoEmpresa:val('rg-tipo'),email:val('rg-email'),pass:p};
   AuthProvider.register(data).then(function(r){
     unbusy(btn);
     document.getElementById('rg-pass').value=''; document.getElementById('rg-pass2').value='';
