@@ -550,7 +550,7 @@
       <div class="acct" id="acct">
         <button class="acct-btn" id="acct-btn" aria-haspopup="true"><span class="acct-avatar" id="acct-avatar">·</span><span id="acct-name">—</span><span style="color:var(--faint);font-size:9px;">▾</span></button>
         <div class="acct-menu" id="acct-menu">
-          <div class="acct-info"><b id="acct-name2">—</b><div class="m2" id="acct-emp" style="font-size:11px;">—</div><div style="margin-top:6px;"><span class="demo-tag" id="acct-mode">Acceso de demostración</span></div></div>
+          <div class="acct-info"><b id="acct-name2">—</b><div class="m2" id="acct-emp" style="font-size:11px;">—</div><div class="m2" id="acct-tipo" style="font-size:11px;margin-top:2px;display:none;">—</div><div class="m2" id="acct-rol" style="font-size:11px;margin-top:2px;display:none;">—</div><div style="margin-top:6px;"><span class="demo-tag" id="acct-mode">Acceso de demostración</span></div></div>
           <button id="acct-help">Ayuda y metodología</button>
           <button id="acct-onb">Ver guía de inicio</button>
           <button id="acct-logout" class="danger">Cerrar sesión</button>
@@ -614,7 +614,6 @@
       <button data-tab="facturas">Cobros</button>
       <button data-tab="ciclo">Ciclo</button>
       <button data-tab="excel">Excel</button>
-      <button data-tab="perfil">Perfil</button>
     </div>
     <div class="nav-adv">
       <span class="nav-label">Análisis avanzado</span>
@@ -738,17 +737,6 @@
         <tbody id="excel-hist-body"></tbody>
       </table></div>
       <div class="lectura" id="excel-hist-empty" style="display:none;">Todavía no has subido ninguna planilla.</div>
-    </div>
-  </div>
-
-  <!-- ============ PERFIL ============ -->
-  <div class="view" id="view-perfil">
-    <div class="card" style="max-width:480px;">
-      <div class="c-head"><h2>Tu perfil</h2></div>
-      <div class="scrollx"><table>
-        <tbody id="perfil-body"></tbody>
-      </table></div>
-      <button class="btn btn-ghost" id="perfil-logout" style="margin-top:14px;color:var(--red);border-color:var(--red-line);">Cerrar sesión</button>
     </div>
   </div>
 
@@ -2947,17 +2935,17 @@ function renderCiclo(rows){
   }).join('');
 }
 
-/* ---- Perfil (espejo de PerfilScreen de la app) ---- */
+/* ---- Perfil (ahora vive en la caja desplegable de cuenta, no en una pestaña aparte) ---- */
 function renderPerfil(user){
-  var tbody=document.getElementById('perfil-body'); if(!tbody) return;
+  var tipoEl=document.getElementById('acct-tipo'), rolEl=document.getElementById('acct-rol');
+  if(!tipoEl||!rolEl) return;
   if(!user||user.demo){
-    tbody.innerHTML='<tr><td style="color:var(--muted);padding:10px 4px;">No disponible en modo demostración.</td></tr>';
+    tipoEl.style.display='none'; rolEl.style.display='none';
     return;
   }
-  var filas=[['Nombre',user.name||'—'],['Correo',user.email||'—'],['Empresa',user.empresa||'—'],['Tipo de empresa',user.companyType||'—'],['Rol',user.role==='admin'?'Administrador':'Cliente']];
-  tbody.innerHTML=filas.map(function(f){
-    return '<tr><td style="color:var(--muted);width:160px;padding:8px 4px;border-bottom:1px solid var(--line);">'+esc(f[0])+'</td><td style="color:var(--ink);font-weight:600;padding:8px 4px;border-bottom:1px solid var(--line);">'+esc(f[1])+'</td></tr>';
-  }).join('');
+  tipoEl.textContent='Tipo de empresa: '+(user.companyType||'—');
+  rolEl.textContent='Rol: '+(user.role==='admin'?'Administrador':'Cliente');
+  tipoEl.style.display='block'; rolEl.style.display='block';
 }
 
 /* ---- historial de planillas subidas (excel_uploads) ---- */
@@ -3097,8 +3085,6 @@ document.getElementById('excel-file').addEventListener('change',function(ev){
   }
   subirPlanillaOficialWeb(f);
 });
-document.getElementById('perfil-logout').addEventListener('click',function(){ doLogout(); });
-
 function enter(user){
   session=user;
   var ini=(user.name||'?').trim().charAt(0).toUpperCase()||'?';
