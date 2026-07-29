@@ -44,7 +44,7 @@
     html{scroll-behavior:auto;}
     *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;transition-delay:0s!important;scroll-behavior:auto!important;}
   }
-  body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,Arial,sans-serif;font-size:12.5px;line-height:1.5;-webkit-font-smoothing:antialiased;}
+  body{margin:0;background:linear-gradient(180deg,#111111 0%,#060606 55%,#000000 100%);color:var(--ink);font-family:Inter,Arial,sans-serif;font-size:12.5px;line-height:1.5;-webkit-font-smoothing:antialiased;}
   h1,h2,h3,.c-head h2,.psec h2,section.hero h1,.onb h3,.auth-card h2{font-family:Poppins,Inter,Arial,sans-serif;}
   .underline-accent{display:block;width:44px;height:4px;border-radius:999px;background:var(--brand-hi);margin-top:10px;}
   .brand-logo-img{height:56px;width:auto;display:block;}
@@ -400,17 +400,16 @@
 
   /* ================= MOTION: ambientación tecnológica sobria (solo sitio público) ================= */
   .ambient{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;}
-  .ambient .grid-tex{position:absolute;inset:-2px;opacity:.05;
-    background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
-    background-size:46px 46px;mask-image:radial-gradient(ellipse 70% 60% at 50% 0%,#000 40%,transparent 85%);}
+  .ambient .grid-tex{position:absolute;inset:0;
+    background-image:radial-gradient(rgba(163,230,53,0.16) 1px,transparent 1px);
+    background-size:24px 24px;}
   .pub-content{position:relative;z-index:1;}
-  .ambient .blob{position:absolute;border-radius:50%;filter:blur(60px);opacity:.16;animation:drift var(--dur-amb) ease-in-out infinite;}
-  .ambient .blob.b1{width:700px;height:700px;top:-260px;left:-6%;background:radial-gradient(circle,rgba(111,176,0,.22),transparent 70%);animation-duration:30s;}
-  .ambient .blob.b2{width:520px;height:520px;top:8%;right:-6%;background:radial-gradient(circle,rgba(127,177,2,.15),transparent 70%);animation-duration:34s;animation-delay:-8s;}
-  .ambient .blob.b3{width:620px;height:620px;top:80%;left:15%;background:radial-gradient(circle,rgba(74,122,0,.20),transparent 70%);animation-duration:26s;animation-delay:-4s;}
+  .ambient .blob{position:absolute;border-radius:50%;filter:blur(110px);animation:drift var(--dur-amb) ease-in-out infinite;}
+  .ambient .blob.b1{width:700px;height:700px;top:-260px;left:-6%;background:rgba(111,176,0,0.22);animation-duration:30s;}
+  .ambient .blob.b2{width:520px;height:520px;top:8%;right:-6%;background:rgba(127,177,2,0.15);animation-duration:34s;animation-delay:-8s;}
+  .ambient .blob.b3{width:620px;height:620px;top:80%;left:15%;background:rgba(74,122,0,0.20);animation-duration:26s;animation-delay:-4s;}
   @keyframes drift{0%,100%{transform:translate(0,0);}50%{transform:translate(3%,-4%);}}
   @media(prefers-reduced-motion:reduce){ .ambient .blob{animation:none;} }
-  @media(max-width:760px){ .ambient .blob{filter:blur(40px);opacity:.1;} }
 
   /* ================= MOTION: gráficos animados (SVG) ================= */
   [data-anim]{transform-box:fill-box;}
