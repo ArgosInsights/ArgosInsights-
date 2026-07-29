@@ -574,8 +574,7 @@
     <span><label class="btn btn-primary" for="file" id="file-upload-label">Cargar archivo</label><input type="file" id="file" accept=".xlsx,.xls,.csv"></span>
     <div class="ctrl" id="ctrl-sheet" style="display:none;"><label>Hoja</label><select id="sel-sheet"></select></div>
     <div class="ctrl"><label>Fecha de corte</label><input type="date" id="inp-cutoff"></div>
-    <button class="btn btn-ghost" id="btn-map">Columnas</button>
-    <button class="btn btn-ghost" id="btn-config">Configuración</button>
+    <button class="btn btn-ghost" id="btn-adv">Ajustes avanzados</button>
     <span class="msg" id="file-msg"></span>
     <span class="m2" style="font-size:10.5px;margin-left:auto;">Acepta .xlsx y .csv · hasta 30 MB</span>
   </div>
@@ -600,14 +599,19 @@
 
   <div class="card" id="map-panel" style="display:none;">
     <div class="c-head"><h2>Mapeo de columnas</h2><span class="hint" id="map-hint"></span></div>
-    <p class="c-desc">El sistema detecta hoja, encabezados y columnas solo. Si tu planilla usa otros nombres, corrige aquí. Campos con * son el mínimo; <b>la fecha de pago no es obligatoria</b> para archivos de cartera abierta (usa "cartera vigente" en Configuración). Abajo, vista previa de las primeras filas.</p>
-    <div class="grid g4" id="map-grid"></div>
-    <div style="display:flex;gap:12px;align-items:center;margin-top:12px;flex-wrap:wrap;">
+    <p class="c-desc">El sistema detecta hoja, encabezados y columnas solo — normalmente no hay que tocar nada acá. Si tu planilla usa otros nombres, corrige el campo puntual. <b>La fecha de pago no es obligatoria</b> para archivos de cartera abierta (usa "cartera vigente" arriba, en Ajustes avanzados).</p>
+    <div class="grid g4" id="map-grid-esencial"></div>
+    <div class="grid g4" id="map-grid-otros" style="margin-top:12px;"></div>
+    <button class="btn btn-ghost" id="btn-map-more" style="margin-top:12px;display:none;font-size:11px;"></button>
+    <div class="grid g4" id="map-grid-more" style="margin-top:12px;display:none;"></div>
+    <div style="display:flex;gap:12px;align-items:center;margin-top:14px;flex-wrap:wrap;">
       <div class="ctrl"><label>Fila de encabezados</label><input type="number" id="inp-headerrow" min="1" style="width:100px;"></div>
       <button class="btn btn-primary" id="btn-apply-map">Aplicar mapeo</button>
       <span class="msg" id="map-msg"></span>
     </div>
-    <div class="scrollx" style="margin-top:12px;"><table id="preview-table"></table></div>
+    <details class="edu" style="margin-top:12px;"><summary>Ver vista previa del archivo</summary>
+      <div class="scrollx" style="margin-top:10px;"><table id="preview-table"></table></div>
+    </details>
   </div>
 
   <nav class="nav">
@@ -2600,19 +2604,41 @@ function renderScatter(paid,label){
 
 /* ============================ MAPEO / INGESTA ============================ */
 var MAP_FIELDS=[['pagador','Pagador *'],['folio','Folio *'],['fecha_emision','Fecha emisión *'],['fecha_pago','Fecha de pago'],['vencimiento','Vencimiento'],['estado','Estado'],['monto','Monto'],['saldo','Saldo pendiente'],['monto_pago','Monto de pago/abono'],['moneda','Moneda'],['responsable','Responsable'],['empresa','Empresa'],['oc','OC'],['hes','HES'],['glosa','Glosa/EDP']];
+var MAP_ESSENTIAL=['pagador','folio','fecha_emision'];
+var mapMoreOpen=false;
 function buildMappingPanel(){
   var parsed=M.parseAndMapInput(state.matrix,{headerRow:state.headerRow,overrides:state.overrides});
   var headers=parsed.headers;
-  document.getElementById('map-grid').innerHTML=MAP_FIELDS.map(function(fd){
+  function detectado(field){ var c=parsed.mapping[field]; return !(c===undefined||c===null); }
+  function fieldCard(fd){
     var field=fd[0],cur=parsed.mapping[field];
     var opts='<option value="">— no usar —</option>';
     if(field==='folio')opts+='<option value="__ROWNUM__"'+(cur==='__ROWNUM__'?' selected':'')+'>N° de fila</option>';
     if(field==='pagador')opts+='<option value="__CONST__"'+(cur==='__CONST__'?' selected':'')+'>Pagador único</option>';
     headers.forEach(function(h,i){opts+='<option value="'+i+'"'+(cur===i?' selected':'')+'>'+esc(h&&h.trim()?h:'(col '+(i+1)+')')+'</option>';});
     return '<div class="kpi"><div class="t">'+esc(fd[1])+'</div><select data-mapfield="'+field+'" style="width:100%;margin-top:5px;">'+opts+'</select></div>';
-  }).join('');
+  }
+  var esenciales=MAP_FIELDS.filter(function(fd){return MAP_ESSENTIAL.indexOf(fd[0])>-1;});
+  var opcionales=MAP_FIELDS.filter(function(fd){return MAP_ESSENTIAL.indexOf(fd[0])===-1;});
+  var sinDetectar=opcionales.filter(function(fd){return !detectado(fd[0]);});
+  var detectados=opcionales.filter(function(fd){return detectado(fd[0]);});
+
+  document.getElementById('map-grid-esencial').innerHTML=esenciales.map(fieldCard).join('');
+  document.getElementById('map-grid-otros').innerHTML=sinDetectar.map(fieldCard).join('');
+
+  var moreBtn=document.getElementById('btn-map-more'), moreGrid=document.getElementById('map-grid-more');
+  if(detectados.length){
+    moreBtn.style.display='inline-block';
+    moreGrid.innerHTML=detectados.map(fieldCard).join('');
+    moreGrid.style.display=mapMoreOpen?'grid':'none';
+    moreBtn.textContent=(mapMoreOpen?'Ocultar campos':'Ver campos')+' detectados automáticamente ('+detectados.length+')';
+  } else {
+    moreBtn.style.display='none'; moreGrid.style.display='none'; moreGrid.innerHTML='';
+  }
+
   document.getElementById('inp-headerrow').value=parsed.headerRow+1;
-  document.getElementById('map-hint').textContent='hoja: '+state.sheetName;
+  var totalDetectados=MAP_FIELDS.filter(function(fd){return detectado(fd[0]);}).length;
+  document.getElementById('map-hint').textContent='hoja: '+state.sheetName+' · '+totalDetectados+' de '+MAP_FIELDS.length+' campos detectados automáticamente';
   var pv=document.getElementById('preview-table');
   var hr=state.matrix[parsed.headerRow]||[];
   var rows=state.matrix.slice(parsed.headerRow+1,parsed.headerRow+7);
@@ -2623,12 +2649,19 @@ function buildMappingPanel(){
   if(missing.length){msg.textContent='Faltan: '+missing.join(', ');msg.className='msg err';}
   else msg.textContent='';
 }
-document.getElementById('btn-map').addEventListener('click',function(){
-  var p=document.getElementById('map-panel'); var show=p.style.display==='none';
-  if(show)buildMappingPanel(); p.style.display=show?'block':'none';
+document.getElementById('btn-map-more').addEventListener('click',function(){
+  mapMoreOpen=!mapMoreOpen;
+  var moreGrid=document.getElementById('map-grid-more');
+  moreGrid.style.display=mapMoreOpen?'grid':'none';
+  var n=moreGrid.querySelectorAll('[data-mapfield]').length;
+  this.textContent=(mapMoreOpen?'Ocultar campos':'Ver campos')+' detectados automáticamente ('+n+')';
 });
-document.getElementById('btn-config').addEventListener('click',function(){
-  var p=document.getElementById('config-panel'); p.style.display=p.style.display==='none'?'block':'none';
+document.getElementById('btn-adv').addEventListener('click',function(){
+  var mp=document.getElementById('map-panel'), cp=document.getElementById('config-panel');
+  var show=mp.style.display==='none';
+  if(show)buildMappingPanel();
+  mp.style.display=show?'block':'none';
+  cp.style.display=show?'block':'none';
 });
 document.getElementById('btn-apply-map').addEventListener('click',function(){
   var hr=parseInt(document.getElementById('inp-headerrow').value,10);
