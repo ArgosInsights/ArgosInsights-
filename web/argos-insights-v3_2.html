@@ -571,12 +571,14 @@
   <div class="warnbox" id="xlsx-warn">El lector de Excel no pudo cargarse (única dependencia externa, con verificación de integridad). La demo integrada funciona igual; para cargar tu planilla reabre con conexión. Nada queda guardado al cerrar la pestaña.</div>
 
   <div class="loadbar">
-    <span><label class="btn btn-primary" for="file" id="file-upload-label">Cargar archivo</label><input type="file" id="file" accept=".xlsx,.xls,.csv"></span>
+    <div class="ctrl">
+      <label class="btn btn-primary" for="file" id="file-upload-label">Cargar archivo</label><input type="file" id="file" accept=".xlsx,.xls,.csv">
+      <span class="m2" style="font-size:10.5px;">Acepta .xlsx y .csv · hasta 30 MB</span>
+    </div>
     <div class="ctrl" id="ctrl-sheet" style="display:none;"><label>Hoja</label><select id="sel-sheet"></select></div>
     <div class="ctrl"><label>Fecha de corte</label><input type="date" id="inp-cutoff"></div>
     <span class="msg" id="file-msg"></span>
-    <span class="m2" style="font-size:10.5px;margin-left:auto;">Acepta .xlsx y .csv · hasta 30 MB</span>
-    <button class="btn btn-ghost" id="btn-adv">Ajustes avanzados</button>
+    <button class="btn btn-ghost" id="btn-adv" style="margin-left:auto;">Ajustes avanzados</button>
   </div>
 
   <div class="configpanel" id="config-panel" style="display:none;">
