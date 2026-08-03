@@ -86,29 +86,6 @@
     transform: translateX(0);
   }
 
-  .diff-row {
-    transition: background-color 0.3s ease;
-    border-radius: 0.75rem;
-  }
-  .diff-row:hover {
-    background-color: rgba(255,255,255,0.045);
-  }
-  .diff-row:hover .diff-sin {
-    opacity: 0.5;
-  }
-  .diff-row:hover .diff-con {
-    color: #ffffff;
-  }
-  .diff-row:hover .diff-con svg {
-    transform: scale(1.3);
-  }
-  .diff-sin, .diff-con {
-    transition: opacity 0.3s ease, color 0.3s ease;
-  }
-  .diff-sin svg, .diff-con svg {
-    transition: transform 0.3s ease;
-  }
-
   .icon-pulse {
     animation: iconPulse 2.2s ease-in-out infinite;
   }
@@ -352,50 +329,6 @@
     color: #9ade2e;
   }
 
-  .sticky-note {
-    background: #f5d90a;
-    color: #4a3f00;
-    font-size: 12px;
-    font-weight: 700;
-    padding: 10px 14px;
-    border-radius: 2px;
-    transform: rotate(-4deg);
-    box-shadow: 0 8px 16px rgba(0,0,0,0.35);
-    width: fit-content;
-    animation: stickyWiggle 4s ease-in-out infinite;
-  }
-  @keyframes stickyWiggle {
-    0%, 100% { transform: rotate(-4deg); }
-    50% { transform: rotate(-1deg); }
-  }
-
-  .diff-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    padding: 5px 14px;
-    border-radius: 999px;
-  }
-  .diff-badge-danger {
-    background: rgba(248,113,113,0.12);
-    border: 1px solid rgba(248,113,113,0.28);
-    color: #f87171;
-  }
-  .diff-badge-accent {
-    background: rgba(111,176,0,0.14);
-    border: 1px solid rgba(111,176,0,0.3);
-    color: #9ade2e;
-  }
-  .diff-badge-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: currentColor;
-    animation: pulseDotSimple 1.8s ease-in-out infinite;
-  }
   @keyframes pulseDotSimple {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.35; }
@@ -427,26 +360,6 @@
     border-color: rgba(127,177,2,0.8) !important;
   }
 
-  .vs-badge {
-    width: 46px;
-    height: 46px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #161616, #0a0a0a);
-    border: 1px solid rgba(255,255,255,0.15);
-    font-weight: 800;
-    font-size: 13px;
-    color: #fff;
-    font-family: 'Poppins', sans-serif;
-    flex-shrink: 0;
-  }
-  .vs-line {
-    width: 1px;
-    flex: 1;
-    min-height: 60px;
-  }
 
   .marquee-mask {
     overflow: hidden;
@@ -844,7 +757,6 @@
     <div class="flex items-center gap-6 xl:gap-9">
       <nav class="hidden lg:flex items-center gap-6 xl:gap-7">
         <a href="#problema" class="nav-glow text-sm font-semibold">El problema</a>
-        <a href="#diferencia" class="nav-glow text-sm font-semibold">La diferencia</a>
         <a href="#solucion" class="nav-glow text-sm font-semibold">Solución</a>
         <a href="#proceso" class="nav-glow text-sm font-semibold">Proceso</a>
         <a href="#app" class="nav-glow text-sm font-semibold">App</a>
@@ -1015,112 +927,6 @@
           </div>
         </div>
       </div>
-    </div>
-  </section>
-
-  <!-- ============ 2b. LA DIFERENCIA (comparación) ============ -->
-  <section id="diferencia" class="py-14 sm:py-20 lg:py-28 bg-card/40 border-b border-white/5 overflow-hidden">
-    <div class="max-w-6xl mx-auto px-5 sm:px-8">
-      <p class="reveal eyebrow text-accent justify-center w-full mb-4">LA DIFERENCIA</p>
-      <h2 class="reveal text-3xl sm:text-4xl font-bold text-white text-center tracking-tight">Tu negocio, antes y con Argos Insights</h2>
-      <div class="reveal flex justify-center"><span class="underline-accent mt-5"></span></div>
-
-      <div class="mt-10 sm:mt-14 grid lg:grid-cols-[1fr_auto_1fr] gap-6 lg:gap-8 items-stretch">
-
-        <!-- SIN ARGOS -->
-        <div class="reveal-left relative rounded-2xl border border-danger/20 p-5 sm:p-7"
-             style="background: radial-gradient(80% 70% at 65% 20%, rgba(248,113,113,0.10) 0%, transparent 60%);">
-          <span class="diff-badge diff-badge-danger"><span class="diff-badge-dot"></span>SIN ARGOS</span>
-
-          <div class="mock-win mock-win-danger mt-5">
-            <div class="mock-chrome">
-              <span class="mock-dot" style="background:#ff5f57"></span>
-              <span class="mock-dot" style="background:#febc2e"></span>
-              <span class="mock-dot" style="background:#28c840"></span>
-              <span class="mock-chrome-title">flujo_caja.xlsx</span>
-            </div>
-            <div class="mock-body px-4 py-3">
-              <div class="mock-row"><span class="text-slate-400">Constructora ABC</span><span class="mock-tag mock-tag-danger">47 días vencida</span></div>
-              <div class="mock-row"><span class="text-slate-400">Minera Sur</span><span class="mock-tag mock-tag-danger">sin respuesta</span></div>
-              <div class="mock-row"><span class="text-slate-400">Retail Norte</span><span class="mock-tag mock-tag-danger">¿pagó?</span></div>
-            </div>
-          </div>
-
-          <div class="mock-win mock-win-danger mt-3">
-            <div class="mock-chrome">
-              <span class="mock-dot" style="background:#ff5f57"></span>
-              <span class="mock-dot" style="background:#febc2e"></span>
-              <span class="mock-dot" style="background:#28c840"></span>
-              <span class="mock-chrome-title">Correo</span>
-            </div>
-            <div class="mock-body px-4 py-3 text-slate-400">
-              <div class="mock-row">RE: RE: estado de pago…</div>
-              <div class="mock-row">URGENTE: sin caja este mes</div>
-            </div>
-          </div>
-
-          <div class="sticky-note mt-4">¿Me alcanza la caja este mes? 😰</div>
-
-          <div class="mt-5 space-y-2.5 text-left">
-            <p class="diff-sin flex items-start gap-2 text-xs text-slate-400"><svg class="icon-wiggle text-danger shrink-0 mt-0.5" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"/></svg>Decisiones a ciegas, por intuición</p>
-            <p class="diff-sin flex items-start gap-2 text-xs text-slate-400"><svg class="icon-wiggle text-danger shrink-0 mt-0.5" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"/></svg>Factoring sin saber si de verdad conviene</p>
-            <p class="diff-sin flex items-start gap-2 text-xs text-slate-400"><svg class="icon-wiggle text-danger shrink-0 mt-0.5" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"/></svg>Analista full-time: $900 mil - $1,2M/mes</p>
-          </div>
-        </div>
-
-        <!-- DIVIDER -->
-        <div class="hidden lg:flex flex-col items-center gap-3 py-2">
-          <span class="vs-line" style="background: linear-gradient(180deg, rgba(248,113,113,0.7), transparent)"></span>
-          <span class="vs-badge">VS</span>
-          <span class="vs-line" style="background: linear-gradient(180deg, transparent, rgba(111,176,0,0.7))"></span>
-        </div>
-        <div class="reveal flex lg:hidden justify-center -my-2">
-          <span class="vs-badge">VS</span>
-        </div>
-
-        <!-- CON ARGOS -->
-        <div class="reveal-right relative rounded-2xl border border-accent/20 p-5 sm:p-7"
-             style="transition-delay:0.1s; background: radial-gradient(80% 70% at 35% 80%, rgba(111,176,0,0.12) 0%, transparent 60%);">
-          <span class="diff-badge diff-badge-accent"><span class="diff-badge-dot"></span>CON ARGOS INSIGHTS</span>
-
-          <div class="mock-win mock-win-accent mt-5">
-            <div class="mock-chrome">
-              <span class="mock-dot" style="background:#3a3a4a"></span>
-              <span class="mock-dot" style="background:#3a3a4a"></span>
-              <span class="mock-dot" style="background:#3a3a4a"></span>
-              <span class="mock-chrome-title">Dashboard Argos</span>
-            </div>
-            <div class="mock-body px-4 py-3">
-              <div class="mock-row"><span class="text-slate-300">Por cobrar</span><span class="text-white font-semibold">$84,2M</span></div>
-              <div class="mock-row"><span class="text-slate-300">Plazo promedio</span><span class="text-accent font-semibold">32 días</span></div>
-              <div class="mock-row"><span class="text-slate-300">Facturas en riesgo</span><span class="text-danger font-semibold">6</span></div>
-            </div>
-          </div>
-
-          <div class="mock-win mock-win-accent mt-3">
-            <div class="mock-chrome">
-              <span class="mock-dot" style="background:#3a3a4a"></span>
-              <span class="mock-dot" style="background:#3a3a4a"></span>
-              <span class="mock-dot" style="background:#3a3a4a"></span>
-              <span class="mock-chrome-title">Alertas</span>
-            </div>
-            <div class="mock-body px-4 py-3">
-              <div class="mock-row"><span class="text-slate-300">Constructora ABC</span><span class="mock-tag mock-tag-accent">pagada ✓</span></div>
-              <div class="mock-row"><span class="text-slate-300">Minera Sur</span><span class="mock-tag mock-tag-accent">al día ✓</span></div>
-              <div class="mock-row"><span class="text-slate-300">Retail Norte</span><span class="mock-tag mock-tag-accent">seguimiento ✓</span></div>
-            </div>
-          </div>
-
-          <div class="mt-5 space-y-2.5 text-left">
-            <p class="diff-con flex items-start gap-2 text-xs text-slate-300"><svg class="icon-pulse text-accent shrink-0 mt-0.5" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>Proyección de caja concreta al frente</p>
-            <p class="diff-con flex items-start gap-2 text-xs text-slate-300"><svg class="icon-pulse text-accent shrink-0 mt-0.5" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>Factoring solo cuando realmente conviene</p>
-            <p class="diff-con flex items-start gap-2 text-xs text-slate-300"><svg class="icon-pulse text-accent shrink-0 mt-0.5" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>Fracción del costo de un analista, sin contrato</p>
-            <p class="diff-con flex items-start gap-2 text-xs text-slate-300"><svg class="icon-pulse text-accent shrink-0 mt-0.5" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>Más fácil y ordenado que revisar una planilla Excel</p>
-          </div>
-        </div>
-      </div>
-
-      <p class="reveal text-center text-slate-400 mt-10">¿En cuál de los dos lados está tu negocio hoy?</p>
     </div>
   </section>
 
