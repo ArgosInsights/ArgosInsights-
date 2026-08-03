@@ -15,6 +15,7 @@ import { supabase } from './lib/supabase';
 import { ThemeProvider, useTheme } from './lib/ThemeContext';
 import MainTabs from './navigation/MainTabs';
 import LoginScreen from './screens/LoginScreen';
+import MfaChallengeScreen from './screens/MfaChallengeScreen';
 import PendienteScreen from './screens/PendienteScreen';
 
 // Evita que la pantalla se ponga en blanco un instante antes de que todo esté listo
@@ -56,6 +57,11 @@ function AppContent() {
   const [sesionLista, setSesionLista] = useState(false);
   const [aprobado, setAprobado] = useState<boolean | null>(null);
   const [role, setRole] = useState<string | null>(null);
+  // Verificación en dos pasos (2FA/TOTP), opcional — ver PerfilScreen para activarla.
+  // null = todavía no se revisó, true = esta sesión tiene el segundo factor activado
+  // pero pendiente de verificar (currentLevel aal1, nextLevel aal2), false = no aplica
+  // (no tiene 2FA activada, o ya la verificó y la sesión está en aal2).
+  const [mfaPendiente, setMfaPendiente] = useState<boolean | null>(null);
   const [mostrarIntro, setMostrarIntro] = useState(true);
   const introOpacity = useRef(new Animated.Value(1)).current;
 
@@ -74,13 +80,21 @@ function AppContent() {
     setRole(data?.role ?? null);
   }
 
+  async function revisarMfa() {
+    const { data } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    setMfaPendiente(!!data && data.currentLevel === 'aal1' && data.nextLevel === 'aal2');
+  }
+
   useEffect(() => {
     // Al abrir la app, revisa si ya había una sesión guardada (para no pedir
     // login cada vez que se abre la app).
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setSesionLista(true);
-      if (data.session) revisarAprobacion(data.session.user.id);
+      if (data.session) {
+        revisarAprobacion(data.session.user.id);
+        revisarMfa();
+      }
     });
 
     // Se ejecuta cada vez que el usuario entra o sale (login/logout).
@@ -88,13 +102,18 @@ function AppContent() {
       setSession(newSession);
       setAprobado(null);
       setRole(null);
-      if (newSession) revisarAprobacion(newSession.user.id);
+      setMfaPendiente(null);
+      if (newSession) {
+        revisarAprobacion(newSession.user.id);
+        revisarMfa();
+      }
     });
 
     return () => listener.subscription.unsubscribe();
   }, []);
 
-  const listo = fontsLoaded && sesionLista && temaListo && (!session || aprobado !== null);
+  const listo =
+    fontsLoaded && sesionLista && temaListo && (!session || (aprobado !== null && mfaPendiente !== null));
 
   // Cuando todo está listo, en vez de cortar el video de golpe lo dejamos
   // desvanecerse lentamente mientras la pantalla de abajo ya está lista para verse.
@@ -115,7 +134,9 @@ function AppContent() {
       <StatusBar style={modo === 'dia' ? 'dark' : 'light'} />
       {listo &&
         (session ? (
-          aprobado ? (
+          mfaPendiente ? (
+            <MfaChallengeScreen onVerificado={() => setMfaPendiente(false)} />
+          ) : aprobado ? (
             <MainTabs userId={session.user.id} email={session.user.email ?? ''} esAdmin={role === 'admin'} />
           ) : (
             <PendienteScreen onReintentar={() => revisarAprobacion(session.user.id)} />

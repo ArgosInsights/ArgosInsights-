@@ -570,6 +570,28 @@
   </div>
 </div>
 
+<!-- ================= ACCESO: VERIFICACIÓN EN DOS PASOS (login) ================= -->
+<div class="screen" id="screen-mfa">
+  <div class="auth-wrap">
+    <div class="auth-card" style="text-align:center;">
+      <div class="brand" style="justify-content:center;"><span class="logo-streaks"><picture><source srcset="/assets/logo-horizontal-nav.webp" type="image/webp"><img src="/assets/logo-horizontal-nav.png" alt="Argos Insights" style="height:22px;width:auto;display:block;"></picture>
+        <span class="streak" style="top:28%; left:4%; width:12px; animation-delay:0.3s; animation-duration:2.5s"></span>
+        <span class="streak" style="top:50%; left:2%; width:16px; animation-delay:1s; animation-duration:2.2s"></span>
+        <span class="streak" style="top:72%; left:5%; width:11px; animation-delay:1.4s; animation-duration:2.6s"></span>
+      </span></div>
+      <div style="width:52px;height:52px;border-radius:16px;background:var(--brand-tint);color:var(--brand-hi);display:flex;align-items:center;justify-content:center;font-size:22px;margin:18px auto 6px;">🛡</div>
+      <h2>Verificación en dos pasos</h2>
+      <p class="sub">Ingresa el código de 6 dígitos de tu app authenticator.</p>
+      <form id="mfa-form" novalidate style="text-align:left;">
+        <div class="fld" id="f-mfa-code"><label for="mfa-code">Código</label><input type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" id="mfa-code" style="text-align:center;letter-spacing:4px;font-size:18px;"><div class="ferr">Ingresa el código de 6 dígitos.</div></div>
+        <div class="msg err" id="mfa-err" style="display:none;margin:-4px 0 12px;"></div>
+        <button type="submit" class="btn btn-primary btn-block" id="mfa-btn">Verificar</button>
+      </form>
+      <div class="auth-alt" style="margin-top:16px;"><button class="link-plain" id="mfa-logout">Cerrar sesión</button></div>
+    </div>
+  </div>
+</div>
+
 <!-- ================= APLICACIÓN (MVP existente, intacto) ================= -->
 <div class="screen" id="screen-app">
 <div class="wrap">
@@ -593,6 +615,7 @@
           <div class="acct-info"><b id="acct-name2">—</b><div class="m2" id="acct-emp" style="font-size:11px;">—</div><div class="m2" id="acct-tipo" style="font-size:11px;margin-top:2px;display:none;">—</div><div class="m2" id="acct-rol" style="font-size:11px;margin-top:2px;display:none;">—</div><div style="margin-top:6px;"><span class="demo-tag" id="acct-mode">Acceso de demostración</span></div></div>
           <button id="acct-help">Ayuda y análisis de pagos</button>
           <button id="acct-onb">Ver guía de inicio</button>
+          <button id="acct-mfa">Verificación en dos pasos</button>
           <button id="acct-logout" class="danger">Cerrar sesión</button>
         </div>
       </div>
@@ -859,6 +882,15 @@
     <button class="onb-opt glow" id="onb-fmt"><span class="oi">?</span><span><b>Ver formato recomendado</b><span>Qué columnas conviene incluir</span></span></button>
     <div class="fmt-box" id="fmt-box"><b style="color:var(--ink);">Columnas mínimas:</b> cliente/pagador, folio y fecha de emisión.<br><b style="color:var(--ink);">Recomendadas:</b> fecha de pago, vencimiento, monto, saldo pendiente, estado, moneda y responsable. Argos detecta los nombres automáticamente (acepta sinónimos) y puedes corregir el mapeo con el botón "Columnas".</div>
     <div style="text-align:right;margin-top:4px;"><button class="link-plain" id="onb-skip">Ahora no</button></div>
+  </div>
+</div>
+
+<!-- ================= SEGURIDAD: VERIFICACIÓN EN DOS PASOS (Perfil) ================= -->
+<div class="modal-back" id="mfa-modal-back">
+  <div class="onb">
+    <button class="close" id="mfa-modal-close" aria-label="Cerrar">✕</button>
+    <h3>Verificación en dos pasos</h3>
+    <div id="mfa-modal-content"></div>
   </div>
 </div>
 
@@ -2873,6 +2905,7 @@ window.ArgosData={
 (function(){
 var session=null;            // {name, empresa, email, demo:bool} — solo en memoria
 var onboardingSeen=false;
+var mfaPendingUser=null;     // usuario ya autenticado (password ok) esperando el 2º factor
 
 var SUPABASE_URL='https://xdeoioppyxztritdtuyy.supabase.co';
 var SUPABASE_ANON_KEY='sb_publishable_hR8VS4xmSWlhLr7KDydVJw_jEMjOUss';
@@ -2924,13 +2957,14 @@ var AuthProvider={
 };
 
 /* ---- Router por hash: atrás/adelante no destruyen la app (solo se oculta) ---- */
-var SCREENS=['login','registro','recuperar','confirm','pendiente','app'];
+var SCREENS=['login','registro','recuperar','confirm','pendiente','mfa','app'];
 function currentScreen(){ var h=(location.hash||'').replace(/^#\/?/,''); return SCREENS.indexOf(h)>=0?h:'login'; }
 function go(name){ location.hash='#/'+(name==='public'?'':name); }
 function route(){
   var s=currentScreen();
   if(s==='app'&&!session){ go('login'); return; }
   if(s==='confirm'&&!session){ go('registro'); return; }
+  if(s==='mfa'&&!mfaPendingUser){ go('login'); return; }
   SCREENS.forEach(function(n){ var el=document.getElementById('screen-'+n); if(el) el.classList.toggle('on',n===s); });
   if(s==='app'&&!onboardingSeen&&!(session&&session.hasData)){ onboardingSeen=true; openOnb(); }
   window.scrollTo(0,0);
@@ -3281,6 +3315,8 @@ function enter(user){
     modeEl.textContent=user.demo?'Acceso de demostración':'Cuenta de cliente';
     modeEl.style.cssText=user.demo?'':'background:rgba(111,176,0,.12);color:var(--brand-hi);border:1px solid var(--brand-dim);';
   }
+  var mfaBtn=document.getElementById('acct-mfa');
+  if(mfaBtn) mfaBtn.style.display=user.demo?'none':'';
   if(!user.demo&&user.id){
     Promise.all([loadRealInvoices(user.id),loadClientExtras(user)]).then(function(r){ session.hasData=r[0]; go('app'); });
   } else {
@@ -3305,10 +3341,51 @@ document.getElementById('login-form').addEventListener('submit',function(ev){
   var btn=document.getElementById('li-btn'); busy(btn,'Ingresando…');
   AuthProvider.login(val('li-email'),document.getElementById('li-pass').value).then(function(r){
     unbusy(btn); document.getElementById('li-pass').value='';
-    if(r.ok){ if(window.ArgosMotion) ArgosMotion.toast('Sesión iniciada'); enter(r.user); }
+    if(r.ok){
+      checkMfaPendiente().then(function(pendiente){
+        if(pendiente){ mfaPendingUser=r.user; document.getElementById('mfa-code').value=''; go('mfa'); }
+        else { if(window.ArgosMotion) ArgosMotion.toast('Sesión iniciada'); enter(r.user); }
+      });
+    }
     else if(r.pending){ go('pendiente'); }
     else { showAuthErr('li-err', r.error||'No pudimos iniciar sesión.'); }
   });
+});
+
+/* ---- verificación en dos pasos (2FA/TOTP) — chequeo tras login y challenge en pantalla "mfa" ----
+   currentLevel/nextLevel vienen de sb.auth.mfa.getAuthenticatorAssuranceLevel(): si difieren
+   (aal1 -> aal2) es que la cuenta tiene un factor verificado y esta sesión todavía no lo pasó. */
+function checkMfaPendiente(){
+  if(!sb) return Promise.resolve(false);
+  return sb.auth.mfa.getAuthenticatorAssuranceLevel().then(function(r){
+    var d=r.data;
+    return !!d && d.currentLevel==='aal1' && d.nextLevel==='aal2';
+  })['catch'](function(){ return false; });
+}
+document.getElementById('mfa-form').addEventListener('submit',function(ev){
+  ev.preventDefault();
+  showAuthErr('mfa-err','');
+  var code=val('mfa-code');
+  if(!mark('mfa-code',!/^\d{6}$/.test(code))) return;
+  var btn=document.getElementById('mfa-btn'); busy(btn,'Verificando…');
+  sb.auth.mfa.listFactors().then(function(r){
+    var factor=r.data&&r.data.totp.filter(function(f){return f.status==='verified';})[0];
+    if(!factor) return {error:{message:'No encontramos tu método de verificación. Cierra sesión y prueba de nuevo.'}};
+    return sb.auth.mfa.challenge({factorId:factor.id}).then(function(ch){
+      if(ch.error) return {error:ch.error};
+      return sb.auth.mfa.verify({factorId:factor.id,challengeId:ch.data.id,code:code});
+    });
+  }).then(function(r){
+    unbusy(btn);
+    if(r.error){ showAuthErr('mfa-err', r.error.message==='Invalid TOTP code entered'?'Código incorrecto. Prueba de nuevo.':r.error.message); return; }
+    var u=mfaPendingUser; mfaPendingUser=null;
+    if(window.ArgosMotion) ArgosMotion.toast('Sesión iniciada');
+    enter(u);
+  });
+});
+document.getElementById('mfa-logout').addEventListener('click',function(){
+  mfaPendingUser=null;
+  AuthProvider.logout().then(function(){ go('login'); });
 });
 /* ---- registro ---- */
 document.getElementById('reg-form').addEventListener('submit',function(ev){
@@ -3358,6 +3435,87 @@ document.getElementById('acct-help').addEventListener('click',function(){
   var b=document.querySelector('nav.nav button[data-tab="metodo"]'); if(b) b.click();
 });
 document.getElementById('acct-onb').addEventListener('click',function(){ acctMenu.classList.remove('open'); openOnb(); });
+
+/* ---- Seguridad: activar/desactivar verificación en dos pasos desde Perfil ----
+   Sin QR (evita depender de un servicio externo de terceros para generarlo): se
+   muestra el código para ingresar a mano en la app authenticator, opción estándar
+   en todas ellas ("Ingresar una clave de configuración"). */
+var mfaEnroll=null; // {id, secret} del factor recién creado, mientras se confirma el código
+function mfaModalHtml(estado,extra){
+  extra=extra||{};
+  if(estado==='cargando') return '<p class="sub">Revisando…</p>';
+  if(estado==='verificando') return ''+
+    '<p class="sub">Agrega esta cuenta en tu app authenticator (Google Authenticator, Authy, etc.) usando "Ingresar una clave de configuración" y este código:</p>'+
+    '<div style="font:700 15px/1.4 monospace;letter-spacing:2px;text-align:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:14px;user-select:all;">'+esc(extra.secret)+'</div>'+
+    '<p class="sub">Después escribe acá el código de 6 dígitos que te muestre:</p>'+
+    '<div class="fld" id="f-mfa2-code"><input type="text" inputmode="numeric" maxlength="6" id="mfa2-code" placeholder="000000" style="text-align:center;letter-spacing:4px;font-size:16px;"></div>'+
+    '<div class="msg err" id="mfa2-err" style="display:none;margin:-4px 0 12px;"></div>'+
+    '<div style="display:flex;gap:10px;">'+
+      '<button class="btn btn-ghost" id="mfa2-cancel" style="flex:1;">Cancelar</button>'+
+      '<button class="btn btn-primary" id="mfa2-confirm" style="flex:1;">Confirmar</button>'+
+    '</div>';
+  if(estado==='on') return ''+
+    '<p class="sub">Activada. Tu cuenta pide un código además de la contraseña cada vez que inicias sesión.</p>'+
+    '<button class="btn btn-ghost btn-block" id="mfa2-off" style="color:var(--red);border-color:var(--red);">Desactivar</button>';
+  return ''+
+    '<p class="sub">Agrega un segundo paso al iniciar sesión con un código de tu app authenticator (Google Authenticator, Authy, etc.). Es opcional.</p>'+
+    '<button class="btn btn-primary btn-block" id="mfa2-on">Activar</button>';
+}
+function renderMfaModal(){
+  var body=document.getElementById('mfa-modal-content');
+  body.innerHTML=mfaModalHtml('cargando');
+  sb.auth.mfa.listFactors().then(function(r){
+    var verificado=r.data&&r.data.totp.filter(function(f){return f.status==='verified';})[0];
+    if(mfaEnroll){ body.innerHTML=mfaModalHtml('verificando',mfaEnroll); wireMfaVerificando(); return; }
+    body.innerHTML=mfaModalHtml(verificado?'on':'off');
+    if(verificado){
+      document.getElementById('mfa2-off').addEventListener('click',function(){
+        if(!confirm('Tu cuenta va a quedar protegida solo con tu contraseña. ¿Desactivar la verificación en dos pasos?')) return;
+        sb.auth.mfa.unenroll({factorId:verificado.id}).then(function(){ renderMfaModal(); });
+      });
+    } else {
+      document.getElementById('mfa2-on').addEventListener('click',function(){
+        sb.auth.mfa.enroll({factorType:'totp'}).then(function(r){
+          if(r.error||!r.data){ alert(r.error?r.error.message:'No pudimos iniciar la activación.'); return; }
+          mfaEnroll={id:r.data.id,secret:r.data.totp.secret};
+          body.innerHTML=mfaModalHtml('verificando',mfaEnroll);
+          wireMfaVerificando();
+        });
+      });
+    }
+  });
+}
+function wireMfaVerificando(){
+  document.getElementById('mfa2-cancel').addEventListener('click',function(){
+    var pend=mfaEnroll; mfaEnroll=null;
+    if(pend) sb.auth.mfa.unenroll({factorId:pend.id})['catch'](function(){});
+    renderMfaModal();
+  });
+  document.getElementById('mfa2-confirm').addEventListener('click',function(){
+    var code=(document.getElementById('mfa2-code').value||'').trim();
+    var errEl=document.getElementById('mfa2-err');
+    if(!/^\d{6}$/.test(code)){ errEl.textContent='Ingresa el código de 6 dígitos.'; errEl.style.display='block'; return; }
+    errEl.style.display='none';
+    sb.auth.mfa.challenge({factorId:mfaEnroll.id}).then(function(ch){
+      if(ch.error) return {error:ch.error};
+      return sb.auth.mfa.verify({factorId:mfaEnroll.id,challengeId:ch.data.id,code:code});
+    }).then(function(r){
+      if(r.error){ errEl.textContent='Código incorrecto. Prueba de nuevo.'; errEl.style.display='block'; return; }
+      mfaEnroll=null;
+      renderMfaModal();
+    });
+  });
+}
+document.getElementById('acct-mfa').addEventListener('click',function(){
+  acctMenu.classList.remove('open');
+  mfaEnroll=null;
+  document.getElementById('mfa-modal-back').classList.add('open');
+  renderMfaModal();
+});
+document.getElementById('mfa-modal-close').addEventListener('click',function(){
+  document.getElementById('mfa-modal-back').classList.remove('open');
+});
+document.getElementById('mfa-modal-back').addEventListener('click',function(ev){ if(ev.target===this) this.classList.remove('open'); });
 function doLogout(){
   acctMenu.classList.remove('open');
   AuthProvider.logout().then(function(){
