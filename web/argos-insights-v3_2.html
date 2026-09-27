@@ -2905,10 +2905,9 @@ window.ArgosData={
 (function(){
 var session=null;            // {name, empresa, email, demo:bool} — solo en memoria
 var onboardingSeen=false;
-var mfaPendingUser=null;     // usuario ya autenticado (password ok) esperando el 2º factor
-
-var SUPABASE_URL='https://xdeoioppyxztritdtuyy.supabase.co';
-var SUPABASE_ANON_KEY='sb_publishable_hR8VS4xmSWlhLr7KDydVJw_jEMjOUss';
+var mfaPendingUser=null;     // usuario ya autenticado (password ok) esperando el 2º factor   
+var SUPABASE_URL='https://jwydclpumwtceisfsypu.supabase.co';
+ var SUPABASE_ANON_KEY='sb_publishable_RhNEwYHPaVFruOkOdOVhLw_IFErStMQ';
 var sb=(window.supabase&&window.supabase.createClient)?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
 
 function traduceAuthError(err){
